@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { signOut, useSession } from "@/lib/auth";
 import { Bell, Check, ChevronDown, Menu, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { notifications } from "@/lib/mock-data";
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
+  const { session } = useSession();
   const { theme, toggle } = useTheme();
   const unread = notifications.filter((n) => !n.read).length;
   const activeWorkspace = useActiveWorkspace();
@@ -186,13 +188,15 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
               className="ml-1 grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label="Menu da conta"
             >
-              HM
+              {(session?.user.email ?? "?").slice(0, 2).toUpperCase()}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuLabel className="font-normal">
-              <p className="text-sm font-semibold">Helena Macuácua</p>
-              <p className="truncate text-xs text-muted-foreground">helena@quota.co.mz</p>
+              <p className="text-sm font-semibold">Sessão iniciada</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {session?.user.email ?? "—"}
+              </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
@@ -205,10 +209,13 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
               <Link to="/dashboard/notificacoes">Notificações</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/login" className="text-destructive">
-                Terminar sessão
-              </Link>
+            <DropdownMenuItem
+              onSelect={() => {
+                void signOut();
+              }}
+              className="text-destructive"
+            >
+              Terminar sessão
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

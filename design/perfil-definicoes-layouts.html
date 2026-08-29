@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Perfil e Definições</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── atoms ────────────────────────────────────────────────── */
+.ctx{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;gap:9px 11px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+.ctx .ttl{font-size:12.5px;font-weight:600}
+.ctx .sub{font-size:11px;color:var(--muted);border-left:1px solid var(--line-soft);padding-left:11px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fld .in{height:30px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 9px;font-size:12px;white-space:nowrap;overflow:hidden}
+.fld .in.focus{border-color:var(--primary);background:var(--bg);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent)}
+.fld .in.tall{height:52px;align-items:flex-start;padding-top:7px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.wide{grid-column:1/-1}
+.sw{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line-soft)}
+.sw .t{flex:1;min-width:0}
+.sw .t b{display:block;font-size:12px;font-weight:600}
+.sw .t span{display:block;font-size:10.5px;color:var(--muted);margin-top:1px}
+.sw i{width:30px;height:17px;border-radius:99px;background:var(--surface-2);flex-shrink:0;position:relative;display:block}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--bg);box-shadow:var(--shadow)}
+.sw i.on{background:var(--primary)}
+.sw i.on::after{left:15px}
+.sec-h{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+.sec-h b{font-family:"Sora",sans-serif;font-size:13.5px;font-weight:600}
+.sec-h span{font-size:11px;color:var(--muted)}
+.ava-lg{width:46px;height:46px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:14px;font-weight:700;background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.card{border:1px solid var(--line-soft);border-radius:11px;background:var(--card);box-shadow:var(--shadow);padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+
+/* rail de navegação */
+.rail{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);padding:7px;min-height:0}
+.rail button{font:inherit;text-align:left;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:flex-start;gap:2px;transition:.16s}
+.rail button:hover{color:var(--fg);background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.rail button[aria-current="true"]{background:color-mix(in oklab,var(--primary) 10%,transparent);color:var(--primary);border-color:color-mix(in oklab,var(--primary) 30%,transparent)}
+.rail button small{display:block;font-weight:400;font-size:10px;color:var(--muted);margin-top:1px}
+.rail .grp{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:9px 10px 4px}
+
+.pane{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+.pane .hd{flex-shrink:0;padding:12px 15px;border-bottom:1px solid var(--line-soft);background:var(--surface)}
+.pane .hd b{font-family:"Sora",sans-serif;font-size:13.5px;font-weight:600;display:block}
+.pane .hd span{font-size:11px;color:var(--muted);display:block;margin-top:2px}
+.pane .bd{flex:1;min-height:0;overflow:auto;padding:14px 15px;display:flex;flex-direction:column;gap:11px}
+.pane .ft{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:9px 13px;display:flex;align-items:center;gap:8px}
+
+/* índice fixo (B do perfil) */
+.idx{display:flex;flex-direction:column;gap:2px;position:sticky;top:0}
+.idx a{font-size:11.5px;font-weight:600;color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:7px;border-left:2px solid transparent}
+.idx a.on{color:var(--primary);background:color-mix(in oklab,var(--primary) 8%,transparent);border-left-color:var(--primary)}
+
+/* documento vivo (B das definições) */
+.paper{background:#fff;color:#0f172a;border:1px solid var(--line);border-radius:5px;box-shadow:0 1px 3px oklch(0 0 0 / .09);padding:20px;font-size:9px;line-height:1.5;display:flex;flex-direction:column;gap:11px}
+.paper .ph{display:flex;justify-content:space-between;gap:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0}
+.paper .co{font-size:12px;font-weight:700;letter-spacing:-.01em}
+.paper .mu{color:#64748b;font-size:8px}
+.paper .kind{text-align:right}
+.paper .kind b{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;color:#1e293b}
+.paper table{width:100%;border-collapse:collapse}
+.paper th{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;text-align:left;padding-bottom:4px;border-bottom:1px solid #e2e8f0}
+.paper td{padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:8.5px}
+.paper .r{text-align:right}
+.paper .pay{border:1px solid #e2e8f0;border-radius:4px;padding:9px;display:flex;justify-content:space-between;gap:10px}
+.paper .pay b{font-size:8.5px}
+.paper .tag{display:inline-block;border-radius:3px;padding:1px 5px;font-size:7px;font-weight:700;color:#fff;margin-bottom:3px}
+.paper .foot{font-size:7.5px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:8px}
+.live{background:color-mix(in oklab,var(--primary) 16%,#fff);outline:1px solid color-mix(in oklab,var(--primary) 45%,transparent);border-radius:2px}
+
+/* iterações */
+#PA .split,#SA .split{flex:1;min-height:0;display:grid;grid-template-columns:212px minmax(0,1fr);gap:13px}
+#PB .split,#SC .split{flex:1;min-height:0;display:grid;grid-template-columns:150px minmax(0,1fr);gap:13px}
+#PB .flow,#SC .flow{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:3px}
+#PC .grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;align-items:start;padding:1px}
+#PC .card .save,#SB2 .card .save{display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:9px;border-top:1px solid var(--line-soft)}
+#PC .card .save span{font-size:10.5px;color:var(--muted);flex:1}
+#SB .split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:13px}
+#SB .formw{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#SB .formw .bd{flex:1;min-height:0;overflow:auto;padding:13px 14px;display:flex;flex-direction:column;gap:13px}
+#SB .prev{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+#SB .prev .hd{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line-soft);background:var(--card);font-size:11px;font-weight:600}
+#SB .prev .hd .dot{width:6px;height:6px;border-radius:99px;background:var(--success)}
+#SB .prev .bd{flex:1;min-height:0;overflow:auto;padding:13px}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+.pane2{flex:1;min-width:0;display:flex;flex-direction:column}
+.level{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.level .lbl{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){.wrap{padding:20px 14px 48px}.brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Perfil e Definições</p>
+      <h1>Duas páginas de formulário longo</h1>
+      <p>São os dois formulários mais compridos da app: <strong>Perfil com 1478&nbsp;px</strong> e <strong>Definições com 2398&nbsp;px — 3,4 alturas de ecrã</strong>. Um formulário de definições pode rolar; o que não devia é <strong>o botão Guardar rolar com ele</strong> (hoje é preciso voltar 1686&nbsp;px acima para gravar). E em Definições cada campo imprime numa factura, mas a pré-visualização está enterrada no fim e mostra os dados <em>já guardados</em> — nunca o que se está a escrever.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">2398</b><span class="arrow">&rarr;</span><b class="to tnum" id="cnum">0</b>
+      <span style="font-size:11px;color:var(--muted);max-width:88px;line-height:1.3">px de scroll<br>de página</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Guardar desaparece ao rolar <b>1686&nbsp;px</b></span>
+    <span>Pré-visualização no fim, com dados <b>já guardados</b></span>
+    <span>Sem forma de saltar entre secções</span>
+    <span>Perfil e Definições com <b>cabeçalhos diferentes</b></span>
+    <span>Uma só barra de Guardar para <b>4 secções</b></span>
+  </div>
+
+  <div class="level">
+    <span class="lbl">Página</span>
+    <div class="switch" role="tablist" aria-label="Página" id="sec">
+      <button role="tab" aria-selected="true" aria-controls="gP" id="tab-gP">Perfil</button>
+      <button role="tab" aria-selected="false" aria-controls="gS" id="tab-gS">Definições</button>
+    </div>
+  </div>
+
+  <div id="gP">
+    <div class="switch" role="tablist" aria-label="Iterações de Perfil" style="margin-bottom:20px">
+      <button role="tab" aria-selected="true" aria-controls="PA" id="tab-PA"><span class="key">A</span> Navegação lateral</button>
+      <button role="tab" aria-selected="false" aria-controls="PB" id="tab-PB"><span class="key">B</span> Coluna única + índice</button>
+      <button role="tab" aria-selected="false" aria-controls="PC" id="tab-PC"><span class="key">C</span> Cartões independentes</button>
+    </div>
+    <dl class="why" id="whyP" style="margin-bottom:20px"></dl>
+  <div class="stage" id="PA" role="tabpanel">
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i class="on"></i><i></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Perfil</span><span class="sub">Os seus dados pessoais e preferências de conta.</span><div style="flex:1"></div><button class="btn p">Guardar alterações</button></div>
+          <div class="split">
+            <div class="rail">
+              <div class="grp">Secções</div>
+              <button aria-current="true">Identidade<small>Nome, contactos, assinatura</small></button>
+              <button>Preferências<small>Idioma, fuso, notificações</small></button>
+              <button>Segurança<small>Palavra-passe, 2FA, sessões</small></button>
+            </div>
+            <div class="pane">
+              <div class="hd"><b>Identidade</b><span>Como aparece para a sua equipa e nos documentos enviados.</span></div>
+              <div class="bd">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span class="ava-lg" style="width:46px;height:46px;border-radius:50%;font-size:14px">HM</span>
+                  <button class="btn g">Carregar fotografia</button>
+                  <button class="btn g" style="border:0;color:var(--muted)">Remover</button>
+                </div>
+            <div class="g2">
+              <div class="fld"><label>Nome</label><div class="in">Helena</div></div>
+              <div class="fld"><label>Apelido</label><div class="in">Macuácua</div></div>
+              <div class="fld"><label>E-mail</label><div class="in">helena@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 123 4567</div></div>
+              <div class="fld wide"><label>Cargo</label><div class="in">Administradora</div></div>
+              <div class="fld wide"><label>Assinatura de e-mail</label><div class="in tall">Helena Macuácua · Quota Studio · +258 84 123 4567</div></div>
+            </div>
+              </div>
+              <div class="ft"><span style="font-size:11px;color:var(--muted)">Secção 1 de 3</span><div style="flex:1"></div><button class="btn g">Seguinte: Preferências</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="PB" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i class="on"></i><i></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Perfil</span><span class="sub">Os seus dados pessoais e preferências de conta.</span><div style="flex:1"></div><button class="btn p">Guardar alterações</button></div>
+          <div class="split">
+            <nav class="idx">
+              <a class="on" href="#">Identidade</a>
+              <a href="#">Preferências</a>
+              <a href="#">Segurança</a>
+            </nav>
+            <div class="flow">
+              <div class="card">
+                <div class="sec-h"><b>Identidade</b><span>Como aparece nos documentos.</span></div>
+            <div class="g2">
+              <div class="fld"><label>Nome</label><div class="in">Helena</div></div>
+              <div class="fld"><label>Apelido</label><div class="in">Macuácua</div></div>
+              <div class="fld"><label>E-mail</label><div class="in">helena@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 123 4567</div></div>
+              <div class="fld wide"><label>Cargo</label><div class="in">Administradora</div></div>
+              <div class="fld wide"><label>Assinatura de e-mail</label><div class="in tall">Helena Macuácua · Quota Studio · +258 84 123 4567</div></div>
+            </div>
+              </div>
+              <div class="card">
+                <div class="sec-h"><b>Preferências</b><span>Idioma, fuso e notificações.</span></div>
+            <div class="g2">
+              <div class="fld"><label>Idioma</label><div class="in">Português (Moçambique)</div></div>
+              <div class="fld"><label>Fuso horário</label><div class="in">África/Maputo (CAT)</div></div>
+            </div>
+            <div>
+              <div class="sw"><span class="t"><b>Resumo diário por e-mail</b><span>Estado de cobranças todas as manhãs.</span></span><i class="on"></i></div>
+              <div class="sw"><span class="t"><b>Alertas no WhatsApp</b><span>Pagamentos e facturas vencidas em tempo real.</span></span><i class="on"></i></div>
+            </div>
+              </div>
+              <div class="card">
+                <div class="sec-h"><b>Segurança</b><span>Acesso e sessões activas.</span></div>
+            <div class="g2">
+              <div class="fld"><label>Palavra-passe actual</label><div class="in">••••••••</div></div>
+              <div class="fld"><label>Nova palavra-passe</label><div class="in">••••••••</div></div>
+            </div>
+            <div>
+              <div class="sw"><span class="t"><b>Autenticação em dois passos</b><span>Código por SMS em novos dispositivos.</span></span><i></i></div>
+            </div>
+            <div>
+              <h5 style="margin:0 0 7px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Sessões activas</h5>
+              <div class="sw" style="border-top:0"><span class="t"><b>Chrome · Maputo</b><span>Este dispositivo</span></span><span class="pill mute">Actual</span></div>
+              <div class="sw"><span class="t"><b>iPhone 14 · Matola</b><span>há 2 horas</span></span><button class="btn g xs" style="color:var(--danger)">Terminar</button></div>
+            </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="PC" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i class="on"></i><i></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Perfil</span><span class="sub">Cada bloco guarda-se sozinho.</span><div style="flex:1"></div></div>
+          <div class="grid">
+            <div class="card">
+              <div class="sec-h"><b>Identidade</b></div>
+            <div class="g2">
+              <div class="fld"><label>Nome</label><div class="in">Helena</div></div>
+              <div class="fld"><label>Apelido</label><div class="in">Macuácua</div></div>
+              <div class="fld"><label>E-mail</label><div class="in">helena@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 123 4567</div></div>
+              <div class="fld wide"><label>Cargo</label><div class="in">Administradora</div></div>
+              <div class="fld wide"><label>Assinatura de e-mail</label><div class="in tall">Helena Macuácua · Quota Studio · +258 84 123 4567</div></div>
+            </div>
+              <div class="save"><span>Alterado</span><button class="btn g xs">Cancelar</button><button class="btn p xs">Guardar</button></div>
+            </div>
+            <div class="card">
+              <div class="sec-h"><b>Preferências</b></div>
+            <div class="g2">
+              <div class="fld"><label>Idioma</label><div class="in">Português (Moçambique)</div></div>
+              <div class="fld"><label>Fuso horário</label><div class="in">África/Maputo (CAT)</div></div>
+            </div>
+            <div>
+              <div class="sw"><span class="t"><b>Resumo diário por e-mail</b><span>Estado de cobranças todas as manhãs.</span></span><i class="on"></i></div>
+              <div class="sw"><span class="t"><b>Alertas no WhatsApp</b><span>Pagamentos e facturas vencidas em tempo real.</span></span><i class="on"></i></div>
+            </div>
+              <div class="save"><span>Sem alterações</span><button class="btn g xs" style="opacity:.5">Guardar</button></div>
+            </div>
+            <div class="card" style="grid-column:1/-1">
+              <div class="sec-h"><b>Segurança</b></div>
+            <div class="g2">
+              <div class="fld"><label>Palavra-passe actual</label><div class="in">••••••••</div></div>
+              <div class="fld"><label>Nova palavra-passe</label><div class="in">••••••••</div></div>
+            </div>
+            <div>
+              <div class="sw"><span class="t"><b>Autenticação em dois passos</b><span>Código por SMS em novos dispositivos.</span></span><i></i></div>
+            </div>
+            <div>
+              <h5 style="margin:0 0 7px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Sessões activas</h5>
+              <div class="sw" style="border-top:0"><span class="t"><b>Chrome · Maputo</b><span>Este dispositivo</span></span><span class="pill mute">Actual</span></div>
+              <div class="sw"><span class="t"><b>iPhone 14 · Matola</b><span>há 2 horas</span></span><button class="btn g xs" style="color:var(--danger)">Terminar</button></div>
+            </div>
+              <div class="save"><span>Sem alterações</span><button class="btn g xs" style="opacity:.5">Guardar</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div id="gS" hidden>
+    <div class="switch" role="tablist" aria-label="Iterações de Definições" style="margin-bottom:20px">
+      <button role="tab" aria-selected="true" aria-controls="SA" id="tab-SA"><span class="key">A</span> Navegação lateral</button>
+      <button role="tab" aria-selected="false" aria-controls="SB" id="tab-SB"><span class="key">B</span> Formulário + documento vivo</button>
+      <button role="tab" aria-selected="false" aria-controls="SC" id="tab-SC"><span class="key">C</span> Cartões independentes</button>
+    </div>
+    <dl class="why" id="whyS" style="margin-bottom:20px"></dl>
+  <div class="stage" id="SA" role="tabpanel">
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i></i><i class="on"></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Definições</span><span class="sub">Estes dados aparecem em todas as facturas e PDFs.</span><div style="flex:1"></div><button class="btn g">Restaurar</button><button class="btn p">Guardar</button></div>
+          <div class="split">
+            <div class="rail">
+              <div class="grp">Secções</div>
+              <button aria-current="true">Empresa<small>Nome, NUIT, morada</small></button>
+              <button>Logotipo<small>Imagem no topo</small></button>
+              <button>Dados de pagamento<small>Banco, M-Pesa, e-Mola</small></button>
+              <button>Rodapé do PDF<small>Nota legal</small></button>
+            </div>
+            <div class="pane">
+              <div class="hd"><b>Empresa</b><span>Nome legal, NUIT e morada usados no documento fiscal.</span></div>
+              <div class="bd">
+            <div class="g2">
+              <div class="fld"><label>Nome da empresa</label><div class="in focus">Quota Studio</div></div>
+              <div class="fld"><label>NUIT</label><div class="in">400987654</div></div>
+              <div class="fld wide"><label>Morada</label><div class="in">Av. 24 de Julho 1234, Maputo · Moçambique</div></div>
+              <div class="fld"><label>Email de facturação</label><div class="in">facturacao@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 000 0000</div></div>
+            </div>
+              </div>
+              <div class="ft"><span style="font-size:11px;color:var(--muted)">Secção 1 de 4</span><div style="flex:1"></div><button class="btn g">Seguinte: Logotipo</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="SB" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i></i><i class="on"></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Definições</span><span class="sub">Estes dados aparecem em todas as facturas e PDFs.</span><div style="flex:1"></div><button class="btn g">Restaurar</button><button class="btn p">Guardar</button></div>
+          <div class="split">
+            <div class="formw">
+              <div class="bd">
+                <div>
+                  <div class="sec-h"><b>Empresa</b><span>Nome legal, NUIT e morada.</span></div>
+            <div class="g2">
+              <div class="fld"><label>Nome da empresa</label><div class="in focus">Quota Studio</div></div>
+              <div class="fld"><label>NUIT</label><div class="in">400987654</div></div>
+              <div class="fld wide"><label>Morada</label><div class="in">Av. 24 de Julho 1234, Maputo · Moçambique</div></div>
+              <div class="fld"><label>Email de facturação</label><div class="in">facturacao@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 000 0000</div></div>
+            </div>
+                </div>
+                <div>
+                  <div class="sec-h"><b>Logotipo</b></div>
+            <div style="display:flex;align-items:center;gap:11px;border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);padding:11px">
+              <span style="width:46px;height:34px;border-radius:6px;background:var(--surface-2);display:grid;place-items:center;font-size:8px;font-weight:700;color:var(--muted)">SEM LOGO</span>
+              <button class="btn g">Carregar logotipo</button>
+              <span style="font-size:10.5px;color:var(--muted)">PNG ou JPG até 600 KB</span>
+            </div>
+                </div>
+                <div>
+                  <div class="sec-h"><b>Dados de pagamento</b></div>
+            <div class="sw" style="border-top:0"><span class="t"><b>Mostrar dados de pagamento</b><span>Bloco impresso no documento.</span></span><i class="on"></i></div>
+            <div class="g2">
+              <div class="fld"><label>Banco</label><div class="in">BCI — Banco Comercial e de Investimentos</div></div>
+              <div class="fld"><label>Titular</label><div class="in">Quota Studio, Lda</div></div>
+              <div class="fld"><label>Número de conta</label><div class="in">1234567890001</div></div>
+              <div class="fld"><label>NIB</label><div class="in">0008 0000 1234567890 157</div></div>
+              <div class="fld"><label>M-Pesa</label><div class="in">84 000 0000</div></div>
+              <div class="fld"><label>e-Mola</label><div class="in">86 000 0000</div></div>
+            </div>
+                </div>
+                <div>
+                  <div class="sec-h"><b>Rodapé do PDF</b></div>
+            <div class="g2">
+              <div class="fld wide"><label>Nota legal</label><div class="in tall">Documento processado por Quota Studio — válido sem assinatura nem selo branco.</div></div>
+              <div class="fld wide"><label>Referência de pagamento</label><div class="in">Indique o número do documento na referência.</div></div>
+            </div>
+                </div>
+              </div>
+            </div>
+            <div class="prev">
+              <div class="hd"><span class="dot"></span> Pré-visualização em directo</div>
+              <div class="bd">
+            <div class="paper">
+              <div class="ph">
+                <div><div class="co"><span class="live">Quota Studio</span></div><div class="mu">Av. 24 de Julho 1234, Maputo · Moçambique</div><div class="mu">NUIT <span class="live">400987654</span> · facturacao@quota.co.mz</div></div>
+                <div class="kind"><b>FACTURA</b><div class="mu">FT 2026/00042</div></div>
+              </div>
+              <table>
+                <thead><tr><th>Descrição</th><th class="r">Qtd</th><th class="r">Total</th></tr></thead>
+                <tbody>
+                  <tr><td>Consultoria de gestão</td><td class="r">1</td><td class="r">42 000,00</td></tr>
+                  <tr><td>Papel A4 80g (resma)</td><td class="r">12</td><td class="r">5 760,00</td></tr>
+                </tbody>
+              </table>
+              <div style="text-align:right;font-size:10px;font-weight:700">Total 64 101,60 MZN</div>
+              <div class="pay">
+                <div><span class="tag" style="background:#c2410c">BCI</span><b><span class="live">Quota Studio, Lda</span></b><div class="mu">Conta <span class="live">1234567890001</span></div></div>
+                <div><span class="tag" style="background:#dc2626">M-Pesa</span><b><span class="live">84 000 0000</span></b><div class="mu">QUOTA STUDIO LDA</div></div>
+              </div>
+              <div class="foot">Documento processado por Quota Studio — válido sem assinatura nem selo branco.</div>
+            </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="SC" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i></i><div class="gap"></div><i></i><i class="on"></i></nav>
+      <div class="pane2">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+<div class="ctx"><span class="ttl">Definições</span><span class="sub">Cada bloco guarda-se sozinho.</span><div style="flex:1"></div></div>
+          <div class="split">
+            <nav class="idx">
+              <a class="on" href="#">Empresa</a>
+              <a href="#">Logotipo</a>
+              <a href="#">Pagamento</a>
+              <a href="#">Rodapé</a>
+            </nav>
+            <div class="flow">
+              <div class="card">
+                <div class="sec-h"><b>Empresa</b><span>Nome legal, NUIT e morada.</span></div>
+            <div class="g2">
+              <div class="fld"><label>Nome da empresa</label><div class="in focus">Quota Studio</div></div>
+              <div class="fld"><label>NUIT</label><div class="in">400987654</div></div>
+              <div class="fld wide"><label>Morada</label><div class="in">Av. 24 de Julho 1234, Maputo · Moçambique</div></div>
+              <div class="fld"><label>Email de facturação</label><div class="in">facturacao@quota.co.mz</div></div>
+              <div class="fld"><label>Telefone</label><div class="in">+258 84 000 0000</div></div>
+            </div>
+                <div class="save" style="display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:9px;border-top:1px solid var(--line-soft)"><span style="font-size:10.5px;color:var(--muted);flex:1">Alterado</span><button class="btn g xs">Cancelar</button><button class="btn p xs">Guardar</button></div>
+              </div>
+              <div class="card">
+                <div class="sec-h"><b>Dados de pagamento</b><span>Banco e carteiras móveis.</span></div>
+            <div class="sw" style="border-top:0"><span class="t"><b>Mostrar dados de pagamento</b><span>Bloco impresso no documento.</span></span><i class="on"></i></div>
+            <div class="g2">
+              <div class="fld"><label>Banco</label><div class="in">BCI — Banco Comercial e de Investimentos</div></div>
+              <div class="fld"><label>Titular</label><div class="in">Quota Studio, Lda</div></div>
+              <div class="fld"><label>Número de conta</label><div class="in">1234567890001</div></div>
+              <div class="fld"><label>NIB</label><div class="in">0008 0000 1234567890 157</div></div>
+              <div class="fld"><label>M-Pesa</label><div class="in">84 000 0000</div></div>
+              <div class="fld"><label>e-Mola</label><div class="in">86 000 0000</div></div>
+            </div>
+                <div class="save" style="display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:9px;border-top:1px solid var(--line-soft)"><span style="font-size:10.5px;color:var(--muted);flex:1">Sem alterações</span><button class="btn g xs" style="opacity:.5">Guardar</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. Campos com os valores reais das páginas. Em <strong>Definições B</strong>, o realce azul no papel marca os campos que vêm directamente do formulário.</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    PA: [
+      ["Estrat\u00e9gia", "Uma sec\u00e7\u00e3o de cada vez. Rail \u00e0 esquerda com Identidade / Prefer\u00eancias / Seguran\u00e7a; s\u00f3 a activa aparece \u00e0 direita."],
+      ["Ganha", "Cada sec\u00e7\u00e3o cabe inteira sem rolar, e o rail diz o que existe \u2014 hoje s\u00f3 se descobre a Seguran\u00e7a rolando at\u00e9 ao fim. \u00c9 o padr\u00e3o cl\u00e1ssico de defini\u00e7\u00f5es, e emparelha com o mesmo layout em Defini\u00e7\u00f5es."],
+      ["Perde", "Ctrl+F deixa de encontrar tudo: procurar um campo exige saber em que sec\u00e7\u00e3o vive. E rever a conta toda passa a ser tr\u00eas cliques em vez de um scroll."],
+      ["Melhor se", "As sec\u00e7\u00f5es forem independentes e se entrar aqui para mexer numa coisa concreta."]
+    ],
+    PB: [
+      ["Estrat\u00e9gia", "Manter o fluxo \u00fanico \u2014 o que existe hoje \u2014 mas acrescentar um <b>\u00edndice fixo</b> que acompanha o scroll e marca onde se est\u00e1."],
+      ["Ganha", "\u00c9 a mudan\u00e7a mais barata e a menos arriscada: nada muda de s\u00edtio, ganha-se orienta\u00e7\u00e3o e salto directo. Continua tudo pesquis\u00e1vel numa p\u00e1gina e revis\u00edvel de uma passagem."],
+      ["Perde", "Continua a rolar \u2014 s\u00f3 que agora por dentro do painel. N\u00e3o resolve o comprimento, organiza-o."],
+      ["Melhor se", "Preferir ver a conta toda de uma vez e s\u00f3 quiser deixar de se perder."]
+    ],
+    PC: [
+      ["Estrat\u00e9gia", "Partir em blocos aut\u00f3nomos, lado a lado, <b>cada um com o seu Guardar</b>. Desaparece a barra global."],
+      ["Ganha", "Resolve o problema de fundo do Guardar \u00fanico: fica claro <em>o que</em> se est\u00e1 a gravar. Cada cart\u00e3o mostra se tem altera\u00e7\u00f5es por gravar, e mudar o idioma deixa de arrastar consigo a palavra-passe."],
+      ["Perde", "Mais bot\u00f5es no ecr\u00e3 e o risco de sair com um cart\u00e3o por gravar. Duas colunas apertam os campos em ecr\u00e3s estreitos."],
+      ["Melhor se", "As sec\u00e7\u00f5es forem mesmo independentes \u2014 e em Perfil s\u00e3o: identidade, prefer\u00eancias e seguran\u00e7a n\u00e3o se cruzam."]
+    ],
+    SA: [
+      ["Estrat\u00e9gia", "Igual ao Perfil A: rail com Empresa / Logotipo / Dados de pagamento / Rodap\u00e9, uma sec\u00e7\u00e3o de cada vez."],
+      ["Ganha", "Dom\u00e1 os 2398&nbsp;px de forma limpa e deixa as duas p\u00e1ginas com a mesma gram\u00e1tica. Escolher A e A torna Perfil e Defini\u00e7\u00f5es a mesma p\u00e1gina com conte\u00fados diferentes."],
+      ["Perde", "<b>Perde a pr\u00e9-visualiza\u00e7\u00e3o.</b> Numa p\u00e1gina onde cada campo imprime numa factura, n\u00e3o ver o efeito \u00e9 o custo mais alto dos tr\u00eas."],
+      ["Melhor se", "A prioridade for coer\u00eancia entre as duas p\u00e1ginas."]
+    ],
+    SB: [
+      ["Estrat\u00e9gia", "Aplicar aqui a regra da Bancada: <b>\u00e0 esquerda o que se escreve, \u00e0 direita o que isso produz</b>. Formul\u00e1rio e factura lado a lado, a actualizar enquanto se escreve."],
+      ["Ganha", "Esta p\u00e1gina existe para desenhar o documento fiscal \u2014 nome, NUIT, morada, logotipo, banco, M-Pesa e rodap\u00e9 <em>s\u00e3o</em> a factura. Hoje a pr\u00e9-visualiza\u00e7\u00e3o est\u00e1 no fim e mostra os dados j\u00e1 gravados: v\u00ea-se o passado, nunca a altera\u00e7\u00e3o. Aqui v\u00ea-se o NIB a entrar no bloco de pagamento no momento em que se escreve."],
+      ["Perde", "340&nbsp;px para o papel deixam o formul\u00e1rio mais estreito, e o formul\u00e1rio continua a rolar por dentro \u2014 s\u00f3 que agora com refer\u00eancia \u00e0 vista."],
+      ["Melhor se", "Aceitar que Defini\u00e7\u00f5es <em>\u00e9</em> um editor de documento, e n\u00e3o uma lista de campos."]
+    ],
+    SC: [
+      ["Estrat\u00e9gia", "Blocos aut\u00f3nomos com Guardar pr\u00f3prio, com \u00edndice lateral para saltar."],
+      ["Ganha", "Mesma vantagem do Perfil C: grava-se o bloco que se mexeu. Aqui pesa mais, porque mudar o rodap\u00e9 e o NUIT s\u00e3o decis\u00f5es diferentes com riscos diferentes \u2014 o NUIT \u00e9 fiscal."],
+      ["Perde", "Tamb\u00e9m fica sem pr\u00e9-visualiza\u00e7\u00e3o, e quatro bot\u00f5es de Guardar numa p\u00e1gina de dados fiscais podem dar a sensa\u00e7\u00e3o de estado meio gravado."],
+      ["Melhor se", "Quiser separar claramente o que \u00e9 fiscal do que \u00e9 cosm\u00e9tico."]
+    ]
+  };
+
+  function render(el, items) {
+    el.innerHTML = items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+  }
+
+  var whyP = document.getElementById("whyP");
+  var whyS = document.getElementById("whyS");
+  var lists = document.querySelectorAll('[aria-label^="Itera"]');
+
+  wire(document.getElementById("sec"));
+  wire(lists[0], function (t) { render(whyP, meta[t.getAttribute("aria-controls")]); });
+  wire(lists[1], function (t) { render(whyS, meta[t.getAttribute("aria-controls")]); });
+
+  render(whyP, meta.PA);
+  render(whyS, meta.SA);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var open = document.getElementById("gS").hidden ? lists[0] : lists[1];
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i >= 0) { open.querySelectorAll('[role=tab]')[i].click(); return; }
+    if (e.key.toLowerCase() === "p") document.getElementById("tab-gP").click();
+    if (e.key.toLowerCase() === "d") document.getElementById("tab-gS").click();
+  });
+})();
+</script>
+</body>
+</html>

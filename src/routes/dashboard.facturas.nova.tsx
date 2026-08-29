@@ -42,7 +42,9 @@ function NovaFactura() {
   const navigate = useNavigate();
   const { cliente } = Route.useSearch();
   const clients = useClients();
-  const [number] = useState(() => nextInvoiceNumber());
+  // O número fiscal é atribuído pela base de dados ao gravar — abrir e
+  // abandonar o formulário não pode consumir um número.
+  const number = "";
   const [clientId, setClientId] = useState<string>(cliente ?? "cli-demo-1");
   const [client, setClient] = useState({ ...demoClient });
   const [issued, setIssued] = useState(iso(0));
@@ -82,13 +84,13 @@ function NovaFactura() {
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     const valid = lines.filter((l) => l.description.trim() && l.qty > 0);
     if (!client.name.trim()) return setError("Indique o nome do cliente.");
     if (!valid.length) return setError("Adicione ao menos uma linha com descrição e quantidade.");
     setError(undefined);
-    const created = addInvoice({
+    const created = await addInvoice({
       number,
       issued,
       due,
@@ -99,7 +101,7 @@ function NovaFactura() {
       lines: valid,
       payments: [],
     });
-    navigate({ to: "/dashboard/facturas/$id", params: { id: created.id } });
+    if (created) navigate({ to: "/dashboard/facturas/$id", params: { id: created.id } });
   }
 
   return (

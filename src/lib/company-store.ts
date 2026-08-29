@@ -1,7 +1,12 @@
 /**
- * Frontend-only company profile (emitter details shown on invoices & PDFs).
+ * Perfil da empresa (dados do emitente que saem nas facturas e PDFs).
+ *
+ * Guardado numa única linha da tabela `company`, na coluna `settings` (JSONB):
+ * o tipo tem estrutura aninhada e é sempre lido e gravado de uma vez.
  */
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "./supabase";
 import type { BankAccount, WalletAccount } from "@/lib/payment-details";
 
 export type Company = {
@@ -19,8 +24,6 @@ export type Company = {
   /** Carteiras móveis (M-Pesa / e-Mola) com número e nome de confirmação. */
   wallets: WalletAccount[];
 };
-
-export const COMPANY_KEY = "quota.company.v1";
 
 export const defaultCompany: Company = {
   name: "Quota Studio",
@@ -43,51 +46,86 @@ export const defaultCompany: Company = {
 };
 
 let company: Company = { ...defaultCompany };
+let rowId: string | null = null;
 let hydrated = false;
+let inflight: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
 function emit() {
   listeners.forEach((l) => l());
 }
 
-function persist() {
-  try {
-    localStorage.setItem(COMPANY_KEY, JSON.stringify(company));
-  } catch {
-    /* ignore */
-  }
+function fail(action: string, error: { message: string }) {
+  console.error(`[company] ${action}:`, error.message);
+  toast.error(`Não foi possível ${action}`, { description: error.message });
 }
 
-function hydrate() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
-  try {
-    const raw = localStorage.getItem(COMPANY_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<Company>;
-      company = { ...defaultCompany, ...parsed };
-    }
-  } catch {
-    /* ignore */
+/** Garante que existe a linha única e devolve o seu id. */
+async function ensureRow() {
+  const sb = supabase;
+  if (!sb) return null;
+  if (rowId) return rowId;
+
+  const { data, error } = await sb.from("company").select("id,settings").limit(1).maybeSingle();
+  if (error) {
+    fail("carregar as definições", error);
+    return null;
   }
+  if (data) {
+    rowId = data.id as string;
+    const settings = (data.settings ?? {}) as Partial<Company>;
+    if (Object.keys(settings).length) company = { ...defaultCompany, ...settings };
+    return rowId;
+  }
+
+  const created = await sb.from("company").insert({ settings: defaultCompany }).select("id").single();
+  if (created.error) {
+    fail("criar as definições", created.error);
+    return null;
+  }
+  rowId = created.data.id as string;
+  return rowId;
+}
+
+async function load() {
+  await ensureRow();
   emit();
+}
+
+export function hydrateCompany() {
+  if (hydrated || typeof window === "undefined") return inflight ?? Promise.resolve();
+  hydrated = true;
+  inflight = load().finally(() => {
+    inflight = null;
+  });
+  return inflight;
 }
 
 export function getCompany() {
   return company;
 }
 
-export function saveCompany(patch: Partial<Company>) {
+export async function saveCompany(patch: Partial<Company>) {
+  const sb = supabase;
+  const previous = company;
   company = { ...company, ...patch };
-  persist();
   emit();
+
+  if (!sb) return company;
+  const id = await ensureRow();
+  if (!id) return company;
+
+  const { error } = await sb.from("company").update({ settings: company }).eq("id", id);
+  if (error) {
+    company = previous;
+    emit();
+    fail("guardar as definições", error);
+  }
   return company;
 }
 
-export function resetCompany() {
-  company = { ...defaultCompany };
-  persist();
-  emit();
+export async function resetCompany() {
+  await saveCompany({ ...defaultCompany });
 }
 
 export function useCompany() {
@@ -95,7 +133,7 @@ export function useCompany() {
   useEffect(() => {
     const sync = () => setValue(getCompany());
     listeners.add(sync);
-    hydrate();
+    hydrateCompany();
     sync();
     return () => {
       listeners.delete(sync);

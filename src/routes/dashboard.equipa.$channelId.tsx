@@ -86,30 +86,26 @@ function TeamChatPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Espaço de trabalho
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight md:text-3xl">
-            Chat da equipa
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+    <div className="flex flex-col gap-3 md:h-full md:min-h-0">
+      {/* ─── Barra de contexto ─── */}
+      <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="pl-1 text-[12.5px] font-semibold">Chat da equipa</span>
+          <span className="hidden border-l border-border/60 pl-3 text-[11px] text-muted-foreground sm:inline">
             Converse com a equipa e crie grupos por área do negócio.
-          </p>
+          </span>
+          <button
+            onClick={() => setCreating(true)}
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
+          >
+            <Plus className="h-3.5 w-3.5" /> Criar grupo
+          </button>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" /> Criar grupo
-        </button>
-      </header>
+      </section>
 
-      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+      <div className="grid gap-3 md:min-h-0 md:flex-1 lg:grid-cols-[260px_minmax(0,1fr)]">
         {/* Channel list */}
-        <aside className="rounded-lg border border-border/60 bg-card p-3 shadow-card">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card p-3 shadow-sm">
           <div className="flex h-9 items-center gap-2 rounded-md border border-border/60 bg-background px-3">
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
@@ -120,13 +116,15 @@ function TeamChatPage() {
             />
           </div>
 
-          <ChannelGroup label="Canais" items={groups} activeId={channelId} />
-          <ChannelGroup label="Mensagens directas" items={directs} activeId={channelId} />
+          <div className="mt-1 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <ChannelGroup label="Canais" items={groups} activeId={channelId} />
+            <ChannelGroup label="Mensagens directas" items={directs} activeId={channelId} />
+          </div>
         </aside>
 
         {/* Conversation */}
-        <section className="flex min-h-[560px] flex-col rounded-lg border border-border/60 bg-card shadow-card">
-          <header className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
+        <section className="flex min-h-[420px] flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm md:min-h-0">
+          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/60 px-5 py-3.5">
             <div className="min-w-0">
               <p className="truncate font-display text-[15px] font-semibold">
                 {channel?.name ?? "Canal indisponível"}
@@ -169,7 +167,7 @@ function TeamChatPage() {
             </div>
           </header>
 
-          <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-4">
             {messages.length === 0 && (
               <p className="py-16 text-center text-sm text-muted-foreground">
                 Ainda sem mensagens. Comece a conversa abaixo.

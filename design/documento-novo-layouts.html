@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Novo documento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── editor atoms, shared by the three iterations ─────────── */
+.seg{display:inline-flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:8px;border:1px solid var(--line-soft)}
+.seg button{font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);padding:5px 10px;border-radius:6px;transition:.16s;white-space:nowrap}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.seg button:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fld .in{height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 9px;font-size:12.5px;gap:6px;min-width:0}
+.fld .in b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fld .in.focus{border-color:var(--primary);background:var(--bg);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent)}
+.fld .in .cur{width:1px;height:15px;background:var(--primary);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* the paper document */
+.doc{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.doc .dhead{flex-shrink:0;padding:15px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface);display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.doc .dhead .org{font-family:"Sora",sans-serif;font-size:14px;font-weight:600;letter-spacing:-.01em}
+.doc .dhead .org span{display:block;font-family:"Manrope",sans-serif;font-size:10.5px;font-weight:400;color:var(--muted);margin-top:3px}
+.doc .dhead .kind{text-align:right;flex-shrink:0}
+.doc .dhead .kind b{display:block;font-family:"Sora",sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--primary)}
+.doc .dhead .kind span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.doc .dbody{flex:1;min-height:0;overflow:auto;padding:14px 18px}
+.doc .party{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:13px;border-bottom:1px solid var(--line-soft)}
+.doc .party .k{font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.doc .party .v{font-size:12.5px;font-weight:600}
+.doc .party .v span{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.doc .party .r{text-align:right}
+.doc table{width:100%;border-collapse:collapse;margin-top:11px}
+.doc th{font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:left;padding-bottom:7px;border-bottom:1px solid var(--line-soft)}
+.doc th.r,.doc td.r{text-align:right}
+.doc td{font-size:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.doc td.d{font-weight:500}
+.doc .sums{margin-top:12px;margin-left:auto;width:min(230px,60%);display:flex;flex-direction:column;gap:6px}
+.doc .sums div{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.doc .sums .tot{border-top:1px solid var(--line);padding-top:9px;margin-top:3px;color:var(--fg);align-items:baseline}
+.doc .sums .tot b{font-family:"Sora",sans-serif;font-size:16px;font-weight:600;color:var(--primary);letter-spacing:-.01em}
+.doc .terms{margin-top:14px;padding-top:11px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--muted);line-height:1.5}
+
+/* ── A · Bancada ──────────────────────────────────────────── */
+#A .ctx{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+#A .ctx .ref{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;padding-left:12px;border-left:1px solid var(--line-soft)}
+#A .ctx .ref .d{width:6px;height:6px;border-radius:99px;background:var(--warning)}
+#A .split{flex:1;min-height:0;display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+#A .form{display:flex;flex-direction:column;min-height:0;background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+#A .who{flex-shrink:0;display:grid;grid-template-columns:1.5fr .9fr .9fr .8fr;gap:9px;padding:13px 15px;border-bottom:1px solid var(--line-soft);background:var(--surface)}
+#A .lines{flex:1;min-height:0;display:flex;flex-direction:column}
+#A .lhead{flex-shrink:0;display:grid;grid-template-columns:1fr 54px 92px 92px 26px;gap:9px;padding:9px 15px 7px;font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line-soft)}
+#A .lscroll{flex:1;min-height:0;overflow:auto;padding:5px 9px}
+#A .ln{display:grid;grid-template-columns:1fr 54px 92px 92px 26px;gap:9px;align-items:center;padding:5px 6px;border-radius:8px}
+#A .ln:hover{background:color-mix(in oklab,var(--surface-2) 60%,transparent)}
+#A .ln .c{height:30px;border:1px solid transparent;border-radius:7px;display:flex;align-items:center;padding:0 8px;font-size:12.5px;background:transparent;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#A .ln:hover .c{border-color:var(--line-soft);background:var(--bg)}
+#A .ln .c.focus{border-color:var(--primary);background:var(--bg);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent)}
+#A .ln .c.r{justify-content:flex-end;font-variant-numeric:tabular-nums}
+#A .ln .c.tot{font-weight:700;font-variant-numeric:tabular-nums;justify-content:flex-end}
+#A .ln .x{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;color:var(--muted);opacity:0;cursor:pointer;border:0;background:none}
+#A .ln:hover .x{opacity:1}
+#A .ln .x:hover{background:color-mix(in oklab,var(--danger) 12%,transparent);color:var(--danger)}
+#A .addrow{display:flex;gap:8px;padding:7px 6px 3px}
+#A .add{font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:7px;padding:7px 11px;display:inline-flex;align-items:center;gap:6px;transition:.16s}
+#A .add:hover{border-color:var(--primary);color:var(--primary);border-style:solid;background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#A .foot{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:10px 15px;display:flex;align-items:center;gap:14px}
+#A .foot .mini{display:flex;gap:14px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#A .foot .mini b{color:var(--fg);font-weight:600}
+#A .foot .grand{margin-left:auto;text-align:right;flex-shrink:0}
+#A .foot .grand span{display:block;font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+#A .foot .grand b{font-family:"Sora",sans-serif;font-size:19px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+#A .foot .grand b span{display:inline}
+#A .notes{flex-shrink:0;margin-top:10px;border:1px solid var(--line-soft);border-radius:9px;background:var(--card);padding:9px 13px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--muted);cursor:pointer}
+#A .notes:hover{border-color:var(--line)}
+#A .notes b{color:var(--fg);font-weight:600;font-size:11.5px}
+#A .notes .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── B · Documento vivo ───────────────────────────────────── */
+#B .stagewrap{flex:1;min-height:0;display:grid;grid-template-columns:1fr 252px;gap:16px}
+#B .paperwrap{min-height:0;display:flex;justify-content:center;padding:2px}
+#B .doc{width:100%;max-width:560px}
+#B .ed{display:inline;border-bottom:1px dashed color-mix(in oklab,var(--primary) 45%,transparent);cursor:text;border-radius:3px;padding:0 2px;margin:0 -2px;transition:.14s}
+#B .ed:hover{background:color-mix(in oklab,var(--primary) 8%,transparent)}
+#B .live{background:var(--bg);border:1px solid var(--primary);border-radius:5px;padding:1px 5px;margin:0 -5px;box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent);display:inline-flex;align-items:center;gap:1px}
+#B .live .cur{width:1px;height:13px;background:var(--primary);animation:blink 1.1s steps(1) infinite}
+#B tr:hover td{background:color-mix(in oklab,var(--surface-2) 55%,transparent)}
+#B .addline{font:inherit;width:100%;font-size:11.5px;font-weight:600;cursor:pointer;border:0;border-bottom:1px solid var(--line-soft);background:transparent;color:var(--muted);padding:9px 0;display:flex;align-items:center;gap:7px;transition:.14s}
+#B .addline:hover{color:var(--primary)}
+#B .rail{display:flex;flex-direction:column;gap:11px;min-height:0;overflow:auto;padding-right:2px}
+#B .rgrp{border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);padding:12px 13px;display:flex;flex-direction:column;gap:9px}
+#B .rgrp h4{margin:0;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#B .typegrid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#B .typegrid button{font:inherit;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;padding:7px 4px;transition:.16s}
+#B .typegrid button:hover{color:var(--fg);border-color:var(--muted)}
+#B .typegrid button[aria-pressed="true"]{background:color-mix(in oklab,var(--primary) 10%,transparent);border-color:color-mix(in oklab,var(--primary) 50%,transparent);color:var(--primary)}
+#B .typegrid button.wide{grid-column:1/-1}
+#B .money{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+#B .money.big{border-top:1px solid var(--line);padding-top:9px;margin-top:2px;align-items:baseline;color:var(--fg)}
+#B .money.big b{font-family:"Sora",sans-serif;font-size:17px;font-weight:600;letter-spacing:-.02em;color:var(--primary)}
+#B .rail .btn{width:100%}
+
+/* ── C · Fluxo focado ─────────────────────────────────────── */
+#C .prog{flex-shrink:0;display:flex;align-items:center;gap:22px;padding-bottom:13px;border-bottom:1px solid var(--line-soft)}
+#C .track{flex:1;display:flex;align-items:center;gap:0;min-width:0}
+#C .node{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#C .node .n{width:24px;height:24px;border-radius:99px;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--surface-2);color:var(--muted);flex-shrink:0}
+#C .node.done .n{background:color-mix(in oklab,var(--success) 15%,transparent);color:var(--success)}
+#C .node.now .n{background:var(--primary);color:var(--primary-fg);box-shadow:0 0 0 4px color-mix(in oklab,var(--primary) 14%,transparent)}
+#C .node b{font-size:11.5px;font-weight:600;color:var(--muted)}
+#C .node.now b{color:var(--fg)}
+#C .node.done b{color:var(--fg)}
+#C .seg-line{flex:1;height:1px;background:var(--line);margin:0 12px;min-width:14px}
+#C .seg-line.done{background:color-mix(in oklab,var(--success) 45%,transparent)}
+#C .stagec{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;padding:0 2px}
+#C .ask{text-align:center;flex-shrink:0;margin-bottom:18px}
+#C .ask h2{margin:0;font-size:21px;font-weight:600;letter-spacing:-.02em}
+#C .ask p{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+#C .card{width:min(620px,100%);margin:0 auto;border:1px solid var(--line-soft);border-radius:12px;background:var(--card);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+#C .bigln{display:flex;align-items:center;gap:12px;padding:12px 15px;border-bottom:1px solid var(--line-soft)}
+#C .bigln:last-of-type{border-bottom:0}
+#C .bigln .h{width:30px;height:30px;border-radius:8px;background:var(--surface-2);color:var(--muted);display:grid;place-items:center;flex-shrink:0;font-size:11px;font-weight:700}
+#C .bigln .t{flex:1;min-width:0}
+#C .bigln .t b{display:block;font-size:13.5px;font-weight:600}
+#C .bigln .t span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+#C .bigln .v{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+#C .bigadd{display:flex;gap:9px;padding:12px 15px;border-top:1px solid var(--line-soft);background:var(--surface)}
+#C .bigadd button{font:inherit;flex:1;font-size:12px;font-weight:600;cursor:pointer;border:1px dashed var(--line);background:var(--bg);color:var(--muted);border-radius:9px;padding:11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:.16s}
+#C .bigadd button:hover{border-color:var(--primary);border-style:solid;color:var(--primary);background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#C .nav{flex-shrink:0;display:flex;align-items:center;gap:12px;padding-top:13px;border-top:1px solid var(--line-soft)}
+#C .nav .run{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+#C .nav .run b{font-family:"Sora",sans-serif;font-size:15px;font-weight:600;color:var(--fg);margin-left:5px}
+#C .nav .sp{flex:1}
+#C .thumb{position:absolute;right:20px;bottom:74px;width:132px;border:1px solid var(--line);border-radius:9px;background:var(--card);box-shadow:var(--shadow-lg);overflow:hidden;cursor:pointer;transition:.2s cubic-bezier(.22,1,.36,1)}
+#C .thumb:hover{transform:translateY(-3px) scale(1.03)}
+#C .thumb .tb{padding:8px 9px;font-size:8px;color:var(--muted);line-height:1.6}
+#C .thumb .tb .l{height:3px;border-radius:9px;background:var(--surface-2);margin-bottom:4px}
+#C .thumb .tb .l.s{width:55%}
+#C .thumb .tb .l.p{background:color-mix(in oklab,var(--primary) 25%,transparent);width:38%}
+#C .thumb .cap{border-top:1px solid var(--line-soft);padding:6px 9px;font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--surface)}
+#C .relwrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){
+  .wrap{padding:20px 14px 48px}
+  .brief h1{font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Emitir documento</p>
+      <h1>Três formas de emitir sem scroll</h1>
+      <p>A vista actual empilha <strong>sete contentores</strong> em 1559&nbsp;px dentro de uma viewport de 712&nbsp;px — <strong>2,2 alturas de ecrã</strong>. Pior: o mesmo valor aparece repetido em três sítios ao mesmo tempo, e o indicador de etapas não controla nada — só muda de cor à medida que os campos são preenchidos. Cada iteração abaixo ataca isto de forma diferente, e todas cabem em <code>100dvh</code>.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">7</b><span class="arrow">→</span><b class="to tnum" id="cnum">4</b>
+      <span style="font-size:11px;color:var(--muted);max-width:80px;line-height:1.3">contentores<br>visíveis</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Total repetido <b>3&times;</b></span>
+    <span>Tipo de documento repetido <b>3&times;</b></span>
+    <span>Nome do cliente <b>2&times;</b></span>
+    <span>Referência <b>2&times;</b></span>
+    <span>Etapas decorativas <b>~140&nbsp;px</b></span>
+    <span>Selector de tipo, escolhido uma vez <b>~180&nbsp;px</b></span>
+  </div>
+
+  <div class="switch" role="tablist" aria-label="Iterações de layout">
+    <button role="tab" aria-selected="true" aria-controls="A" id="tab-A"><span class="key">A</span> Bancada</button>
+    <button role="tab" aria-selected="false" aria-controls="B" id="tab-B"><span class="key">B</span> Documento vivo</button>
+    <button role="tab" aria-selected="false" aria-controls="C" id="tab-C"><span class="key">C</span> Fluxo focado</button>
+  </div>
+
+  <dl class="why" id="why"></dl>
+
+  <!-- ══════════════════ A · BANCADA ══════════════════ -->
+  <div class="stage" id="A" role="tabpanel" aria-labelledby="tab-A">
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true">
+          <div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div>
+          <div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div>
+        </div>
+
+        <div class="content">
+          <!-- context bar: type + reference + actions, one row -->
+          <div class="ctx">
+            <div class="seg" role="group" aria-label="Tipo de documento">
+              <button>Cotação</button>
+              <button>Cotação visual</button>
+              <button aria-pressed="true">Factura</button>
+              <button>Pró-forma</button>
+              <button>VD/Recibo</button>
+            </div>
+            <div class="ref"><span class="d"></span> FT/2026/0042 · Rascunho</div>
+            <div style="flex:1"></div>
+            <button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg> PDF</button>
+            <button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg> Emitir e enviar</button>
+          </div>
+
+          <div class="split">
+            <!-- left: the form -->
+            <div class="form">
+              <div class="who">
+                <div class="fld"><label>Cliente</label><div class="in"><b>Construções Beira, Lda.</b><svg style="margin-left:auto;flex-shrink:0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg></div></div>
+                <div class="fld"><label>NUIT</label><div class="in"><b class="tnum">400123456</b></div></div>
+                <div class="fld"><label>Emissão</label><div class="in"><b class="tnum">27/07/2026</b></div></div>
+                <div class="fld"><label>Prazo</label><div class="in"><b class="tnum">15 d</b></div></div>
+              </div>
+
+              <div class="lines">
+                <div class="lhead"><span>Descrição</span><span style="text-align:right">Qtd</span><span style="text-align:right">Preço</span><span style="text-align:right">Total</span><span></span></div>
+                <div class="lscroll">
+                  <div class="ln">
+                    <div class="c">Consultoria técnica</div>
+                    <div class="c r">2</div><div class="c r">18 500,00</div>
+                    <div class="c tot">37 000,00</div>
+                    <button class="x" aria-label="Remover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+                  </div>
+                  <div class="ln">
+                    <div class="c focus">Instalação de equipamento<span class="cur" style="margin-left:1px"></span></div>
+                    <div class="c r">1</div><div class="c r">42 000,00</div>
+                    <div class="c tot">42 000,00</div>
+                    <button class="x" aria-label="Remover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+                  </div>
+                  <div class="ln">
+                    <div class="c">Manutenção trimestral</div>
+                    <div class="c r">3</div><div class="c r">6 500,00</div>
+                    <div class="c tot">19 500,00</div>
+                    <button class="x" aria-label="Remover"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+                  </div>
+                  <div class="addrow">
+                    <button class="add"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Linha</button>
+                    <button class="add"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.3 9 5.2v9L7.5 13.5v-9Z"/><path d="m7.5 4.3 9-2.3 4 5.2-9 2.3Z"/></svg> Do catálogo</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="foot">
+                <div class="fld" style="flex-direction:row;align-items:center;gap:8px">
+                  <label style="letter-spacing:.1em">Desconto</label>
+                  <div class="in" style="width:74px;height:28px"><b class="tnum">0</b><span style="margin-left:auto;color:var(--muted)">%</span></div>
+                </div>
+                <span class="note" style="font-size:11px">3 linhas · IVA 16%</span>
+                <span style="flex:1"></span>
+                <span class="note" style="font-size:11px">Total &rarr; no documento</span>
+              </div>
+            </div>
+
+            <!-- right: live preview -->
+            <div class="doc">
+              <div class="dhead">
+                <div class="org">Quota Studio, Lda.<span>NUIT 400987654 · Maputo, Moçambique</span></div>
+                <div class="kind"><b>FACTURA</b><span>FT/2026/0042</span></div>
+              </div>
+              <div class="dbody">
+                <div class="party">
+                  <div><div class="k">Cliente</div><div class="v">Construções Beira, Lda.<span>NUIT 400123456</span></div></div>
+                  <div class="r"><div class="k">Data</div><div class="v">27/07/2026<span>Prazo 15 dias</span></div></div>
+                </div>
+                <table>
+                  <thead><tr><th>Descrição</th><th class="r">Qtd</th><th class="r">Total</th></tr></thead>
+                  <tbody>
+                    <tr><td class="d">Consultoria técnica</td><td class="r">2</td><td class="r">37 000,00</td></tr>
+                    <tr><td class="d">Instalação de equipamento</td><td class="r">1</td><td class="r">42 000,00</td></tr>
+                    <tr><td class="d">Manutenção trimestral</td><td class="r">3</td><td class="r">19 500,00</td></tr>
+                  </tbody>
+                </table>
+                <div class="sums">
+                  <div><span>Subtotal</span><span>98 500,00</span></div>
+                  <div><span>IVA 16%</span><span>15 760,00</span></div>
+                  <div class="tot"><span style="font-size:12px;font-weight:600">Total</span><b>114 260,00 MZN</b></div>
+                </div>
+                <div class="terms">Pagamento a 15 dias. M-Pesa: 84 000 0000.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- notes collapsed to a single line -->
+          <div class="notes">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            <b>Notas e condições</b>
+            <span class="t">Pagamento a 15 dias. M-Pesa: 84 000 0000.</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ B · DOCUMENTO VIVO ══════════════════ -->
+  <div class="stage" id="B" role="tabpanel" aria-labelledby="tab-B" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true">
+          <div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div>
+          <div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div>
+        </div>
+
+        <div class="content">
+          <div class="stagewrap">
+            <!-- the document IS the editor -->
+            <div class="paperwrap">
+              <div class="doc">
+                <div class="dhead">
+                  <div class="org">Quota Studio, Lda.<span>NUIT 400987654 · Maputo, Moçambique</span></div>
+                  <div class="kind"><b>FACTURA</b><span>FT/2026/0042</span></div>
+                </div>
+                <div class="dbody">
+                  <div class="party">
+                    <div><div class="k">Cliente</div><div class="v"><span class="live">Construções Beira, Lda.<span class="cur"></span></span><span style="margin-top:4px">NUIT <span class="ed">400123456</span></span></div></div>
+                    <div class="r"><div class="k">Data</div><div class="v"><span class="ed">27/07/2026</span><span style="margin-top:4px">Prazo <span class="ed">15</span> dias</span></div></div>
+                  </div>
+                  <table>
+                    <thead><tr><th>Descrição</th><th class="r">Qtd</th><th class="r">Preço</th><th class="r">Total</th></tr></thead>
+                    <tbody>
+                      <tr><td class="d"><span class="ed">Consultoria técnica</span></td><td class="r"><span class="ed">2</span></td><td class="r"><span class="ed">18 500,00</span></td><td class="r">37 000,00</td></tr>
+                      <tr><td class="d"><span class="ed">Instalação de equipamento</span></td><td class="r"><span class="ed">1</span></td><td class="r"><span class="ed">42 000,00</span></td><td class="r">42 000,00</td></tr>
+                      <tr><td class="d"><span class="ed">Manutenção trimestral</span></td><td class="r"><span class="ed">3</span></td><td class="r"><span class="ed">6 500,00</span></td><td class="r">19 500,00</td></tr>
+                    </tbody>
+                  </table>
+                  <button class="addline"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Adicionar linha <span style="margin-left:auto;font-weight:500;font-size:10.5px">ou ⌘K para o catálogo</span></button>
+                  <div class="sums">
+                    <div><span>Subtotal</span><span>98 500,00</span></div>
+                    <div><span>IVA 16%</span><span>15 760,00</span></div>
+                    <div class="tot"><span style="font-size:12px;font-weight:600">Total</span><b>114 260,00 MZN</b></div>
+                  </div>
+                  <div class="terms"><span class="ed">Pagamento a 15 dias. M-Pesa: 84 000 0000.</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- rail: only what has no place on the paper -->
+            <div class="rail">
+              <div class="rgrp">
+                <h4>Tipo</h4>
+                <div class="typegrid">
+                  <button>Cotação</button>
+                  <button aria-pressed="true">Factura</button>
+                  <button>Pró-forma</button>
+                  <button>VD/Recibo</button>
+                  <button class="wide">Cotação visual</button>
+                </div>
+              </div>
+
+              <div class="rgrp">
+                <h4>Ajustes</h4>
+                <div class="fld"><label>Desconto</label><div class="in"><b class="tnum">0</b><span style="margin-left:auto;color:var(--muted)">%</span></div></div>
+                <div class="fld"><label>IVA</label><div class="in"><b class="tnum">16</b><span style="margin-left:auto;color:var(--muted)">%</span></div></div>
+              </div>
+
+              <div class="rgrp">
+                <button class="btn p" style="height:34px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg> Emitir e enviar</button>
+                <button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg> Descarregar PDF</button>
+                <div class="note" style="justify-content:center;font-size:10.5px"><span class="pill warn">Rascunho</span> guardado há 2 s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ C · FLUXO FOCADO ══════════════════ -->
+  <div class="stage" id="C" role="tabpanel" aria-labelledby="tab-C" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true">
+          <div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div>
+          <div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div>
+        </div>
+
+        <div class="content">
+          <div class="prog">
+            <div class="track">
+              <div class="node done"><span class="n"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4 10-10"/></svg></span><b>Tipo</b></div>
+              <div class="seg-line done"></div>
+              <div class="node done"><span class="n"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4 10-10"/></svg></span><b>Cliente</b></div>
+              <div class="seg-line done"></div>
+              <div class="node now"><span class="n">3</span><b>Linhas</b></div>
+              <div class="seg-line"></div>
+              <div class="node"><span class="n">4</span><b>Emitir</b></div>
+            </div>
+            <span class="pill info">FT/2026/0042</span>
+          </div>
+
+          <div class="relwrap">
+            <div class="stagec">
+              <div class="ask">
+                <h2>O que leva esta factura?</h2>
+                <p>Construções Beira, Lda. · 27/07/2026 · prazo 15 dias</p>
+              </div>
+
+              <div class="card">
+                <div class="bigln">
+                  <span class="h">1</span>
+                  <span class="t"><b>Consultoria técnica</b><span>2 × 18 500,00</span></span>
+                  <span class="v">37 000,00</span>
+                </div>
+                <div class="bigln">
+                  <span class="h">2</span>
+                  <span class="t"><b>Instalação de equipamento</b><span>1 × 42 000,00</span></span>
+                  <span class="v">42 000,00</span>
+                </div>
+                <div class="bigln">
+                  <span class="h">3</span>
+                  <span class="t"><b>Manutenção trimestral</b><span>3 × 6 500,00</span></span>
+                  <span class="v">19 500,00</span>
+                </div>
+                <div class="bigadd">
+                  <button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Adicionar linha</button>
+                  <button><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.3 9 5.2v9L7.5 13.5v-9Z"/><path d="m7.5 4.3 9-2.3 4 5.2-9 2.3Z"/></svg> Do catálogo</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- persistent mini preview; expands on step 4 -->
+            <div class="thumb" title="Pré-visualizar documento">
+              <div class="tb">
+                <div class="l p"></div><div class="l"></div><div class="l s"></div>
+                <div style="height:5px"></div>
+                <div class="l"></div><div class="l"></div><div class="l s"></div>
+              </div>
+              <div class="cap">Pré-visualizar <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M7 17 17 7M9 7h8v8"/></svg></div>
+            </div>
+          </div>
+
+          <div class="nav">
+            <button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m14 6-6 6 6 6"/></svg> Voltar</button>
+            <span class="run">Total<b class="tnum">114 260,00 MZN</b></span>
+            <span class="sp"></span>
+            <span class="note" style="font-size:10.5px">3 linhas · IVA 16%</span>
+            <button class="btn p">Rever e emitir <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m10 6 6 6-6 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. Tokens copiados de <code>src/styles.css</code>; segue o tema do sistema (claro/escuro).</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    A: {
+      n: "4",
+      items: [
+        ["Estratégia", "Comprimir. O cabeçalho, as etapas e o selector de tipo colapsam numa barra de contexto de 46 px; o resto é a bancada de trabalho — formulário e documento lado a lado."],
+        ["Ganha", "Irmão directo do Cockpit: mesma gramática, mesma régua no topo. Regra limpa — <b>à esquerda o que se escreve, à direita o que isso produz</b>: o total aparece uma única vez, no documento. As linhas viram tabela, a única zona com scroll interno porque é a única lista sem fim."],
+        ["Perde", "Com duas colunas a 1440 px o formulário fica com ~600 px. Editar linhas é confortável, mas não folgado. As notas passam a uma linha que expande."],
+        ["Melhor se", "Quer o mínimo de risco e o máximo de coerência com a página que acabámos de implementar."]
+      ]
+    },
+    B: {
+      n: "2",
+      items: [
+        ["Estratégia", "Fundir. Apaga o formulário — o documento passa a ser o editor. Clica no nome do cliente e escreve; clica numa linha e escreve. O que se vê é literalmente o que o cliente recebe."],
+        ["Ganha", "Mata toda a duplicação de uma vez: só existe um total, um nome, um tipo, porque só existe uma representação. É o mais limpo dos três e o mais adequado a um produto de facturação — WYSIWYG a sério."],
+        ["Perde", "Edição in-place precisa de affordances cuidadas: sem sublinhado tracejado e hover, as pessoas não descobrem que os campos são editáveis. É também o mais caro de implementar."],
+        ["Melhor se", "Quer que a emissão de documentos seja a assinatura do produto, e não mais um formulário de SaaS."]
+      ]
+    },
+    C: {
+      n: "2",
+      items: [
+        ["Estratégia", "Assumir. A página actual finge ser um wizard — ou se tira o indicador, ou se leva a sério. Aqui leva-se: um passo de cada vez, ecrã inteiro, alvos grandes."],
+        ["Ganha", "Cada ecrã tem um só trabalho, por isso nunca há scroll, seja qual for o conteúdo. É de longe o melhor em telemóvel e para quem emite a primeira factura da vida."],
+        ["Perde", "Velocidade para o utilizador diário. Quem emite 20 facturas por dia quer tudo à vista, não quatro cliques. A pré-visualização vive num thumbnail até ao último passo."],
+        ["Melhor se", "O público é PME moçambicana pouco habituada a software de gestão — e a prioridade é a primeira emissão correr bem."]
+      ]
+    }
+  };
+
+  var why = document.getElementById("why");
+  var cnum = document.getElementById("cnum");
+
+  function paint(k) {
+    var d = meta[k];
+    cnum.textContent = d.n;
+    why.innerHTML = d.items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+    return pick;
+  }
+
+  wire(document.querySelector(".switch"), function (t) {
+    paint(t.getAttribute("aria-controls"));
+  });
+
+  // A/B/C via teclas 1-3
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i < 0) return;
+    var tab = document.querySelectorAll(".switch [role=tab]")[i];
+    if (tab) tab.click();
+  });
+
+  paint("A");
+})();
+</script>
+</body>
+</html>

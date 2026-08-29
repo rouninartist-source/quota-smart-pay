@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Documentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── atoms partilhados pelas três iterações ───────────────── */
+.seg{display:inline-flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:8px;border:1px solid var(--line-soft)}
+.seg button{font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);padding:5px 11px;border-radius:6px;transition:.16s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.seg button:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.seg .n{font-size:9.5px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:5px;padding:1px 5px;font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"] .n{background:color-mix(in oklab,var(--primary) 13%,transparent);color:var(--primary)}
+
+.srch{display:flex;align-items:center;gap:7px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:12px;color:var(--muted);min-width:0;flex:1;max-width:280px;white-space:nowrap;overflow:hidden}
+.srch svg{flex-shrink:0}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{position:sticky;top:0;z-index:2;background:var(--card);font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--line)}
+.tbl thead th.r{text-align:right}
+.tbl tbody tr{border-bottom:1px solid var(--line-soft);cursor:pointer}
+.tbl tbody tr:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+.tbl td{padding:0 10px;height:34px;font-size:12px;vertical-align:middle}
+.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .num{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl .num i{font-style:normal;font-weight:700;font-size:10px;letter-spacing:.04em;margin-right:5px;padding:1.5px 4px;border-radius:4px}
+.tbl .num i.ft{background:color-mix(in oklab,var(--primary) 13%,transparent);color:var(--primary)}
+.tbl .num i.rec{background:color-mix(in oklab,var(--success) 15%,transparent);color:var(--success)}
+.tbl .num i.cot{background:var(--surface-2);color:var(--muted)}
+.tbl .cli{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl .cli small{color:var(--muted);font-size:11px;margin-left:5px}
+.tbl .amt{font-weight:700}
+.tbl .dt{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ── A · Tabela densa ─────────────────────────────────────── */
+#A .ctx{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+#A .wrapt{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#A .scroll{flex:1;min-height:0;overflow:auto;padding:0 6px}
+#A .tbl thead th{padding-top:11px}
+#A .foot{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:8px 15px;display:flex;align-items:center;gap:14px;font-size:11px;color:var(--muted)}
+#A .foot b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ── B · Agrupado por data ────────────────────────────────── */
+#B .ctx{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+#B .wrapt{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#B .scroll{flex:1;min-height:0;overflow:auto}
+#B .ghead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:9px 15px 7px;background:color-mix(in oklab,var(--surface) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line-soft)}
+#B .ghead h4{margin:0;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#B .ghead .cnt{font-size:9.5px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:5px;padding:1px 6px;font-variant-numeric:tabular-nums}
+#B .ghead .sum{margin-left:auto;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+#B .ghead .sum span{font-weight:500;color:var(--muted);font-size:10.5px;margin-right:5px}
+#B .grow{display:flex;align-items:center;gap:11px;padding:0 15px;height:38px;cursor:pointer;border-bottom:1px solid var(--line-soft)}
+#B .grow:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+#B .grow .num{font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;width:118px;flex-shrink:0}
+#B .grow .num i{font-style:normal;font-weight:700;font-size:9.5px;margin-right:5px;padding:1.5px 4px;border-radius:4px}
+#B .grow .num i.ft{background:color-mix(in oklab,var(--primary) 13%,transparent);color:var(--primary)}
+#B .grow .num i.rec{background:color-mix(in oklab,var(--success) 15%,transparent);color:var(--success)}
+#B .grow .num i.cot{background:var(--surface-2);color:var(--muted)}
+#B .grow .cli{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#B .grow .cli small{color:var(--muted);margin-left:5px;font-size:11px}
+#B .grow .amt{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;width:86px;flex-shrink:0}
+#B .grow .pill{width:74px;justify-content:center;flex-shrink:0}
+
+/* ── C · Lista + documento ────────────────────────────────── */
+#C .ctx{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+#C .split{flex:1;min-height:0;display:grid;grid-template-columns:1fr 340px;gap:14px}
+#C .wrapt{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#C .scroll{flex:1;min-height:0;overflow:auto;padding:0 6px}
+#C .tbl thead th{padding-top:11px}
+#C .tbl tbody tr.sel{background:color-mix(in oklab,var(--primary) 9%,transparent);box-shadow:inset 2px 0 0 var(--primary)}
+#C .tbl tbody tr.sel:hover{background:color-mix(in oklab,var(--primary) 11%,transparent)}
+#C .doc{min-height:0}
+#C .doc .dbody{padding:13px 15px}
+#C .doc .acts{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:9px 13px;display:flex;gap:7px}
+#C .doc .acts .btn{flex:1}
+
+/* documento em papel (mesmo componente da Bancada) */
+.doc{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.doc .dhead{flex-shrink:0;padding:13px 15px;border-bottom:1px solid var(--line-soft);background:var(--surface);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.doc .dhead .org{font-family:"Sora",sans-serif;font-size:13px;font-weight:600}
+.doc .dhead .org span{display:block;font-family:"Manrope",sans-serif;font-size:10px;font-weight:400;color:var(--muted);margin-top:3px}
+.doc .dhead .kind{text-align:right;flex-shrink:0}
+.doc .dhead .kind b{display:block;font-family:"Sora",sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.07em;color:var(--primary)}
+.doc .dhead .kind span{display:block;font-size:10px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.doc .dbody{flex:1;min-height:0;overflow:auto}
+.doc .party{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding-bottom:11px;border-bottom:1px solid var(--line-soft)}
+.doc .party .k{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.doc .party .v{font-size:12px;font-weight:600}
+.doc .party .v span{display:block;font-weight:400;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.doc .party .r{text-align:right}
+.doc table{width:100%;border-collapse:collapse;margin-top:10px}
+.doc th{font-size:9px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:left;padding-bottom:6px;border-bottom:1px solid var(--line-soft)}
+.doc th.r,.doc td.r{text-align:right}
+.doc td{font-size:11.5px;padding:8px 0;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+.doc .sums{margin-top:11px;margin-left:auto;width:min(200px,65%);display:flex;flex-direction:column;gap:5px}
+.doc .sums div{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.doc .sums .tot{border-top:1px solid var(--line);padding-top:8px;margin-top:3px;color:var(--fg);align-items:baseline}
+.doc .sums .tot b{font-family:"Sora",sans-serif;font-size:15px;font-weight:600;color:var(--primary)}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){.wrap{padding:20px 14px 48px}.brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Documentos</p>
+      <h1>Três formas de arrumar a lista</h1>
+      <p>A lista é o único conteúdo da página, mas só <strong>7 das 36 linhas</strong> cabem no ecrã — o cabeçalho e a barra de filtros comem 200&nbsp;px antes de a primeira linha aparecer. A altura está presa a <code>max-h-[calc(100dvh-24rem)]</code>, um número mágico que já falha por 12&nbsp;px. E a coluna <em>Estado</em> mistura três coisas diferentes.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">7</b><span class="arrow">→</span><b class="to tnum" id="cnum">13</b>
+      <span style="font-size:11px;color:var(--muted);max-width:80px;line-height:1.3">linhas<br>visíveis</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Contagem repetida <b>2&times;</b> — o select já diz &laquo;(36)&raquo;</span>
+    <span>Coluna <em>Tipo</em> repete o prefixo <b>REC/FT/COT</b></span>
+    <span>Coluna <em>Abrir</em> <b>~70% travessões</b></span>
+    <span><em>Estado</em> mistura estado, validade e <b>método de pagamento</b></span>
+    <span>Cabeçalho antes da lista <b>~200&nbsp;px</b></span>
+  </div>
+
+  <div class="switch" role="tablist" aria-label="Iterações de layout">
+    <button role="tab" aria-selected="true" aria-controls="A" id="tab-A"><span class="key">A</span> Tabela densa</button>
+    <button role="tab" aria-selected="false" aria-controls="B" id="tab-B"><span class="key">B</span> Agrupado por data</button>
+    <button role="tab" aria-selected="false" aria-controls="C" id="tab-C"><span class="key">C</span> Lista + documento</button>
+  </div>
+
+  <dl class="why" id="why"></dl>
+
+  <!-- ══════════════════ A · TABELA DENSA ══════════════════ -->
+  <div class="stage" id="A" role="tabpanel" aria-labelledby="tab-A">
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+
+          <div class="ctx">
+            <div class="seg" role="group" aria-label="Tipo">
+              <button aria-pressed="true">Todos <span class="n">36</span></button>
+              <button>Facturas <span class="n">4</span></button>
+              <button>Recibos <span class="n">16</span></button>
+              <button>Cotações <span class="n">16</span></button>
+            </div>
+            <div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar número ou cliente</div>
+            <div style="flex:1"></div>
+            <button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo documento</button>
+          </div>
+
+          <div class="wrapt">
+            <div class="scroll">
+              <table class="tbl">
+                <thead><tr><th>Número</th><th>Cliente</th><th>Data</th><th class="r">Total</th><th>Estado</th></tr></thead>
+                <tbody>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/720</td>
+              <td><div class="cli">João Comercial, Lda <small>· M-Pesa</small></div></td>
+              <td class="dt">29/08/2026</td>
+              <td class="r amt">8 000</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="ft">FT</i>2026/00187</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="dt">28/08/2026</td>
+              <td class="r amt">51 504</td>
+              <td><span class="pill ok">Paga</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/318</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="dt">27/08/2026</td>
+              <td class="r amt">25 000</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/721</td>
+              <td><div class="cli">Escola Girassol <small>· e-Mola</small></div></td>
+              <td class="dt">27/08/2026</td>
+              <td class="r amt">41 119</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/722</td>
+              <td><div class="cli">Tech Beira <small>· Transferência</small></div></td>
+              <td class="dt">25/08/2026</td>
+              <td class="r amt">74 238</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/319</td>
+              <td><div class="cli">Construções Zambeze</div></td>
+              <td class="dt">24/08/2026</td>
+              <td class="r amt">116 237</td>
+              <td><span class="pill ok">Aceite</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/723</td>
+              <td><div class="cli">Auto Peças Nampula <small>· Numerário</small></div></td>
+              <td class="dt">23/08/2026</td>
+              <td class="r amt">107 357</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="ft">FT</i>2026/00186</td>
+              <td><div class="cli">Beira Logística, SA</div></td>
+              <td class="dt">21/08/2026</td>
+              <td class="r amt">146 160</td>
+              <td><span class="pill bad">Vencida</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/320</td>
+              <td><div class="cli">Transportes Maputo Sul</div></td>
+              <td class="dt">21/08/2026</td>
+              <td class="r amt">207 474</td>
+              <td><span class="pill mute">Rascunho</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/724</td>
+              <td><div class="cli">João Comercial, Lda <small>· Cartão</small></div></td>
+              <td class="dt">21/08/2026</td>
+              <td class="r amt">140 476</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/725</td>
+              <td><div class="cli">Escola Girassol <small>· M-Pesa</small></div></td>
+              <td class="dt">19/08/2026</td>
+              <td class="r amt">173 595</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/321</td>
+              <td><div class="cli">Agro Chimoio</div></td>
+              <td class="dt">18/08/2026</td>
+              <td class="r amt">298 711</td>
+              <td><span class="pill mute">Expirada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/726</td>
+              <td><div class="cli">Tech Beira <small>· e-Mola</small></div></td>
+              <td class="dt">17/08/2026</td>
+              <td class="r amt">206 714</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/322</td>
+              <td><div class="cli">Ministério das Obras</div></td>
+              <td class="dt">15/08/2026</td>
+              <td class="r amt">389 948</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/727</td>
+              <td><div class="cli">Auto Peças Nampula <small>· Transferência</small></div></td>
+              <td class="dt">15/08/2026</td>
+              <td class="r amt">239 833</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="ft">FT</i>2026/00185</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="dt">14/08/2026</td>
+              <td class="r amt">21 460</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/728</td>
+              <td><div class="cli">João Comercial, Lda <small>· Numerário</small></div></td>
+              <td class="dt">13/08/2026</td>
+              <td class="r amt">12 952</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/323</td>
+              <td><div class="cli">Auto Peças Nampula</div></td>
+              <td class="dt">12/08/2026</td>
+              <td class="r amt">481 185</td>
+              <td><span class="pill ok">Aceite</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/729</td>
+              <td><div class="cli">Escola Girassol <small>· Cartão</small></div></td>
+              <td class="dt">11/08/2026</td>
+              <td class="r amt">46 071</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/324</td>
+              <td><div class="cli">Seguros Emose Sul</div></td>
+              <td class="dt">09/08/2026</td>
+              <td class="r amt">572 422</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>                </tbody>
+              </table>
+            </div>
+            <div class="foot">
+              <span>36 documentos</span>
+              <span>Soma <b>4 210 456 MZN</b></span>
+              <span style="margin-left:auto">Clique numa linha para abrir</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ B · AGRUPADO POR DATA ══════════════════ -->
+  <div class="stage" id="B" role="tabpanel" aria-labelledby="tab-B" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+
+          <div class="ctx">
+            <div class="seg" role="group" aria-label="Tipo">
+              <button aria-pressed="true">Todos <span class="n">36</span></button>
+              <button>Facturas <span class="n">4</span></button>
+              <button>Recibos <span class="n">16</span></button>
+              <button>Cotações <span class="n">16</span></button>
+            </div>
+            <div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar número ou cliente</div>
+            <div style="flex:1"></div>
+            <button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo documento</button>
+          </div>
+
+          <div class="wrapt">
+            <div class="scroll">
+          <div class="ghead"><h4>Esta semana</h4><span class="cnt">5</span><span class="sum"><span>soma</span>199 861</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/720</span><span class="cli">João Comercial, Lda <small>· M-Pesa</small></span><span class="amt">8 000</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="ft">FT</i>2026/00187</span><span class="cli">João Comercial, Lda</span><span class="amt">51 504</span><span class="pill ok">Paga</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/318</span><span class="cli">João Comercial, Lda</span><span class="amt">25 000</span><span class="pill info">Enviada</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/721</span><span class="cli">Escola Girassol <small>· e-Mola</small></span><span class="amt">41 119</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/722</span><span class="cli">Tech Beira <small>· Transferência</small></span><span class="amt">74 238</span><span class="pill ok">Pago</span></div>
+          <div class="ghead"><h4>Semana passada</h4><span class="cnt">5</span><span class="sum"><span>soma</span>717 704</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/319</span><span class="cli">Construções Zambeze</span><span class="amt">116 237</span><span class="pill ok">Aceite</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/723</span><span class="cli">Auto Peças Nampula <small>· Numerário</small></span><span class="amt">107 357</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="ft">FT</i>2026/00186</span><span class="cli">Beira Logística, SA</span><span class="amt">146 160</span><span class="pill bad">Vencida</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/320</span><span class="cli">Transportes Maputo Sul</span><span class="amt">207 474</span><span class="pill mute">Rascunho</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/724</span><span class="cli">João Comercial, Lda <small>· Cartão</small></span><span class="amt">140 476</span><span class="pill ok">Pago</span></div>
+          <div class="ghead"><h4>Agosto 2026</h4><span class="cnt">10</span><span class="sum"><span>soma</span>2 442 891</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/725</span><span class="cli">Escola Girassol <small>· M-Pesa</small></span><span class="amt">173 595</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/321</span><span class="cli">Agro Chimoio</span><span class="amt">298 711</span><span class="pill mute">Expirada</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/726</span><span class="cli">Tech Beira <small>· e-Mola</small></span><span class="amt">206 714</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/322</span><span class="cli">Ministério das Obras</span><span class="amt">389 948</span><span class="pill info">Enviada</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/727</span><span class="cli">Auto Peças Nampula <small>· Transferência</small></span><span class="amt">239 833</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="ft">FT</i>2026/00185</span><span class="cli">João Comercial, Lda</span><span class="amt">21 460</span><span class="pill info">Enviada</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/728</span><span class="cli">João Comercial, Lda <small>· Numerário</small></span><span class="amt">12 952</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/323</span><span class="cli">Auto Peças Nampula</span><span class="amt">481 185</span><span class="pill ok">Aceite</span></div>
+          <div class="grow"><span class="num"><i class="rec">REC</i>2026/729</span><span class="cli">Escola Girassol <small>· Cartão</small></span><span class="amt">46 071</span><span class="pill ok">Pago</span></div>
+          <div class="grow"><span class="num"><i class="cot">COT</i>2026/324</span><span class="cli">Seguros Emose Sul</span><span class="amt">572 422</span><span class="pill info">Enviada</span></div>            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ C · LISTA + DOCUMENTO ══════════════════ -->
+  <div class="stage" id="C" role="tabpanel" aria-labelledby="tab-C" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i class="on"></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+
+          <div class="ctx">
+            <div class="seg" role="group" aria-label="Tipo">
+              <button aria-pressed="true">Todos <span class="n">36</span></button>
+              <button>Facturas <span class="n">4</span></button>
+              <button>Recibos <span class="n">16</span></button>
+              <button>Cotações <span class="n">16</span></button>
+            </div>
+            <div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div>
+            <div style="flex:1"></div>
+            <button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo documento</button>
+          </div>
+
+          <div class="split">
+            <div class="wrapt">
+              <div class="scroll">
+                <table class="tbl">
+                  <thead><tr><th>Número</th><th>Cliente</th><th class="r">Total</th><th>Estado</th></tr></thead>
+                  <tbody>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/720</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">8 000</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr class="sel">
+              <td class="num"><i class="ft">FT</i>2026/00187</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">51 504</td>
+              <td><span class="pill ok">Paga</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/318</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">25 000</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/721</td>
+              <td><div class="cli">Escola Girassol</div></td>
+              <td class="r amt">41 119</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/722</td>
+              <td><div class="cli">Tech Beira</div></td>
+              <td class="r amt">74 238</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/319</td>
+              <td><div class="cli">Construções Zambeze</div></td>
+              <td class="r amt">116 237</td>
+              <td><span class="pill ok">Aceite</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/723</td>
+              <td><div class="cli">Auto Peças Nampula</div></td>
+              <td class="r amt">107 357</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="ft">FT</i>2026/00186</td>
+              <td><div class="cli">Beira Logística, SA</div></td>
+              <td class="r amt">146 160</td>
+              <td><span class="pill bad">Vencida</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/320</td>
+              <td><div class="cli">Transportes Maputo Sul</div></td>
+              <td class="r amt">207 474</td>
+              <td><span class="pill mute">Rascunho</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/724</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">140 476</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/725</td>
+              <td><div class="cli">Escola Girassol</div></td>
+              <td class="r amt">173 595</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/321</td>
+              <td><div class="cli">Agro Chimoio</div></td>
+              <td class="r amt">298 711</td>
+              <td><span class="pill mute">Expirada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/726</td>
+              <td><div class="cli">Tech Beira</div></td>
+              <td class="r amt">206 714</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/322</td>
+              <td><div class="cli">Ministério das Obras</div></td>
+              <td class="r amt">389 948</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/727</td>
+              <td><div class="cli">Auto Peças Nampula</div></td>
+              <td class="r amt">239 833</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="ft">FT</i>2026/00185</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">21 460</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/728</td>
+              <td><div class="cli">João Comercial, Lda</div></td>
+              <td class="r amt">12 952</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/323</td>
+              <td><div class="cli">Auto Peças Nampula</div></td>
+              <td class="r amt">481 185</td>
+              <td><span class="pill ok">Aceite</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="rec">REC</i>2026/729</td>
+              <td><div class="cli">Escola Girassol</div></td>
+              <td class="r amt">46 071</td>
+              <td><span class="pill ok">Pago</span></td>
+            </tr>
+            <tr>
+              <td class="num"><i class="cot">COT</i>2026/324</td>
+              <td><div class="cli">Seguros Emose Sul</div></td>
+              <td class="r amt">572 422</td>
+              <td><span class="pill info">Enviada</span></td>
+            </tr>                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="doc">
+              <div class="dhead">
+                <div class="org">Quota Studio, Lda.<span>NUIT 400987654 · Maputo</span></div>
+                <div class="kind"><b>FACTURA</b><span>FT 2026/00187</span></div>
+              </div>
+              <div class="dbody">
+                <div class="party">
+                  <div><div class="k">Cliente</div><div class="v">João Comercial, Lda<span>NUIT 400123456</span></div></div>
+                  <div class="r"><div class="k">Data</div><div class="v">28/08/2026<span>Prazo 15 dias</span></div></div>
+                </div>
+                <table>
+                  <thead><tr><th>Descrição</th><th class="r">Qtd</th><th class="r">Total</th></tr></thead>
+                  <tbody>
+                    <tr><td>Consultoria técnica</td><td class="r">2</td><td class="r">37 000,00</td></tr>
+                    <tr><td>Licença anual</td><td class="r">1</td><td class="r">7 400,00</td></tr>
+                  </tbody>
+                </table>
+                <div class="sums">
+                  <div><span>Subtotal</span><span>44 400,00</span></div>
+                  <div><span>IVA 16%</span><span>7 104,00</span></div>
+                  <div class="tot"><span style="font-size:11.5px;font-weight:600">Total</span><b>51 504,00 MZN</b></div>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="btn g"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg> PDF</button>
+                <button class="btn wa" style="height:32px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg> Cobrar</button>
+                <button class="btn p" style="flex:1.2">Abrir</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. Tokens copiados de <code>src/styles.css</code>; segue o tema do sistema.</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    A: {
+      n: "13",
+      items: [
+        ["Estratégia", "Densificar. O cabeçalho colapsa numa barra de contexto com filtro segmentado, procura e acção; a tabela fica com toda a altura restante."],
+        ["Ganha", "13 linhas em vez de 7, sem número mágico — a altura vem do <code>flex-1</code>, não de um <code>calc()</code>. Cai a coluna Tipo (o prefixo REC/FT/COT já o diz, agora com cor), cai a coluna Abrir (a linha inteira é o link), e o método de pagamento sai do Estado para junto do cliente."],
+        ["Perde", "Continua a ser só uma tabela: para ver um documento é preciso navegar. E 13 linhas de 36 ainda obrigam a rolar dentro do painel."],
+        ["Melhor se", "A página serve para encontrar um documento depressa e seguir caminho."]
+      ]
+    },
+    B: {
+      n: "11",
+      items: [
+        ["Estratégia", "Agrupar. As pessoas não procuram por data exacta, procuram por <em>quando</em> — «o que mandei a semana passada». A coluna Data desaparece para dentro dos cabeçalhos de grupo."],
+        ["Ganha", "Cada grupo traz contagem e soma à direita, por isso «quanto facturei em Agosto» deixa de precisar de um relatório. Os cabeçalhos são <em>sticky</em>: o contexto temporal nunca se perde ao rolar."],
+        ["Perde", "Ordenar por outra coisa que não a data deixa de fazer sentido — o agrupamento fixa a ordenação. E os cabeçalhos gastam altura que a tabela A dava a linhas."],
+        ["Melhor se", "O gesto dominante é rever um período, não caçar um número específico."]
+      ]
+    },
+    C: {
+      n: "14",
+      items: [
+        ["Estratégia", "Emparelhar. A lista à esquerda, o documento à direita — o mesmo componente de papel que a Bancada já usa em <code>/documentos/novo</code>."],
+        ["Ganha", "Ver um documento deixa de ser uma navegação: setas para cima e para baixo percorrem a lista e o papel acompanha. PDF e Cobrar ficam à mão sem sair da página, e a página passa a falar a mesma língua da Bancada."],
+        ["Perde", "340&nbsp;px de largura saem da tabela, o que custa a coluna Data. Só as facturas têm documento a mostrar — recibos e cotações precisariam do mesmo tratamento para o painel não ficar vazio."],
+        ["Melhor se", "Quiser coerência com a página que acabámos de construir e triagem rápida sem cliques."]
+      ]
+    }
+  };
+
+  var why = document.getElementById("why");
+  var cnum = document.getElementById("cnum");
+
+  function paint(k) {
+    var d = meta[k];
+    cnum.textContent = d.n;
+    why.innerHTML = d.items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+  }
+
+  wire(document.querySelector(".switch"), function (t) { paint(t.getAttribute("aria-controls")); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i < 0) return;
+    var tab = document.querySelectorAll(".switch [role=tab]")[i];
+    if (tab) tab.click();
+  });
+
+  paint("A");
+})();
+</script>
+</body>
+</html>

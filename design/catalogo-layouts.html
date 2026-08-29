@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── atoms ────────────────────────────────────────────────── */
+.srch{display:flex;align-items:center;gap:7px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:12px;color:var(--muted);min-width:0;flex:1;max-width:270px;min-width:170px;white-space:nowrap;overflow:hidden}
+.srch svg{flex-shrink:0}
+.ctx{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;gap:9px 11px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+.seg{display:inline-flex;gap:2px;background:var(--surface-2);padding:3px;border-radius:8px;border:1px solid var(--line-soft)}
+.seg button{font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted);padding:5px 10px;border-radius:6px;transition:.16s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.seg .n{font-size:9.5px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:5px;padding:1px 5px;font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"] .n{background:color-mix(in oklab,var(--primary) 13%,transparent);color:var(--primary)}
+.listw{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+.scroll{flex:1;min-height:0;overflow:auto;padding:0 6px}
+.foot{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:8px 14px;display:flex;gap:14px;font-size:11px;color:var(--muted);align-items:center}
+.foot b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{position:sticky;top:0;z-index:2;background:var(--card);font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:left;padding:11px 9px 8px;border-bottom:1px solid var(--line)}
+.tbl thead th.r{text-align:right}
+.tbl tbody tr{border-bottom:1px solid var(--line-soft);cursor:pointer}
+.tbl tbody tr:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+.tbl tbody tr.sel{background:color-mix(in oklab,var(--primary) 9%,transparent);box-shadow:inset 2px 0 0 var(--primary)}
+.tbl td{padding:0 9px;height:34px;font-size:12px}
+.tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .sku{font-weight:700;font-size:10px;letter-spacing:.04em;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0;width:100%}
+.tbl .mu{color:var(--muted)}
+.bar-mini{height:4px;border-radius:99px;background:var(--surface-2);overflow:hidden;width:52px;display:inline-block;vertical-align:middle;margin-right:7px}
+.bar-mini i{display:block;height:100%;background:var(--success)}
+.bar-mini i.warn{background:var(--warning)}
+.bar-mini i.bad{background:var(--danger)}
+
+/* ficha lateral partilhada */
+.card{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow-lg);overflow:hidden}
+.card .hd{flex-shrink:0;padding:13px 14px;border-bottom:1px solid var(--line-soft);background:var(--surface)}
+.card .hd .txt b{display:block;font-family:"Sora",sans-serif;font-size:13.5px;font-weight:600;letter-spacing:-.01em}
+.card .hd .txt span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+.card .bd{flex:1;min-height:0;overflow:auto;padding:13px 14px;display:flex;flex-direction:column;gap:12px}
+.card h5{margin:0 0 7px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.card .kv{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11.5px;padding:4px 0;border-bottom:1px solid var(--line-soft)}
+.card .kv dt{color:var(--muted)}
+.card .kv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.card .money{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card .money div{border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);padding:9px 11px}
+.card .money .k{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.card .money .v{font-family:"Sora",sans-serif;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px;letter-spacing:-.02em}
+.card .acts{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:9px 12px;display:flex;gap:7px}
+.card .acts .btn{flex:1}
+.split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:13px}
+
+/* PA · grelha visual */
+.pgrid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:11px;align-content:start;padding:1px}
+.pc{border:1px solid var(--line-soft);border-radius:11px;background:var(--card);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;transition:.16s;cursor:pointer}
+.pc:hover{border-color:color-mix(in oklab,var(--primary) 35%,transparent);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.pc .img{height:74px;display:grid;place-items:center;font-family:"Sora",sans-serif;font-size:20px;font-weight:700;color:oklch(1 0 0 / .9)}
+.pc .bd2{padding:9px 10px;display:flex;flex-direction:column;gap:4px;flex:1}
+.pc b{font-size:12px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .cat{font-size:10px;color:var(--muted)}
+.pc .row{display:flex;align-items:baseline;justify-content:space-between;margin-top:auto;padding-top:6px;gap:6px}
+.pc .price{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* SC · agrupado */
+.ghead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:10px 14px 8px;background:color-mix(in oklab,var(--surface) 93%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line-soft)}
+.ghead h4{margin:0;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ghead .cnt{font-size:9.5px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:5px;padding:1px 6px;font-variant-numeric:tabular-nums}
+.ghead .sum{margin-left:auto;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.ghead .sum span{font-weight:500;color:var(--muted);font-size:10.5px;margin-right:5px}
+.grow{display:flex;align-items:center;gap:12px;padding:0 14px;height:40px;cursor:pointer;border-bottom:1px solid var(--line-soft)}
+.grow:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+.grow .code{font-size:10px;font-weight:700;color:var(--muted);width:44px;flex-shrink:0}
+.grow .nm2{flex:1;min-width:0;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow .nm2 small{display:block;font-weight:400;font-size:10.5px;color:var(--muted)}
+.grow .rate{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;width:92px;text-align:right;flex-shrink:0}
+.grow .mg{width:56px;text-align:right;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
+
+/* switch de secção */
+.level{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.level .lbl{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){.wrap{padding:20px 14px 48px}.brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Catálogo</p>
+      <h1>Produtos e Serviços</h1>
+      <p>As duas páginas do Catálogo estão em estados opostos. <strong>Produtos é um placeholder</strong> — mostra "Esta área está a ser preparada" e quatro KPIs inventados (184 produtos, 24 serviços, 12 categorias) quando <code>mock-data.ts</code> já tem <strong>12 produtos reais</strong> com custo, stock e stock mínimo que a página nunca desenha. <strong>Serviços está construído</strong>, mas gasta ~260&nbsp;px em cabeçalho e cartões antes da primeira linha, para mostrar 8 serviços.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">184</b><span class="arrow">&rarr;</span><b class="to tnum">12</b>
+      <span style="font-size:11px;color:var(--muted);max-width:92px;line-height:1.3">produtos<br>inventados &rarr; reais</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Produtos: <b>lista nunca desenhada</b> apesar de haver dados</span>
+    <span>KPIs inventados: <b>184 / 24 / 12</b> vs. 12 / 8 / 4 reais</span>
+    <span>Título diz <b>"Produtos &amp; Serviços"</b> mas Serviços é outra página</span>
+    <span>Serviços: <b>"Receita recorrente 38 000"</b> está escrito à mão</span>
+    <span>Serviços: deltas <b>+8% / +3%</b> sem histórico que os sustente</span>
+    <span>Cartões de marketing dentro do produto <b>a sério</b></span>
+  </div>
+
+  <div class="level">
+    <span class="lbl">Secção</span>
+    <div class="switch" role="tablist" aria-label="Secção do catálogo" id="sec">
+      <button role="tab" aria-selected="true" aria-controls="gP" id="tab-gP">Produtos</button>
+      <button role="tab" aria-selected="false" aria-controls="gS" id="tab-gS">Serviços</button>
+    </div>
+  </div>
+
+  <div id="gP">
+    <div class="switch" role="tablist" aria-label="Iterações de Produtos" style="margin-bottom:20px">
+      <button role="tab" aria-selected="true" aria-controls="PA" id="tab-PA"><span class="key">A</span> Tabela de stock</button>
+      <button role="tab" aria-selected="false" aria-controls="PB" id="tab-PB"><span class="key">B</span> Grelha visual</button>
+      <button role="tab" aria-selected="false" aria-controls="PC" id="tab-PC"><span class="key">C</span> Lista + ficha</button>
+    </div>
+    <dl class="why" id="whyP" style="margin-bottom:20px"></dl>
+
+    <!-- P-A -->
+    <div class="stage" id="PA" role="tabpanel">
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx">
+              <div class="seg" role="group">
+                <button aria-pressed="true">Todos <span class="n">12</span></button>
+                <button>Tecnologia <span class="n">4</span></button>
+                <button>Consumíveis <span class="n">3</span></button>
+                <button>Mobiliário <span class="n">3</span></button>
+                <button>Alimentar <span class="n">2</span></button>
+              </div>
+              <div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, SKU ou categoria</div>
+              <div style="flex:1"></div>
+              <button class="btn g">Importar CSV</button>
+              <button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo produto</button>
+            </div>
+            <div class="listw">
+              <div class="scroll">
+                <table class="tbl">
+                  <thead><tr><th>SKU</th><th>Produto</th><th>Categoria</th><th class="r">Stock</th><th class="r">Margem</th><th class="r">Preço</th><th>Estado</th></tr></thead>
+                  <tbody>
+                  <tr>
+                    <td class="sku">QT-001</td>
+                    <td><span class="nm">Papel A4 80g (resma)</span></td>
+                    <td class="mu">Consumíveis</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>240 un</td>
+                    <td class="r mu">33%</td>
+                    <td class="r" style="font-weight:700">480</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr class="sel">
+                    <td class="sku">QT-002</td>
+                    <td><span class="nm">Toner HP 26A</span></td>
+                    <td class="mu">Consumíveis</td>
+                    <td class="r"><span class="bar-mini"><i class="warn" style="width:40%"></i></span>12 un</td>
+                    <td class="r mu">26%</td>
+                    <td class="r" style="font-weight:700">4 200</td>
+                    <td><span class="pill warn">Stock baixo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-003</td>
+                    <td><span class="nm">Cadeira ergonómica Zeta</span></td>
+                    <td class="mu">Mobiliário</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>8 un</td>
+                    <td class="r mu">31%</td>
+                    <td class="r" style="font-weight:700">12 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-004</td>
+                    <td><span class="nm">Secretária 140cm</span></td>
+                    <td class="mu">Mobiliário</td>
+                    <td class="r"><span class="bar-mini"><i class="warn" style="width:30%"></i></span>3 un</td>
+                    <td class="r mu">37%</td>
+                    <td class="r" style="font-weight:700">18 900</td>
+                    <td><span class="pill warn">Stock baixo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-005</td>
+                    <td><span class="nm">Router Wi-Fi 6 AX3000</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>26 un</td>
+                    <td class="r mu">30%</td>
+                    <td class="r" style="font-weight:700">7 400</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-006</td>
+                    <td><span class="nm">Portátil Ultra 14"</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:83%"></i></span>5 un</td>
+                    <td class="r mu">24%</td>
+                    <td class="r" style="font-weight:700">68 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-007</td>
+                    <td><span class="nm">Tinteiro Epson 664</span></td>
+                    <td class="mu">Consumíveis</td>
+                    <td class="r"><span class="bar-mini"><i class="bad" style="width:0%"></i></span>0 un</td>
+                    <td class="r mu">37%</td>
+                    <td class="r" style="font-weight:700">890</td>
+                    <td><span class="pill bad">Esgotado</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-008</td>
+                    <td><span class="nm">Monitor 27" QHD</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>14 un</td>
+                    <td class="r mu">27%</td>
+                    <td class="r" style="font-weight:700">24 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-009</td>
+                    <td><span class="nm">Água mineral 5L (cx)</span></td>
+                    <td class="mu">Alimentar</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>180 cx</td>
+                    <td class="r mu">34%</td>
+                    <td class="r" style="font-weight:700">620</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-010</td>
+                    <td><span class="nm">Café torrado 1kg</span></td>
+                    <td class="mu">Alimentar</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>62 kg</td>
+                    <td class="r mu">32%</td>
+                    <td class="r" style="font-weight:700">1 450</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-011</td>
+                    <td><span class="nm">Disco SSD 1TB</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="r"><span class="bar-mini"><i class="" style="width:100%"></i></span>19 un</td>
+                    <td class="r mu">28%</td>
+                    <td class="r" style="font-weight:700">9 800</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-012</td>
+                    <td><span class="nm">Arquivador metálico</span></td>
+                    <td class="mu">Mobiliário</td>
+                    <td class="r"><span class="bar-mini"><i class="bad" style="width:0%"></i></span>0 un</td>
+                    <td class="r mu">33%</td>
+                    <td class="r" style="font-weight:700">15 600</td>
+                    <td><span class="pill bad">Esgotado</span></td>
+                  </tr>                  </tbody>
+                </table>
+              </div>
+              <div class="foot"><span>12 produtos</span><span>Valor em stock <b>3 842 700</b></span><span class="pill warn">2 abaixo do mínimo</span><span class="pill bad">2 esgotados</span><span style="margin-left:auto">Clique para editar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P-B -->
+    <div class="stage" id="PB" role="tabpanel" hidden>
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx"><div class="seg" role="group"><button aria-pressed="true">Todos <span class="n">12</span></button><button>Tecnologia <span class="n">4</span></button><button>Consumíveis <span class="n">3</span></button><button>Mobiliário <span class="n">3</span></button><button>Alimentar <span class="n">2</span></button></div><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, SKU ou categoria</div><div style="flex:1"></div><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo produto</button></div>
+            <div class="pgrid">
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.19 263),oklch(0.78 0.14 230))">P</div>
+              <div class="bd2">
+                <b>Papel A4 80g (resma)</b>
+                <span class="cat">QT-001 · Consumíveis</span>
+                <span class="row"><span class="price">480</span><span class="pill ok">240 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.68 0.16 155),oklch(0.82 0.12 190))">T</div>
+              <div class="bd2">
+                <b>Toner HP 26A</b>
+                <span class="cat">QT-002 · Consumíveis</span>
+                <span class="row"><span class="price">4 200</span><span class="pill warn">12 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.70 0.17 60),oklch(0.82 0.13 95))">C</div>
+              <div class="bd2">
+                <b>Cadeira ergonómica Zeta</b>
+                <span class="cat">QT-003 · Mobiliário</span>
+                <span class="row"><span class="price">12 500</span><span class="pill ok">8 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.20 20),oklch(0.78 0.14 350))">S</div>
+              <div class="bd2">
+                <b>Secretária 140cm</b>
+                <span class="cat">QT-004 · Mobiliário</span>
+                <span class="row"><span class="price">18 900</span><span class="pill warn">3 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.19 263),oklch(0.78 0.14 230))">R</div>
+              <div class="bd2">
+                <b>Router Wi-Fi 6 AX3000</b>
+                <span class="cat">QT-005 · Tecnologia</span>
+                <span class="row"><span class="price">7 400</span><span class="pill ok">26 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.68 0.16 155),oklch(0.82 0.12 190))">P</div>
+              <div class="bd2">
+                <b>Portátil Ultra 14"</b>
+                <span class="cat">QT-006 · Tecnologia</span>
+                <span class="row"><span class="price">68 000</span><span class="pill ok">5 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.70 0.17 60),oklch(0.82 0.13 95))">T</div>
+              <div class="bd2">
+                <b>Tinteiro Epson 664</b>
+                <span class="cat">QT-007 · Consumíveis</span>
+                <span class="row"><span class="price">890</span><span class="pill bad">0 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.20 20),oklch(0.78 0.14 350))">M</div>
+              <div class="bd2">
+                <b>Monitor 27" QHD</b>
+                <span class="cat">QT-008 · Tecnologia</span>
+                <span class="row"><span class="price">24 500</span><span class="pill ok">14 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.19 263),oklch(0.78 0.14 230))">Á</div>
+              <div class="bd2">
+                <b>Água mineral 5L (cx)</b>
+                <span class="cat">QT-009 · Alimentar</span>
+                <span class="row"><span class="price">620</span><span class="pill ok">180 cx</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.68 0.16 155),oklch(0.82 0.12 190))">C</div>
+              <div class="bd2">
+                <b>Café torrado 1kg</b>
+                <span class="cat">QT-010 · Alimentar</span>
+                <span class="row"><span class="price">1 450</span><span class="pill ok">62 kg</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.70 0.17 60),oklch(0.82 0.13 95))">D</div>
+              <div class="bd2">
+                <b>Disco SSD 1TB</b>
+                <span class="cat">QT-011 · Tecnologia</span>
+                <span class="row"><span class="price">9 800</span><span class="pill ok">19 un</span></span>
+              </div>
+            </article>
+            <article class="pc">
+              <div class="img" style="background:linear-gradient(135deg,oklch(0.62 0.20 20),oklch(0.78 0.14 350))">A</div>
+              <div class="bd2">
+                <b>Arquivador metálico</b>
+                <span class="cat">QT-012 · Mobiliário</span>
+                <span class="row"><span class="price">15 600</span><span class="pill bad">0 un</span></span>
+              </div>
+            </article>            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P-C -->
+    <div class="stage" id="PC" role="tabpanel" hidden>
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx"><div class="seg" role="group"><button aria-pressed="true">Todos <span class="n">12</span></button><button>Tecnologia <span class="n">4</span></button><button>Consumíveis <span class="n">3</span></button><button>Mobiliário <span class="n">3</span></button><button>Alimentar <span class="n">2</span></button></div><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, SKU ou categoria</div><div style="flex:1"></div><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo produto</button></div>
+            <div class="split">
+              <div class="listw">
+                <div class="scroll">
+                  <table class="tbl">
+                    <thead><tr><th>SKU</th><th>Produto</th><th class="r">Preço</th><th>Stock</th></tr></thead>
+                    <tbody>
+                  <tr>
+                    <td class="sku">QT-001</td>
+                    <td><span class="nm">Papel A4 80g (resma)</span></td>
+                    <td class="r" style="font-weight:700">480</td>
+                    <td><span class="pill ok">240 un</span></td>
+                  </tr>
+                  <tr class="sel">
+                    <td class="sku">QT-002</td>
+                    <td><span class="nm">Toner HP 26A</span></td>
+                    <td class="r" style="font-weight:700">4 200</td>
+                    <td><span class="pill warn">12 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-003</td>
+                    <td><span class="nm">Cadeira ergonómica Zeta</span></td>
+                    <td class="r" style="font-weight:700">12 500</td>
+                    <td><span class="pill ok">8 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-004</td>
+                    <td><span class="nm">Secretária 140cm</span></td>
+                    <td class="r" style="font-weight:700">18 900</td>
+                    <td><span class="pill warn">3 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-005</td>
+                    <td><span class="nm">Router Wi-Fi 6 AX3000</span></td>
+                    <td class="r" style="font-weight:700">7 400</td>
+                    <td><span class="pill ok">26 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-006</td>
+                    <td><span class="nm">Portátil Ultra 14"</span></td>
+                    <td class="r" style="font-weight:700">68 000</td>
+                    <td><span class="pill ok">5 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-007</td>
+                    <td><span class="nm">Tinteiro Epson 664</span></td>
+                    <td class="r" style="font-weight:700">890</td>
+                    <td><span class="pill bad">0 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-008</td>
+                    <td><span class="nm">Monitor 27" QHD</span></td>
+                    <td class="r" style="font-weight:700">24 500</td>
+                    <td><span class="pill ok">14 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-009</td>
+                    <td><span class="nm">Água mineral 5L (cx)</span></td>
+                    <td class="r" style="font-weight:700">620</td>
+                    <td><span class="pill ok">180 cx</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-010</td>
+                    <td><span class="nm">Café torrado 1kg</span></td>
+                    <td class="r" style="font-weight:700">1 450</td>
+                    <td><span class="pill ok">62 kg</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-011</td>
+                    <td><span class="nm">Disco SSD 1TB</span></td>
+                    <td class="r" style="font-weight:700">9 800</td>
+                    <td><span class="pill ok">19 un</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">QT-012</td>
+                    <td><span class="nm">Arquivador metálico</span></td>
+                    <td class="r" style="font-weight:700">15 600</td>
+                    <td><span class="pill bad">0 un</span></td>
+                  </tr>                    </tbody>
+                  </table>
+                </div>
+                <div class="foot"><span>12 produtos</span><span class="pill warn">2 abaixo do mínimo</span></div>
+              </div>
+
+              <div class="card">
+                <div class="hd"><span class="txt"><b>Toner HP 26A</b><span>QT-002 · Consumíveis</span></span></div>
+                <div class="bd">
+                  <div class="money">
+                    <div><div class="k">Preço</div><div class="v">4 200</div></div>
+                    <div><div class="k">Custo</div><div class="v">3 100</div></div>
+                  </div>
+                  <div>
+                    <h5>Stock</h5>
+                    <div class="kv"><dt>Em armazém</dt><dd style="color:var(--warning-fg)">12 un</dd></div>
+                    <div class="kv"><dt>Mínimo</dt><dd>15 un</dd></div>
+                    <div class="kv"><dt>Margem</dt><dd>26%</dd></div>
+                    <div class="kv"><dt>IVA</dt><dd>16%</dd></div>
+                  </div>
+                  <div>
+                    <h5>Onde é usado</h5>
+                    <div class="kv"><dt>FT 2026/00187</dt><dd>6 un</dd></div>
+                    <div class="kv"><dt>COT 2026/318</dt><dd>4 un</dd></div>
+                  </div>
+                </div>
+                <div class="acts">
+                  <button class="btn g">Editar</button>
+                  <button class="btn p" style="flex:1.5">Juntar a documento</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gS" hidden>
+    <div class="switch" role="tablist" aria-label="Iterações de Serviços" style="margin-bottom:20px">
+      <button role="tab" aria-selected="true" aria-controls="SA" id="tab-SA"><span class="key">A</span> Tabela densa</button>
+      <button role="tab" aria-selected="false" aria-controls="SB" id="tab-SB"><span class="key">B</span> Lista + ficha</button>
+      <button role="tab" aria-selected="false" aria-controls="SC" id="tab-SC"><span class="key">C</span> Por modelo de facturação</button>
+    </div>
+    <dl class="why" id="whyS" style="margin-bottom:20px"></dl>
+
+    <!-- S-A -->
+    <div class="stage" id="SA" role="tabpanel">
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx"><div class="seg" role="group"><button aria-pressed="true">Todos <span class="n">8</span></button><button>Hora <span class="n">2</span></button><button>Projecto <span class="n">3</span></button><button>Mensal <span class="n">3</span></button></div><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar serviço, código ou categoria</div><div style="flex:1"></div><button class="btn g">Exportar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo serviço</button></div>
+            <div class="listw">
+              <div class="scroll">
+                <table class="tbl">
+                  <thead><tr><th>Código</th><th>Serviço</th><th>Categoria</th><th>Facturação</th><th>Duração</th><th class="r">Margem</th><th class="r">Tarifa</th><th>Estado</th></tr></thead>
+                  <tbody>
+                  <tr>
+                    <td class="sku">SV-01</td>
+                    <td><span class="nm">Consultoria fiscal</span></td>
+                    <td class="mu">Consultoria</td>
+                    <td class="mu">Hora</td>
+                    <td class="mu">1h</td>
+                    <td class="r mu">68%</td>
+                    <td class="r" style="font-weight:700">3 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr class="sel">
+                    <td class="sku">SV-02</td>
+                    <td><span class="nm">Implementação de rede</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="mu">Projecto</td>
+                    <td class="mu">3-5 dias</td>
+                    <td class="r mu">54%</td>
+                    <td class="r" style="font-weight:700">42 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-03</td>
+                    <td><span class="nm">Manutenção mensal TI</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="mu">Mensal</td>
+                    <td class="mu">Contínuo</td>
+                    <td class="r mu">61%</td>
+                    <td class="r" style="font-weight:700">18 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-04</td>
+                    <td><span class="nm">Design de marca</span></td>
+                    <td class="mu">Criativo</td>
+                    <td class="mu">Projecto</td>
+                    <td class="mu">2 semanas</td>
+                    <td class="r mu">72%</td>
+                    <td class="r" style="font-weight:700">65 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-05</td>
+                    <td><span class="nm">Formação em facturação</span></td>
+                    <td class="mu">Formação</td>
+                    <td class="mu">Hora</td>
+                    <td class="mu">2h</td>
+                    <td class="r mu">80%</td>
+                    <td class="r" style="font-weight:700">2 800</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-06</td>
+                    <td><span class="nm">Auditoria interna</span></td>
+                    <td class="mu">Consultoria</td>
+                    <td class="mu">Projecto</td>
+                    <td class="mu">1 mês</td>
+                    <td class="r mu">49%</td>
+                    <td class="r" style="font-weight:700">95 000</td>
+                    <td><span class="pill mute">Pausado</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-07</td>
+                    <td><span class="nm">Suporte WhatsApp Business</span></td>
+                    <td class="mu">Tecnologia</td>
+                    <td class="mu">Mensal</td>
+                    <td class="mu">Contínuo</td>
+                    <td class="r mu">66%</td>
+                    <td class="r" style="font-weight:700">7 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-08</td>
+                    <td><span class="nm">Gestão de cobranças</span></td>
+                    <td class="mu">Financeiro</td>
+                    <td class="mu">Mensal</td>
+                    <td class="mu">Contínuo</td>
+                    <td class="r mu">58%</td>
+                    <td class="r" style="font-weight:700">12 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>                  </tbody>
+                </table>
+              </div>
+              <div class="foot"><span>8 serviços</span><span>Tarifa média <b>30 788</b></span><span>Margem média <b>64%</b></span><span style="margin-left:auto">Clique para editar</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-B -->
+    <div class="stage" id="SB" role="tabpanel" hidden>
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx"><div class="seg" role="group"><button aria-pressed="true">Todos <span class="n">8</span></button><button>Hora <span class="n">2</span></button><button>Projecto <span class="n">3</span></button><button>Mensal <span class="n">3</span></button></div><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar serviço, código ou categoria</div><div style="flex:1"></div><button class="btn g">Exportar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo serviço</button></div>
+            <div class="split">
+              <div class="listw">
+                <div class="scroll">
+                  <table class="tbl">
+                    <thead><tr><th>Código</th><th>Serviço</th><th>Facturação</th><th class="r">Tarifa</th><th>Estado</th></tr></thead>
+                    <tbody>
+                  <tr>
+                    <td class="sku">SV-01</td>
+                    <td><span class="nm">Consultoria fiscal</span></td>
+                    <td class="mu">Hora</td>
+                    <td class="r" style="font-weight:700">3 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-02</td>
+                    <td><span class="nm">Implementação de rede</span></td>
+                    <td class="mu">Projecto</td>
+                    <td class="r" style="font-weight:700">42 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-03</td>
+                    <td><span class="nm">Manutenção mensal TI</span></td>
+                    <td class="mu">Mensal</td>
+                    <td class="r" style="font-weight:700">18 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr class="sel">
+                    <td class="sku">SV-04</td>
+                    <td><span class="nm">Design de marca</span></td>
+                    <td class="mu">Projecto</td>
+                    <td class="r" style="font-weight:700">65 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-05</td>
+                    <td><span class="nm">Formação em facturação</span></td>
+                    <td class="mu">Hora</td>
+                    <td class="r" style="font-weight:700">2 800</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-06</td>
+                    <td><span class="nm">Auditoria interna</span></td>
+                    <td class="mu">Projecto</td>
+                    <td class="r" style="font-weight:700">95 000</td>
+                    <td><span class="pill mute">Pausado</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-07</td>
+                    <td><span class="nm">Suporte WhatsApp Business</span></td>
+                    <td class="mu">Mensal</td>
+                    <td class="r" style="font-weight:700">7 500</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>
+                  <tr>
+                    <td class="sku">SV-08</td>
+                    <td><span class="nm">Gestão de cobranças</span></td>
+                    <td class="mu">Mensal</td>
+                    <td class="r" style="font-weight:700">12 000</td>
+                    <td><span class="pill ok">Activo</span></td>
+                  </tr>                    </tbody>
+                  </table>
+                </div>
+                <div class="foot"><span>8 serviços</span><span>Tarifa média <b>30 788</b></span></div>
+              </div>
+
+              <div class="card">
+                <div class="hd"><span class="txt"><b>Design de marca</b><span>SV-04 · Criativo</span></span></div>
+                <div class="bd">
+                  <div class="money">
+                    <div><div class="k">Tarifa</div><div class="v">65 000</div></div>
+                    <div><div class="k">Margem</div><div class="v">72%</div></div>
+                  </div>
+                  <div>
+                    <h5>Modelo</h5>
+                    <div class="kv"><dt>Facturação</dt><dd>Projecto</dd></div>
+                    <div class="kv"><dt>Duração típica</dt><dd>2 semanas</dd></div>
+                    <div class="kv"><dt>IVA</dt><dd>16%</dd></div>
+                    <div class="kv"><dt>Estado</dt><dd>Activo</dd></div>
+                  </div>
+                  <div>
+                    <h5>Onde é usado</h5>
+                    <div class="kv"><dt>COT 2026/319</dt><dd>65 000</dd></div>
+                    <div class="kv"><dt>FT 2026/00185</dt><dd>65 000</dd></div>
+                  </div>
+                </div>
+                <div class="acts">
+                  <button class="btn g">Editar</button>
+                  <button class="btn p" style="flex:1.5">Juntar a documento</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S-C -->
+    <div class="stage" id="SC" role="tabpanel" hidden>
+      <div class="frame">
+        <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i><i></i></nav>
+        <div class="pane">
+          <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+          <div class="content">
+            <div class="ctx"><div class="seg" role="group"><button aria-pressed="true">Todos <span class="n">8</span></button><button>Hora <span class="n">2</span></button><button>Projecto <span class="n">3</span></button><button>Mensal <span class="n">3</span></button></div><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar serviço, código ou categoria</div><div style="flex:1"></div><button class="btn g">Exportar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo serviço</button></div>
+            <div class="listw">
+              <div class="scroll" style="padding:0">
+              <div class="ghead"><h4>Hora</h4><span class="cnt">2</span><span class="sum"><span>tarifa média</span>3 150/hora</span></div>
+              <div class="grow"><span class="code">SV-01</span><span class="nm2">Consultoria fiscal<small>Consultoria · 1h</small></span><span class="mg">68%</span><span class="rate">3 500</span><span class="pill ok">Activo</span></div>
+              <div class="grow"><span class="code">SV-05</span><span class="nm2">Formação em facturação<small>Formação · 2h</small></span><span class="mg">80%</span><span class="rate">2 800</span><span class="pill ok">Activo</span></div>
+              <div class="ghead"><h4>Projecto</h4><span class="cnt">3</span><span class="sum"><span>tarifa média</span>67 333/projecto</span></div>
+              <div class="grow"><span class="code">SV-02</span><span class="nm2">Implementação de rede<small>Tecnologia · 3-5 dias</small></span><span class="mg">54%</span><span class="rate">42 000</span><span class="pill ok">Activo</span></div>
+              <div class="grow"><span class="code">SV-04</span><span class="nm2">Design de marca<small>Criativo · 2 semanas</small></span><span class="mg">72%</span><span class="rate">65 000</span><span class="pill ok">Activo</span></div>
+              <div class="grow"><span class="code">SV-06</span><span class="nm2">Auditoria interna<small>Consultoria · 1 mês</small></span><span class="mg">49%</span><span class="rate">95 000</span><span class="pill mute">Pausado</span></div>
+              <div class="ghead"><h4>Mensal</h4><span class="cnt">3</span><span class="sum"><span>tarifa média</span>12 667/mês</span></div>
+              <div class="grow"><span class="code">SV-03</span><span class="nm2">Manutenção mensal TI<small>Tecnologia · Contínuo</small></span><span class="mg">61%</span><span class="rate">18 500</span><span class="pill ok">Activo</span></div>
+              <div class="grow"><span class="code">SV-07</span><span class="nm2">Suporte WhatsApp Business<small>Tecnologia · Contínuo</small></span><span class="mg">66%</span><span class="rate">7 500</span><span class="pill ok">Activo</span></div>
+              <div class="grow"><span class="code">SV-08</span><span class="nm2">Gestão de cobranças<small>Financeiro · Contínuo</small></span><span class="mg">58%</span><span class="rate">12 000</span><span class="pill ok">Activo</span></div>              </div>
+              <div class="foot"><span>8 serviços</span><span>Tarifa média <b>30 788</b></span><span style="margin-left:auto">Agrupado por como se cobra</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. Dados reais de <code>src/lib/mock-data.ts</code> (12 produtos, 8 serviços). Tokens de <code>src/styles.css</code>; segue o tema do sistema.</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    PA: [
+      ["Estratégia", "Construir o que falta. A página passa a desenhar os 12 produtos reais que já existem em <code>mock-data.ts</code>, numa tabela com stock, margem e preço."],
+      ["Ganha", "É a única que responde à pergunta que um catálogo existe para responder: <b>o que tenho, a quanto vendo e o que está a acabar</b>. A barra de stock e os estados Esgotado/Stock baixo saem de <code>stock</code> vs. <code>minStock</code>, que já estão nos dados. O rodapé soma o valor imobilizado."],
+      ["Perde", "Sem imagens — e a Cotação visual (COTV) precisa de uma imagem por produto. Este layout não tem onde a pôr."],
+      ["Melhor se", "O catálogo serve sobretudo para controlar stock e preços."]
+    ],
+    PB: [
+      ["Estratégia", "Servir a Cotação visual. Uma grelha de cartões com imagem, preço e stock — o catálogo como montra."],
+      ["Ganha", "É o único que dá lugar à imagem do produto, e a COTV que construímos na Bancada depende disso. Reconhecer pela imagem é mais rápido do que ler SKUs, sobretudo em retalho."],
+      ["Perde", "Comparar preços ou margens entre produtos fica pior do que numa coluna, e stock mínimo não cabe no cartão. 12 cabem sem rolar; 60 não."],
+      ["Melhor se", "O negócio for de revenda e as cotações visuais forem a arma comercial."]
+    ],
+    PC: [
+      ["Estratégia", "Emparelhar, como em /documentos e /clientes. Lista à esquerda, ficha do produto à direita."],
+      ["Ganha", "Mesma gramática das páginas já feitas. A ficha tem espaço para o que não cabe numa linha — custo, margem, IVA, stock mínimo e <b>em que documentos o produto foi usado</b> — e para o botão que liga o catálogo ao editor: juntar a um documento."],
+      ["Perde", "320&nbsp;px saem da lista, o que custa as colunas de categoria e margem. Também não resolve as imagens."],
+      ["Melhor se", "Quiser coerência total com o resto do painel e edição sem modal."]
+    ],
+    SA: [
+      ["Estratégia", "Densificar. Cai o cabeçalho, caem os quatro cartões, a tabela fica com toda a altura."],
+      ["Ganha", "Os 8 serviços cabem de uma vez, com categoria, duração e margem à vista. Os números do rodapé (tarifa e margem médias) são <b>calculados</b> — ao contrário da &laquo;Receita recorrente 38 000&raquo; e dos deltas +8%/+3% de hoje, que estão escritos à mão."],
+      ["Perde", "Com 8 linhas a tabela fica com muito espaço vazio por baixo — o mesmo problema em aberto das outras páginas."],
+      ["Melhor se", "Quiser a mudança mais barata e directa sobre o que já existe."]
+    ],
+    SB: [
+      ["Estratégia", "Emparelhar, igual a PC. Lista à esquerda, ficha do serviço à direita."],
+      ["Ganha", "Um serviço tem mais atributos do que cabe numa linha: modelo de facturação, duração típica, margem, IVA. A ficha arruma-os e ganha &laquo;onde é usado&raquo; — que documentos já o venderam."],
+      ["Perde", "Para 8 registos, um painel de 320&nbsp;px é muito peso por pouca informação."],
+      ["Melhor se", "Produtos e Serviços forem construídos com o mesmo layout — escolher PC e SB deixa o Catálogo inteiro coerente."]
+    ],
+    SC: [
+      ["Estratégia", "Agrupar por <b>como se cobra</b> — Hora, Projecto, Mensal. É a distinção que muda tudo: o preço, a duração e a previsibilidade da receita."],
+      ["Ganha", "Cada grupo traz a tarifa média na unidade certa (/hora, /projecto, /mês). Os três serviços Mensais juntos são a receita recorrente — a métrica que a página hoje inventa com um 38 000 escrito à mão passaria a ser calculada."],
+      ["Perde", "Fixa a ordenação e gasta altura em cabeçalhos. Comparar um serviço à hora com um a projecto exige saltar entre grupos."],
+      ["Melhor se", "A pergunta importante for &laquo;quanto disto é receita recorrente&raquo;."]
+    ]
+  };
+
+  function render(el, items) {
+    el.innerHTML = items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+    return pick;
+  }
+
+  var whyP = document.getElementById("whyP");
+  var whyS = document.getElementById("whyS");
+  var lists = document.querySelectorAll('[aria-label^="Iterações"]');
+
+  wire(document.getElementById("sec"));
+  wire(lists[0], function (t) { render(whyP, meta[t.getAttribute("aria-controls")]); });
+  wire(lists[1], function (t) { render(whyS, meta[t.getAttribute("aria-controls")]); });
+
+  render(whyP, meta.PA);
+  render(whyS, meta.SA);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var open = document.getElementById("gS").hidden ? lists[0] : lists[1];
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i >= 0) { open.querySelectorAll('[role=tab]')[i].click(); return; }
+    if (e.key.toLowerCase() === "p") document.getElementById("tab-gP").click();
+    if (e.key.toLowerCase() === "s") document.getElementById("tab-gS").click();
+  });
+})();
+</script>
+</body>
+</html>

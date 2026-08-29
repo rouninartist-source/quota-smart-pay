@@ -59,6 +59,8 @@
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.02 265);
   --popover: oklch(1 0 0);
+  /* controlos nativos (scrollbars, date picker, spinners) seguem o tema */
+  color-scheme: light;
   --popover-foreground: oklch(0.18 0.02 265);
 
   /* Brand — Midnight Indigo */
@@ -113,6 +115,7 @@
    base #0a0a1a  →  surface #141432  →  card #1a1a3a
    ───────────────────────────────────────────────────────── */
 .dark {
+  color-scheme: dark;
   --background: oklch(0.14 0.03 258);            /* #0a0a1a */
   --foreground: oklch(0.98 0.003 255);
   --surface: oklch(0.18 0.04 258);               /* #141432 */

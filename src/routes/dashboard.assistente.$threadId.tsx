@@ -176,19 +176,19 @@ function ChatWindow({
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+    <div className="grid gap-3 md:h-full md:min-h-0 lg:grid-cols-[260px_minmax(0,1fr)]">
       {/* Threads */}
-      <aside className="rounded-lg border border-border/60 bg-card p-3 shadow-card">
+      <aside className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card p-3 shadow-sm">
         <button
           onClick={onNewThread}
-          className="flex h-9 w-full items-center gap-2 rounded-md bg-primary px-3 text-[13px] font-medium text-primary-foreground hover:opacity-90"
+          className="flex h-9 w-full shrink-0 items-center gap-2 rounded-md bg-primary px-3 text-[13px] font-medium text-primary-foreground hover:opacity-90"
         >
           <MessageSquarePlus className="h-4 w-4" /> Nova conversa
         </button>
-        <p className="px-2 pb-1.5 pt-4 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">
+        <p className="shrink-0 px-2 pb-1.5 pt-4 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">
           Conversas
         </p>
-        <ul className="space-y-0.5">
+        <ul className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain">
           {threads.map((t) => {
             const active = t.id === threadId;
             return (
@@ -223,8 +223,8 @@ function ChatWindow({
       </aside>
 
       {/* Chat */}
-      <section className="flex min-h-[600px] flex-col rounded-lg border border-border/60 bg-card shadow-card">
-        <header className="flex items-center gap-3 border-b border-border/60 px-5 py-4">
+      <section className="flex min-h-[440px] flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm md:min-h-0">
+        <header className="flex shrink-0 items-center gap-3 border-b border-border/60 px-5 py-3">
           <img src={mark} alt="Quota AI" width={512} height={512} className="h-9 w-9 rounded-md" />
           <div>
             <p className="font-display text-[15px] font-semibold">Quota AI</p>
@@ -234,7 +234,7 @@ function ChatWindow({
           </div>
         </header>
 
-        <Conversation className="flex-1">
+        <Conversation className="min-h-0 flex-1">
           <ConversationContent className="mx-auto w-full max-w-3xl">
             {messages.length === 0 ? (
               <div className="py-10">

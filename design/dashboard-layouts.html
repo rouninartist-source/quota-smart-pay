@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota Sem Scroll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── A · Cockpit ──────────────────────────────────────────── */
+#A .rail{flex-shrink:0;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+#A .cell{padding:14px 16px;border-left:1px solid var(--line-soft);min-width:0}
+#A .cell:first-child{border-left:0;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 4%,transparent),transparent)}
+#A .cell .k{font-size:10.5px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px}
+#A .cell .v{font-family:"Sora",sans-serif;font-size:20px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:5px;white-space:nowrap}
+#A .cell:first-child .v{font-size:30px;line-height:1.05;margin-top:7px}
+#A .cell .s{font-size:10.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+#A .heroflex{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+#A .mid{flex:1;min-height:0;display:grid;grid-template-columns:1.62fr 1fr;gap:14px}
+#A .col{display:flex;flex-direction:column;gap:14px;min-height:0}
+#A .dock{flex-shrink:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+#A .tile{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;border:1px solid var(--line-soft);background:var(--surface);text-decoration:none;color:inherit;cursor:pointer;transition:.16s}
+#A .tile:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent);background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#A .tile .ic{width:28px;height:28px;border-radius:7px;background:var(--bg);color:var(--primary);display:grid;place-items:center;box-shadow:var(--shadow);flex-shrink:0}
+#A .tile b{font-size:12px;font-weight:600;display:block}
+#A .tile span{font-size:10.5px;color:var(--muted)}
+#A .nudge{flex-shrink:0;border:1px solid color-mix(in oklab,var(--primary) 22%,transparent);border-radius:10px;padding:13px 14px;background:
+  radial-gradient(at 15% 10%, color-mix(in oklab,var(--glow) 14%,transparent) 0px, transparent 60%),
+  radial-gradient(at 90% 20%, color-mix(in oklab,var(--primary) 11%,transparent) 0px, transparent 55%), var(--card)}
+#A .nudge p{margin:9px 0 0;font-size:12.5px;font-weight:600}
+#A .nudge small{display:block;margin-top:3px;font-size:11px;color:var(--muted);line-height:1.45}
+
+/* ── B · Worklist ─────────────────────────────────────────── */
+#B .grid{flex:1;min-height:0;display:grid;grid-template-columns:1.85fr 1fr;gap:14px}
+#B .left{display:flex;flex-direction:column;gap:14px;min-height:0}
+#B .hero{flex-shrink:0;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+#B .hero .k{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+#B .hero .v{font-family:"Sora",sans-serif;font-size:40px;font-weight:600;letter-spacing:-.03em;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+#B .hero .cur{font-size:16px;color:var(--muted);font-weight:500;margin-left:6px}
+#B .hero .meta{margin-top:11px;display:flex;align-items:center;gap:14px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+#B .wrow{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:9px;transition:.14s}
+#B .wrow:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+#B .wrow .who{flex:1;min-width:0}
+#B .wrow .who b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#B .wrow .who span{display:block;font-size:11px;color:var(--muted)}
+#B .wrow .amt{text-align:right;white-space:nowrap}
+#B .wrow .amt b{display:block;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+#B .wrow .amt span{display:block;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+#B .wrow .act{display:flex;gap:6px;opacity:0;transition:.14s;flex-shrink:0}
+#B .wrow:hover .act,#B .wrow:focus-within .act{opacity:1}
+#B .stripe{width:3px;align-self:stretch;border-radius:99px;flex-shrink:0}
+#B .stripe.bad{background:var(--danger)}
+#B .stripe.warn{background:var(--warning)}
+#B .stripe.info{background:var(--primary)}
+#B .stripe.mute{background:var(--line)}
+#B .digest{display:flex;flex-direction:column;min-height:0}
+#B .sec{padding:14px 15px;border-top:1px solid var(--line-soft)}
+#B .sec:first-of-type{border-top:0}
+#B .sec h4{margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+#B .stat{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:5px 0;font-size:12.5px}
+#B .stat b{font-family:"Sora",sans-serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+#B .stat.alert b{color:var(--danger)}
+#B .qa{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#B .qa button{font:inherit;cursor:pointer;font-size:11.5px;font-weight:600;padding:9px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;transition:.16s}
+#B .qa button:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent);background:color-mix(in oklab,var(--primary) 5%,transparent);color:var(--primary)}
+#B .qa button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* ── C · Segmented ────────────────────────────────────────── */
+#C .band{flex-shrink:0;display:grid;grid-template-columns:repeat(4,1fr);gap:26px;padding:2px 4px 14px;border-bottom:1px solid var(--line-soft)}
+#C .band .k{font-size:10.5px;color:var(--muted);font-weight:500}
+#C .band .v{font-family:"Sora",sans-serif;font-size:23px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:4px;display:flex;align-items:baseline;gap:7px}
+#C .band .v small{font-size:11px;font-weight:600;letter-spacing:0}
+#C .band .up{color:var(--success)}
+#C .band .down{color:var(--danger)}
+#C .tabs{flex-shrink:0;display:flex;gap:3px;border-bottom:1px solid var(--line-soft);margin:-2px 0 0}
+#C .tabs button{font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:9px 13px;margin-bottom:-1px;transition:.16s;display:flex;align-items:center;gap:7px}
+#C .tabs button:hover{color:var(--fg)}
+#C .tabs button[aria-selected="true"]{color:var(--primary);border-bottom-color:var(--primary)}
+#C .tabs button:focus-visible{outline:2px solid var(--primary);outline-offset:-2px;border-radius:4px 4px 0 0}
+#C .tabs .n{font-size:10px;font-weight:700;background:var(--surface-2);color:var(--muted);border-radius:5px;padding:1px 5px;font-variant-numeric:tabular-nums}
+#C .tabs button[aria-selected="true"] .n{background:color-mix(in oklab,var(--primary) 13%,transparent);color:var(--primary)}
+#C .stack{flex:1;min-height:0;display:flex}
+#C .tp{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding-top:12px}
+#C .split{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#C .chartwrap{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 4px 0}
+#C .legend{display:flex;gap:18px;font-size:11px;color:var(--muted);padding:10px 4px 0;border-top:1px solid var(--line-soft);margin-top:10px}
+#C .legend b{color:var(--fg);font-variant-numeric:tabular-nums;font-weight:700}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){
+  .wrap{padding:20px 14px 48px}
+  .brief h1{font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Visão geral</p>
+      <h1>Três formas de matar o scroll</h1>
+      <p>A vista actual empilha <strong>nove contentores</strong> numa coluna 8/4 — o ecrã precisa de duas a três alturas de viewport. Cada iteração abaixo resolve isso com uma estratégia diferente: fundir, priorizar ou adiar. Todas cabem em <code>100dvh</code> sem scroll na página.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">9</b><span class="arrow">→</span><b class="to tnum" id="cnum">4</b>
+      <span style="font-size:11px;color:var(--muted);max-width:80px;line-height:1.3">contentores<br>visíveis</span>
+    </div>
+  </header>
+
+  <div class="switch" role="tablist" aria-label="Iterações de layout">
+    <button role="tab" aria-selected="true" aria-controls="A" id="tab-A"><span class="key">A</span> Cockpit</button>
+    <button role="tab" aria-selected="false" aria-controls="B" id="tab-B"><span class="key">B</span> Lista de trabalho</button>
+    <button role="tab" aria-selected="false" aria-controls="C" id="tab-C"><span class="key">C</span> Segmentado</button>
+  </div>
+
+  <dl class="why" id="why"></dl>
+
+  <!-- ══════════════════ A · COCKPIT ══════════════════ -->
+  <div class="stage" id="A" role="tabpanel" aria-labelledby="tab-A">
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i class="on"></i><i></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar">
+          <div class="search">Procurar…</div>
+          <div class="spacer"></div>
+          <div class="dot"></div><div class="dot"></div>
+          <div class="ava">JC</div>
+        </div>
+        <div class="content">
+
+          <div class="rail">
+            <div class="cell">
+              <div class="heroflex">
+                <div>
+                  <div class="k">Saldo a receber <span class="pill ok">62% liquidado</span></div>
+                  <div class="v">486 750 <span style="font-size:15px;color:var(--muted);font-weight:500">MZN</span></div>
+                  <div class="s">Facturado 1 284 300 · 24 documentos</div>
+                </div>
+                <svg width="112" height="46" viewBox="0 0 112 46" aria-label="Tendência de 8 meses">
+                  <defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--primary)" stop-opacity=".28"/>
+                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
+                  </linearGradient></defs>
+                  <path d="M2 36 L18 30 L34 33 L50 20 L66 25 L82 10 L98 15 L110 3 L110 46 L2 46 Z" fill="url(#ga)"/>
+                  <path d="M2 36 L18 30 L34 33 L50 20 L66 25 L82 10 L98 15 L110 3" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="110" cy="3" r="3" fill="var(--primary)"/>
+                </svg>
+              </div>
+            </div>
+            <div class="cell">
+              <div class="k">Facturas emitidas</div>
+              <div class="v">92</div>
+              <div class="s" style="color:var(--success)">▲ 12% vs. Julho</div>
+            </div>
+            <div class="cell">
+              <div class="k">Clientes activos</div>
+              <div class="v">38</div>
+              <div class="s" style="color:var(--success)">▲ 4 novos este mês</div>
+            </div>
+            <div class="cell">
+              <div class="k">Cobrança WhatsApp</div>
+              <div class="v">82%</div>
+              <div class="s">taxa de resposta</div>
+            </div>
+          </div>
+
+          <div class="mid">
+            <section class="panel">
+              <header>
+                <h3>Documentos recentes</h3>
+                <a class="link">Ver todos</a>
+              </header>
+              <div class="body">
+                <a class="row"><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>FT 2026/00187 · 24/08/2026</span></span><span class="pill ok">Paga</span><span class="amt">184 500</span></a>
+                <a class="row"><span class="ava-sm">BL</span><span class="who"><b>Beira Logística, SA</b><span>FT 2026/00186 · 19/08/2026</span></span><span class="pill bad">Vencida</span><span class="amt">262 000</span></a>
+                <a class="row"><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>FT 2026/00185 · 16/08/2026</span></span><span class="pill info">Enviada</span><span class="amt">96 400</span></a>
+                <a class="row"><span class="ava-sm">FN</span><span class="who"><b>Farmácia Nampula</b><span>FT 2026/00184 · 12/08/2026</span></span><span class="pill warn">Parcial</span><span class="amt">148 750</span></a>
+                <a class="row"><span class="ava-sm">CM</span><span class="who"><b>Construções Matola</b><span>FT 2026/00183 · 08/08/2026</span></span><span class="pill info">Enviada</span><span class="amt">312 000</span></a>
+                <a class="row"><span class="ava-sm">SM</span><span class="who"><b>Sasol Moçambique</b><span>FT 2026/00182 · 04/08/2026</span></span><span class="pill mute">Rascunho</span><span class="amt">74 200</span></a>
+              </div>
+            </section>
+
+            <div class="col">
+              <section class="panel" style="flex:1">
+                <header><h3>Movimentos</h3><a class="link">Ver</a></header>
+                <div class="body">
+                  <div class="row"><span class="ava-sm n">JC</span><span class="who"><b>João Comercial</b><span>M-Pesa · FT 00187</span></span><span class="amt in">+184 500</span></div>
+                  <div class="row"><span class="ava-sm n">FN</span><span class="who"><b>Farmácia Nampula</b><span>Transferência · 00184</span></span><span class="amt in">+62 000</span></div>
+                  <div class="row"><span class="ava-sm n">CM</span><span class="who"><b>Construções Matola</b><span>e-Mola · FT 00181</span></span><span class="amt in">+45 800</span></div>
+                  <div class="row"><span class="ava-sm n">BL</span><span class="who"><b>Beira Logística</b><span>Pendente · FT 00186</span></span><span class="amt">262 000</span></div>
+                </div>
+              </section>
+
+              <div class="nudge">
+                <span class="pill info">✦ Quota AI</span>
+                <p>Cobrança automática por WhatsApp</p>
+                <small>3 facturas vencidas prontas a lembrar.</small>
+                <button class="btn wa" style="margin-top:10px">Activar lembretes</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="dock">
+            <a class="tile"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Nova factura</b><span>⌘N</span></span></a>
+            <a class="tile"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M18 9v6M21 12h-6"/></svg></span><span><b>Novo cliente</b><span>CRM</span></span></a>
+            <a class="tile"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><span><b>Cotação</b><span>Orçamento</span></span></a>
+            <a class="tile"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v13H7l-3 3z"/><path d="M8 9h8M8 13h5"/></svg></span><span><b>Cobrar</b><span>WhatsApp</span></span></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ B · WORKLIST ══════════════════ -->
+  <div class="stage" id="B" role="tabpanel" aria-labelledby="tab-B" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i class="on"></i><i></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar">
+          <div class="search">Procurar…</div>
+          <div class="spacer"></div>
+          <div class="dot"></div><div class="dot"></div>
+          <div class="ava">JC</div>
+        </div>
+        <div class="content">
+          <div class="grid">
+
+            <div class="left">
+              <div class="hero">
+                <div>
+                  <div class="k">A receber <span class="pill bad">3 vencidas</span></div>
+                  <div class="v">486 750<span class="cur">MZN</span></div>
+                  <div class="meta"><span>de 1 284 300 facturado</span><span>·</span><span>24 documentos</span></div>
+                </div>
+                <div style="width:210px;flex-shrink:0">
+                  <div class="bar" style="height:9px"><i style="width:62%"></i><i class="soft" style="width:38%"></i></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--muted)" class="tnum">
+                    <span>797 550 recebido</span><span>62%</span>
+                  </div>
+                  <button class="btn p" style="width:100%;margin-top:11px">+ Nova factura</button>
+                </div>
+              </div>
+
+              <section class="panel" style="flex:1">
+                <header>
+                  <h3>Por cobrar · prioridade</h3>
+                  <span style="font-size:10.5px;color:var(--muted)">ordenado por dias em atraso</span>
+                </header>
+                <div class="body">
+                  <div class="wrow"><span class="stripe bad"></span><span class="ava-sm">BL</span><span class="who"><b>Beira Logística, SA</b><span>FT 2026/00186 · 21 dias em atraso</span></span><span class="act"><button class="btn wa">Cobrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>262 000</b><span>vence 19/08</span></span></div>
+                  <div class="wrow"><span class="stripe bad"></span><span class="ava-sm">CM</span><span class="who"><b>Construções Matola</b><span>FT 2026/00179 · 14 dias em atraso</span></span><span class="act"><button class="btn wa">Cobrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>312 000</b><span>vence 26/08</span></span></div>
+                  <div class="wrow"><span class="stripe bad"></span><span class="ava-sm">SM</span><span class="who"><b>Sasol Moçambique</b><span>FT 2026/00174 · 6 dias em atraso</span></span><span class="act"><button class="btn wa">Cobrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>74 200</b><span>vence 03/09</span></span></div>
+                  <div class="wrow"><span class="stripe warn"></span><span class="ava-sm">FN</span><span class="who"><b>Farmácia Nampula</b><span>FT 2026/00184 · pago 58%</span></span><span class="act"><button class="btn wa">Lembrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>86 750</b><span>de 148 750</span></span></div>
+                  <div class="wrow"><span class="stripe info"></span><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>FT 2026/00185 · vence em 4 dias</span></span><span class="act"><button class="btn wa">Lembrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>96 400</b><span>vence 02/09</span></span></div>
+                  <div class="wrow"><span class="stripe info"></span><span class="ava-sm">MP</span><span class="who"><b>Maputo Retail, Lda</b><span>FT 2026/00188 · vence em 9 dias</span></span><span class="act"><button class="btn wa">Lembrar</button><button class="btn g xs">Ver</button></span><span class="amt"><b>128 400</b><span>vence 07/09</span></span></div>
+                  <div class="wrow"><span class="stripe mute"></span><span class="ava-sm n">TN</span><span class="who"><b>Tete Norte, SA</b><span>Rascunho · por enviar</span></span><span class="act"><button class="btn g xs">Enviar</button></span><span class="amt"><b>54 900</b><span>rascunho</span></span></div>
+                </div>
+              </section>
+            </div>
+
+            <section class="panel digest">
+              <header><h3>Hoje</h3><span style="font-size:10.5px;color:var(--muted)">29 Ago</span></header>
+              <div class="sec">
+                <h4>Precisa de si</h4>
+                <div class="stat alert"><span>Vencidas</span><b>3</b></div>
+                <div class="stat"><span>Vencem em 7 dias</span><b>2</b></div>
+                <div class="stat"><span>Rascunhos por enviar</span><b>1</b></div>
+              </div>
+              <div class="sec">
+                <h4>Entrou hoje</h4>
+                <div class="row" style="padding:6px 0"><span class="ava-sm n">JC</span><span class="who"><b>João Comercial</b><span>M-Pesa · FT 00187</span></span><span class="amt in">+184 500</span></div>
+                <div class="row" style="padding:6px 0"><span class="ava-sm n">FN</span><span class="who"><b>Farmácia Nampula</b><span>Transferência</span></span><span class="amt in">+62 000</span></div>
+              </div>
+              <div class="sec">
+                <h4>Ritmo do mês</h4>
+                <div class="stat"><span>Facturas emitidas</span><b>92</b></div>
+                <div class="stat"><span>Tempo médio de pagamento</span><b>11 d</b></div>
+                <div class="bar" style="margin-top:9px"><i style="width:62%"></i><i class="soft" style="width:38%"></i></div>
+                <p style="margin:7px 0 0;font-size:10.5px;color:var(--muted)">62% do facturado já liquidado</p>
+              </div>
+              <div class="sec" style="margin-top:auto">
+                <h4>Criar</h4>
+                <div class="qa">
+                  <button><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Factura</button>
+                  <button><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Cotação</button>
+                  <button><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M18 9v6M21 12h-6"/></svg>Cliente</button>
+                  <button><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16v13H7l-3 3z"/><path d="M8 9h8"/></svg>Recibo</button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ C · SEGMENTED ══════════════════ -->
+  <div class="stage" id="C" role="tabpanel" aria-labelledby="tab-C" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true">
+        <div class="logo"></div>
+        <i class="on"></i><i></i><i></i><i></i><div class="gap"></div><i></i><i></i><i></i>
+      </nav>
+      <div class="pane">
+        <div class="topbar">
+          <div class="search">Procurar…</div>
+          <div class="spacer"></div>
+          <button class="btn p">+ Nova factura</button>
+          <div class="dot"></div>
+          <div class="ava">JC</div>
+        </div>
+        <div class="content">
+
+          <div class="band">
+            <div><div class="k">Saldo a receber</div><div class="v">486 750 <small class="up">▲ 8%</small></div></div>
+            <div><div class="k">Facturado (ano)</div><div class="v">1 284 300</div></div>
+            <div><div class="k">Liquidado</div><div class="v">62% <small class="up">▲ 5pp</small></div></div>
+            <div><div class="k">Em atraso</div><div class="v">648 200 <small class="down">3 docs</small></div></div>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Secções do painel">
+            <button role="tab" aria-selected="true" aria-controls="c-doc" id="ct-doc">Documentos <span class="n">24</span></button>
+            <button role="tab" aria-selected="false" aria-controls="c-mov" id="ct-mov">Movimentos <span class="n">8</span></button>
+            <button role="tab" aria-selected="false" aria-controls="c-des" id="ct-des">Desempenho</button>
+            <button role="tab" aria-selected="false" aria-controls="c-ata" id="ct-ata">Atalhos</button>
+          </div>
+
+          <div class="stack">
+            <!-- Documentos -->
+            <div class="tp" id="c-doc" role="tabpanel" aria-labelledby="ct-doc">
+              <div class="split">
+                <section class="panel">
+                  <header><h3>Recentes</h3><a class="link">Ver todos</a></header>
+                  <div class="body">
+                    <a class="row"><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>FT 2026/00187 · 24/08</span></span><span class="pill ok">Paga</span><span class="amt">184 500</span></a>
+                    <a class="row"><span class="ava-sm">BL</span><span class="who"><b>Beira Logística, SA</b><span>FT 2026/00186 · 19/08</span></span><span class="pill bad">Vencida</span><span class="amt">262 000</span></a>
+                    <a class="row"><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>FT 2026/00185 · 16/08</span></span><span class="pill info">Enviada</span><span class="amt">96 400</span></a>
+                    <a class="row"><span class="ava-sm">FN</span><span class="who"><b>Farmácia Nampula</b><span>FT 2026/00184 · 12/08</span></span><span class="pill warn">Parcial</span><span class="amt">148 750</span></a>
+                    <a class="row"><span class="ava-sm">CM</span><span class="who"><b>Construções Matola</b><span>FT 2026/00183 · 08/08</span></span><span class="pill info">Enviada</span><span class="amt">312 000</span></a>
+                    <a class="row"><span class="ava-sm">SM</span><span class="who"><b>Sasol Moçambique</b><span>FT 2026/00182 · 04/08</span></span><span class="pill mute">Rascunho</span><span class="amt">74 200</span></a>
+                  </div>
+                </section>
+                <section class="panel">
+                  <header><h3>Distribuição de cobrança</h3></header>
+                  <div class="body pad">
+                    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)" class="tnum"><span>797 550 recebido</span><span>486 750 pendente</span></div>
+                    <div class="bar" style="height:11px;margin-top:9px"><i style="width:62%"></i><i class="soft" style="width:38%"></i></div>
+                    <div style="display:flex;gap:22px;margin-top:14px;font-size:11.5px;color:var(--muted)">
+                      <span>Recebido <b style="color:var(--fg)">62%</b></span>
+                      <span>Pendente <b style="color:var(--fg)">38%</b></span>
+                      <span>Documentos <b style="color:var(--fg)">24</b></span>
+                    </div>
+                    <div style="border-top:1px solid var(--line-soft);margin-top:16px;padding-top:14px">
+                      <h4 style="margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">Por estado</h4>
+                      <div style="display:flex;flex-direction:column;gap:9px">
+                        <div style="display:flex;align-items:center;gap:10px"><span class="pill ok" style="width:66px;justify-content:center">Paga</span><div class="bar" style="flex:1"><i style="width:54%"></i></div><span class="tnum" style="font-size:11px;color:var(--muted);width:22px;text-align:right">13</span></div>
+                        <div style="display:flex;align-items:center;gap:10px"><span class="pill info" style="width:66px;justify-content:center">Enviada</span><div class="bar" style="flex:1"><i style="width:25%"></i></div><span class="tnum" style="font-size:11px;color:var(--muted);width:22px;text-align:right">6</span></div>
+                        <div style="display:flex;align-items:center;gap:10px"><span class="pill bad" style="width:66px;justify-content:center">Vencida</span><div class="bar" style="flex:1"><i style="width:13%;background:var(--danger)"></i></div><span class="tnum" style="font-size:11px;color:var(--muted);width:22px;text-align:right">3</span></div>
+                        <div style="display:flex;align-items:center;gap:10px"><span class="pill mute" style="width:66px;justify-content:center">Rascunho</span><div class="bar" style="flex:1"><i style="width:8%;background:var(--line)"></i></div><span class="tnum" style="font-size:11px;color:var(--muted);width:22px;text-align:right">2</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <!-- Movimentos -->
+            <div class="tp" id="c-mov" role="tabpanel" aria-labelledby="ct-mov" hidden>
+              <section class="panel" style="flex:1">
+                <header><h3>Movimentos recentes</h3><a class="link">Exportar</a></header>
+                <div class="body">
+                  <div class="row"><span class="ava-sm n">JC</span><span class="who"><b>João Comercial, Lda</b><span>M-Pesa · FT 2026/00187 · hoje 09:14</span></span><span class="pill ok">Confirmado</span><span class="amt in">+184 500</span></div>
+                  <div class="row"><span class="ava-sm n">FN</span><span class="who"><b>Farmácia Nampula</b><span>Transferência BCI · FT 00184 · hoje 08:02</span></span><span class="pill ok">Confirmado</span><span class="amt in">+62 000</span></div>
+                  <div class="row"><span class="ava-sm n">CM</span><span class="who"><b>Construções Matola</b><span>e-Mola · FT 2026/00181 · ontem</span></span><span class="pill ok">Confirmado</span><span class="amt in">+45 800</span></div>
+                  <div class="row"><span class="ava-sm n">MP</span><span class="who"><b>Maputo Retail, Lda</b><span>M-Pesa · FT 2026/00180 · ontem</span></span><span class="pill ok">Confirmado</span><span class="amt in">+97 300</span></div>
+                  <div class="row"><span class="ava-sm n">TN</span><span class="who"><b>Tete Norte, SA</b><span>Transferência · FT 00178 · 27/08</span></span><span class="pill warn">A verificar</span><span class="amt in">+31 450</span></div>
+                  <div class="row"><span class="ava-sm n">BL</span><span class="who"><b>Beira Logística, SA</b><span>Pendente · FT 2026/00186</span></span><span class="pill bad">Vencida</span><span class="amt">262 000</span></div>
+                  <div class="row"><span class="ava-sm n">SM</span><span class="who"><b>Sasol Moçambique</b><span>Pendente · FT 2026/00174</span></span><span class="pill bad">Vencida</span><span class="amt">74 200</span></div>
+                  <div class="row"><span class="ava-sm n">JC</span><span class="who"><b>João Comercial, Lda</b><span>M-Pesa · FT 2026/00176 · 25/08</span></span><span class="pill ok">Confirmado</span><span class="amt in">+58 900</span></div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Desempenho -->
+            <div class="tp" id="c-des" role="tabpanel" aria-labelledby="ct-des" hidden>
+              <section class="panel" style="flex:1">
+                <header><h3>Facturação por mês</h3><span style="font-size:10.5px;color:var(--muted)">2026 · milhares MZN</span></header>
+                <div class="body pad chartwrap">
+                  <svg viewBox="0 0 620 210" preserveAspectRatio="none" style="width:100%;height:100%;max-height:230px" role="img" aria-label="Facturação mensal de Janeiro a Outubro">
+                    <line x1="0" y1="52"  x2="620" y2="52"  stroke="var(--line-soft)" stroke-width="1"/>
+                    <line x1="0" y1="104" x2="620" y2="104" stroke="var(--line-soft)" stroke-width="1"/>
+                    <line x1="0" y1="156" x2="620" y2="156" stroke="var(--line-soft)" stroke-width="1"/>
+                    <line x1="0" y1="186" x2="620" y2="186" stroke="var(--line)" stroke-width="1"/>
+                    <g fill="var(--surface-2)">
+                      <rect x="10"  y="119" width="42" height="67"  rx="7"/>
+                      <rect x="72"  y="98"  width="42" height="88"  rx="7"/>
+                      <rect x="134" y="125" width="42" height="61"  rx="7"/>
+                      <rect x="196" y="68"  width="42" height="118" rx="7"/>
+                      <rect x="258" y="89"  width="42" height="97"  rx="7"/>
+                      <rect x="320" y="46"  width="42" height="140" rx="7"/>
+                      <rect x="382" y="73"  width="42" height="113" rx="7"/>
+                      <rect x="506" y="84"  width="42" height="102" rx="7"/>
+                      <rect x="568" y="108" width="42" height="78"  rx="7"/>
+                    </g>
+                    <rect x="444" y="8" width="42" height="178" rx="7" fill="var(--primary)"/>
+                    <g font-size="11" fill="var(--muted)" text-anchor="middle" font-family="Manrope,sans-serif">
+                      <text x="31" y="203">Jan</text><text x="93" y="203">Fev</text><text x="155" y="203">Mar</text>
+                      <text x="217" y="203">Abr</text><text x="279" y="203">Mai</text><text x="341" y="203">Jun</text>
+                      <text x="403" y="203">Jul</text>
+                      <text x="465" y="203" fill="var(--primary)" font-weight="700">Ago</text>
+                      <text x="527" y="203">Set</text><text x="589" y="203">Out</text>
+                    </g>
+                  </svg>
+                  <div class="legend">
+                    <span>Melhor mês <b>Ago · 118k</b></span>
+                    <span>Média <b>66k</b></span>
+                    <span>Crescimento <b style="color:var(--success)">▲ 12%</b></span>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Atalhos -->
+            <div class="tp" id="c-ata" role="tabpanel" aria-labelledby="ct-ata" hidden>
+              <div class="split">
+                <section class="panel">
+                  <header><h3>Criar</h3></header>
+                  <div class="body pad" style="display:flex;flex-direction:column;gap:7px">
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">＋</span><span class="who"><b>Nova factura</b><span>Emitir com IVA e NUIT</span></span><span style="color:var(--muted)">›</span></a>
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">☰</span><span class="who"><b>Nova cotação</b><span>Converter depois em factura</span></span><span style="color:var(--muted)">›</span></a>
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">◎</span><span class="who"><b>Novo recibo</b><span>Registar pagamento</span></span><span style="color:var(--muted)">›</span></a>
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">☺</span><span class="who"><b>Novo cliente</b><span>NUIT, contacto e morada</span></span><span style="color:var(--muted)">›</span></a>
+                  </div>
+                </section>
+                <section class="panel">
+                  <header><h3>Configurar</h3></header>
+                  <div class="body pad" style="display:flex;flex-direction:column;gap:7px">
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">◈</span><span class="who"><b>Dados da empresa</b><span>NUIT, logótipo, morada</span></span><span style="color:var(--muted)">›</span></a>
+                    <a class="row" style="border:1px solid var(--line-soft)"><span class="ava-sm">▤</span><span class="who"><b>Dados de pagamento</b><span>Banco, M-Pesa, e-Mola</span></span><span style="color:var(--muted)">›</span></a>
+                    <div style="border:1px solid color-mix(in oklab,var(--primary) 22%,transparent);border-radius:9px;padding:14px;margin-top:6px;background:radial-gradient(at 15% 10%, color-mix(in oklab,var(--glow) 14%,transparent) 0px, transparent 60%), var(--card)">
+                      <span class="pill info">✦ Quota AI</span>
+                      <p style="margin:9px 0 0;font-size:12.5px;font-weight:600">Cobrança automática por WhatsApp</p>
+                      <p style="margin:3px 0 0;font-size:11px;color:var(--muted);line-height:1.45">Active lembretes e reduza o tempo médio de pagamento.</p>
+                      <button class="btn wa" style="margin-top:11px">Configurar</button>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">
+    <span>Molduras fixas em <code>700px</code> com <code>overflow:hidden</code> — o que não coubesse aparecia cortado. Listas longas rolam <em>dentro</em> do painel, nunca na página. Barra lateral esbatida por estar fora do âmbito.</span>
+  </p>
+
+</div>
+
+<script>
+(function () {
+  var meta = {
+    A: {
+      n: "4",
+      items: [
+        ["Estratégia", "Fundir. Os quatro blocos de métrica (herói, 3 sparklines, distribuição) colapsam numa só régua de KPI."],
+        ["Ganha", "Tudo visível de uma vez. Densidade alta sem parecer apertado; o número que importa continua a dominar."],
+        ["Perde", "O gráfico de barras mensal sai — vira uma sparkline de 8 meses na régua."],
+        ["Melhor se", "O utilizador abre o painel para ler o estado do negócio num relance."]
+      ]
+    },
+    B: {
+      n: "3",
+      items: [
+        ["Estratégia", "Priorizar. O painel responde a uma pergunta: quem me deve e o que faço agora."],
+        ["Ganha", "Orientado à acção — botão Cobrar por WhatsApp em cada linha, ordenado por dias em atraso."],
+        ["Perde", "Analítica quase toda. Sem gráficos; o histórico vive na página de Facturas."],
+        ["Melhor se", "É um MVP. Menos ecrã, mais trabalho feito — e a coluna direita é um só painel, não cinco."]
+      ]
+    },
+    C: {
+      n: "2",
+      items: [
+        ["Estratégia", "Adiar. Faixa de KPI sempre visível; o resto entra em separadores."],
+        ["Ganha", "Nunca faz scroll, independentemente de quanto conteúdo cresça. Nada é apagado — só adiado."],
+        ["Perde", "Comparação lado a lado: ver documentos e desempenho ao mesmo tempo exige um clique."],
+        ["Melhor se", "Quer manter toda a riqueza actual e continuar a acrescentar áreas sem repensar o layout."]
+      ]
+    }
+  };
+
+  var why = document.getElementById("why");
+  var cnum = document.getElementById("cnum");
+
+  function paint(k) {
+    var d = meta[k];
+    cnum.textContent = d.n;
+    why.innerHTML = d.items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+    return pick;
+  }
+
+  wire(document.querySelector(".switch"), function (t) {
+    paint(t.getAttribute("aria-controls"));
+  });
+  wire(document.querySelector("#C .tabs"));
+  paint("A");
+})();
+</script>
+</body>
+</html>

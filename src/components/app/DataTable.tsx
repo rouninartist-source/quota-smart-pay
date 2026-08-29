@@ -68,6 +68,7 @@ export function DataTable<T extends { id: string }>({
   empty,
   toolbarExtra,
   mobileCard,
+  fill,
 }: {
   data: T[];
   columns: Column<T>[];
@@ -82,6 +83,12 @@ export function DataTable<T extends { id: string }>({
   empty?: { title: string; description?: string; action?: React.ReactNode };
   toolbarExtra?: React.ReactNode;
   mobileCard?: (row: T) => React.ReactNode;
+  /**
+   * Trava a altura ao contentor e rola as linhas por dentro, em vez de fazer a
+   * página crescer. Implica sem paginação — rolar dentro de uma página de 10
+   * seria rolar duas vezes pela mesma lista.
+   */
+  fill?: boolean;
 }) {
   const [query, setQuery] = React.useState("");
   const [active, setActive] = React.useState<Record<string, string>>({});
@@ -114,9 +121,10 @@ export function DataTable<T extends { id: string }>({
     return out;
   }, [data, query, active, sort, filters, columns, searchKeys]);
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const effectivePageSize = fill ? Math.max(rows.length, 1) : pageSize;
+  const totalPages = Math.max(1, Math.ceil(rows.length / effectivePageSize));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const pageRows = rows.slice((currentPage - 1) * effectivePageSize, currentPage * effectivePageSize);
 
   React.useEffect(() => setPage(1), [query, active, sort]);
 
@@ -152,9 +160,14 @@ export function DataTable<T extends { id: string }>({
   }
 
   return (
-    <div className="rounded-md border border-border/70 bg-card">
+    <div
+      className={cn(
+        "rounded-md border border-border/70 bg-card",
+        fill && "flex h-full min-h-0 flex-col overflow-hidden",
+      )}
+    >
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 border-b border-border/60 p-3 sm:flex-row sm:items-center">
+      <div className="flex shrink-0 flex-col gap-3 border-b border-border/60 p-3 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -225,7 +238,7 @@ export function DataTable<T extends { id: string }>({
 
       {/* Bulk bar */}
       {selected.length > 0 && bulkActions.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-primary/[0.04] px-3 py-2 animate-fade-up">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-primary/[0.04] px-3 py-2 animate-fade-up">
           <span className="text-xs font-medium">
             {selected.length} seleccionado{selected.length > 1 ? "s" : ""}
           </span>
@@ -272,6 +285,7 @@ export function DataTable<T extends { id: string }>({
         />
       ) : (
         <>
+          <div className={cn(fill && "min-h-0 flex-1 overflow-y-auto overscroll-contain")}>
           {/* Desktop table */}
           <div className={cn("overflow-x-auto", mobileCard && "hidden md:block")}>
             <table className="w-full text-sm">
@@ -385,11 +399,13 @@ export function DataTable<T extends { id: string }>({
               ))}
             </ul>
           )}
+          </div>
 
           {/* Pagination */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
             <p className="text-xs text-muted-foreground">
-              {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, rows.length)} de{" "}
+              {(currentPage - 1) * effectivePageSize + 1}–
+              {Math.min(currentPage * effectivePageSize, rows.length)} de{" "}
               {rows.length}
             </p>
             <div className="flex items-center gap-1">

@@ -79,12 +79,11 @@ export function upsertDraft(
 }
 
 /** Verificação humana positiva: emite a factura como rascunho no sistema. */
-export function approveDraft(id: string, reviewNote?: string) {
+export async function approveDraft(id: string, reviewNote?: string) {
   const draft = getDraft(id);
   if (!draft || draft.status !== "pendente") return undefined;
 
-  const invoice = addInvoice({
-    number: nextInvoiceNumber(),
+  const invoice = await addInvoice({
     issued: draft.issued || iso(0),
     due: draft.due || iso(14),
     status: "rascunho",
@@ -98,6 +97,8 @@ export function approveDraft(id: string, reviewNote?: string) {
     },
     lines: draft.lines,
   });
+
+  if (!invoice) return undefined;
 
   write(
     read().map((d) =>

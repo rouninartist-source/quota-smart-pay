@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Design dos documentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── atoms ────────────────────────────────────────────────── */
+.ctx{flex-shrink:0;display:flex;flex-wrap:wrap;align-items:center;gap:9px 11px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+.ctx .ttl{font-size:12.5px;font-weight:600}
+.ctx .sub{font-size:11px;color:var(--muted);border-left:1px solid var(--line-soft);padding-left:11px}
+
+/* ── folha esquemática ────────────────────────────────────── */
+.pp{background:#fff;color:#0f172a;border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;aspect-ratio:1/1.36;box-shadow:0 1px 3px oklch(0 0 0 / .09);position:relative}
+.pp .inner{flex:1;min-height:0;display:flex;flex-direction:column;padding:9%;gap:5%;overflow:hidden}
+.pp .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:6%;padding-bottom:5%;border-bottom:1px solid #e2e8f0}
+.pp .brand{display:flex;gap:5%;align-items:center;min-width:0;flex:1}
+.pp .logo{width:16px;height:16px;border-radius:3px;background:#0f172a;flex-shrink:0}
+.pp .lines{flex:1;display:flex;flex-direction:column;gap:2.5px;min-width:0}
+.pp .l{height:2.5px;border-radius:2px;background:#cbd5e1}
+.pp .l.s{width:55%}.pp .l.xs{width:35%}.pp .l.m{width:75%}
+.pp .l.dk{background:#0f172a;height:3.5px}
+.pp .right{display:flex;flex-direction:column;gap:2.5px;align-items:flex-end;width:32%}
+.pp .tbl{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.pp .th{height:3px;border-radius:2px;background:#94a3b8}
+.pp .tr{height:2.5px;border-radius:2px;background:#e2e8f0}
+.pp .tot{margin-top:auto;display:flex;flex-direction:column;gap:2.5px;align-items:flex-end}
+.pp .tot .big{height:5px;width:45%;border-radius:2px;background:#0f172a}
+.pp .pay{height:14%;border-radius:3px;background:#f1f5f9;margin-top:4%}
+
+/* variantes por template */
+.pp.moderno .band{height:5%;background:#0f172a;flex-shrink:0}
+.pp.moderno .pay{background:#0f172a}
+.pp.corporativo{border-left:5px solid #0f172a}
+.pp.corporativo .tr:nth-child(even){background:#f1f5f9}
+.pp.corporativo .tot{border:1px solid #e2e8f0;border-radius:3px;padding:5%;align-items:flex-end}
+.pp.minimal .inner{padding:13%;gap:7%}
+.pp.minimal .hd{border-bottom-color:#f1f5f9}
+.pp.minimal .th{background:#cbd5e1}
+.pp.elegante .hd{flex-direction:column;align-items:center;text-align:center;border-bottom:1px solid #cbd5e1}
+.pp.elegante .brand{flex-direction:column;align-items:center;width:100%}
+.pp.elegante .right{width:100%;align-items:center}
+.pp.elegante .l{background:#94a3b8}
+.pp.elegante .tot{background:#f1f5f9;border-radius:3px;padding:3%}
+.pp.basic-escuro{background:#0f172a;border-color:#1e293b}
+.pp.basic-escuro .hd{border-bottom-color:#334155}
+.pp.basic-escuro .l{background:#475569}
+.pp.basic-escuro .l.dk{background:#f8fafc}
+.pp.basic-escuro .logo{background:#f8fafc}
+.pp.basic-escuro .th{background:#64748b}
+.pp.basic-escuro .tr{background:#1e293b}
+.pp.basic-escuro .tot .big{background:#f8fafc}
+.pp.basic-escuro .pay{background:#1e293b}
+.pp.basic-claro .logo{background:#64748b}
+.pp.basic-claro .tot .big{background:#334155}
+
+/* cartão de template */
+.tcard{position:relative;display:flex;flex-direction:column;gap:7px;cursor:pointer;border:1px solid var(--line-soft);border-radius:11px;background:var(--card);padding:9px;transition:.16s}
+.tcard:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.tcard.on{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 14%,transparent)}
+.tcard .meta{display:flex;align-items:center;gap:6px;min-width:0}
+.tcard .meta b{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .meta span{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .flag{position:absolute;top:15px;right:15px;z-index:2}
+
+/* ── A · Galeria + folha ──────────────────────────────────── */
+#A .split{flex:1;min-height:0;display:grid;grid-template-columns:300px minmax(0,1fr);gap:13px}
+#A .gal{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#A .gal .sc{flex:1;min-height:0;overflow:auto;padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
+#A .stagew{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+#A .stagew .hd2{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-soft);background:var(--card)}
+#A .stagew .hd2 b{font-family:"Sora",sans-serif;font-size:13.5px;font-weight:600}
+#A .stagew .hd2 span{font-size:11px;color:var(--muted)}
+#A .stagew .body{flex:1;min-height:0;overflow:auto;display:grid;place-items:center;padding:16px}
+#A .stagew .body .pp{width:min(330px,100%)}
+#A .stagew .acts{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--line-soft);background:var(--card)}
+#A .bul{display:flex;gap:6px;flex-wrap:wrap}
+#A .bul span{font-size:10px;color:var(--muted);background:var(--surface-2);border-radius:5px;padding:2px 7px}
+
+/* ── B · Mural ────────────────────────────────────────────── */
+#B .wall{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-content:start;padding:1px}
+#B .newt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px dashed var(--line);border-radius:11px;background:var(--surface);color:var(--muted);cursor:pointer;transition:.16s;min-height:100%;padding:14px;text-align:center}
+#B .newt:hover{border-color:var(--primary);border-style:solid;color:var(--primary);background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#B .newt b{font-size:11.5px;font-weight:600}
+#B .newt small{font-size:10px;line-height:1.4}
+
+/* ── C · Folha grande + tira ──────────────────────────────── */
+#C .stage2{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+#C .paper{flex:1;min-height:0;display:grid;place-items:center;border:1px solid var(--line-soft);border-radius:10px;background:var(--surface);box-shadow:var(--shadow);padding:14px;position:relative}
+#C .paper .pp{height:100%;width:auto;aspect-ratio:1/1.36}
+#C .paper .badge{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:3px}
+#C .paper .badge b{font-family:"Sora",sans-serif;font-size:13px;font-weight:600}
+#C .paper .badge span{font-size:10.5px;color:var(--muted)}
+#C .paper .acts{position:absolute;top:12px;right:12px;display:flex;gap:7px}
+#C .strip{flex-shrink:0;display:flex;gap:9px;overflow-x:auto;padding:2px}
+#C .strip .t{flex-shrink:0;width:78px;cursor:pointer;border-radius:8px;border:1px solid var(--line-soft);background:var(--card);padding:5px;transition:.16s}
+#C .strip .t:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent)}
+#C .strip .t.on{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 14%,transparent)}
+#C .strip .t small{display:block;font-size:9.5px;font-weight:600;text-align:center;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+#C .strip .t.on small{color:var(--primary)}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){.wrap{padding:20px 14px 48px}.brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Design dos documentos</p>
+      <h1>Escolher um template não devia ser um carrossel</h1>
+      <p>A página existe para <strong>comparar sete layouts e escolher um</strong>, mas mostra <strong>um de cada vez</strong> num slider — comparar exige clicar sete vezes e guardar tudo de cabeça. A pré-visualização tem ~360&nbsp;px de largura, pequena de mais para julgar o que vai sair impresso, e fica cercada de ~380&nbsp;px de vazio de cada lado. O formulário de template personalizado, uma acção rara, ocupa tanto espaço como a escolha em si.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">1</b><span class="arrow">&rarr;</span><b class="to tnum" id="cnum">4</b>
+      <span style="font-size:11px;color:var(--muted);max-width:92px;line-height:1.3">templates<br>visíveis</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Comparar 7 layouts <b>um de cada vez</b></span>
+    <span>Pré-visualização com <b>~360&nbsp;px</b></span>
+    <span>Vazio à volta da folha <b>~760&nbsp;px</b></span>
+    <span>Pedido personalizado ocupa <b>metade da página</b></span>
+    <span>Painel "Os seus pedidos" <b>vazio e fixo</b></span>
+    <span>Metadados dizem <b>"sete"</b> e <b>"Três layouts"</b></span>
+  </div>
+
+  <div class="switch" role="tablist" aria-label="Iterações de layout">
+    <button role="tab" aria-selected="true" aria-controls="A" id="tab-A"><span class="key">A</span> Galeria + folha</button>
+    <button role="tab" aria-selected="false" aria-controls="B" id="tab-B"><span class="key">B</span> Mural</button>
+    <button role="tab" aria-selected="false" aria-controls="C" id="tab-C"><span class="key">C</span> Folha grande + tira</button>
+  </div>
+
+  <dl class="why" id="why"></dl>
+
+  <!-- ══════════════ A · GALERIA + FOLHA ══════════════ -->
+  <div class="stage" id="A" role="tabpanel">
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><span class="ttl">Design dos documentos</span><span class="sub">Aplica-se a facturas, cotações, recibos e PDFs</span><div style="flex:1"></div><button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></svg> Template personalizado</button></div>
+          <div class="split">
+            <div class="gal">
+              <div class="sc">
+              <div class="tcard on"><span class="pill info flag">Activo</span>
+                <div class="pp classico">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Clássico</b></div>
+                <div class="meta"><span>Formal e fiscal</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp moderno"><div class="band"></div>
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Moderno</b></div>
+                <div class="meta"><span>Faixa de marca</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp minimal">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Minimal</b></div>
+                <div class="meta"><span>Limpo e leve</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp corporativo">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Corporativo</b></div>
+                <div class="meta"><span>Barra lateral e zebra</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp basic-claro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Basic claro</b></div>
+                <div class="meta"><span>Essencial</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp basic-escuro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Basic escuro</b></div>
+                <div class="meta"><span>Essencial, fundo escuro</span></div>
+              </div>
+              <div class="tcard">
+                <div class="pp elegante">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+                <div class="meta"><b>Elegante</b></div>
+                <div class="meta"><span>Serifado e centrado</span></div>
+              </div>              </div>
+              <div class="foot" style="flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:8px 13px;display:flex;font-size:11px;color:var(--muted)">7 layouts prontos</div>
+            </div>
+
+            <div class="stagew">
+              <div class="hd2">
+                <span style="min-width:0"><b>Clássico</b> <span>· Formal e fiscal</span></span>
+                <span class="pill info" style="margin-left:auto">Activo</span>
+              </div>
+              <div class="body">
+                <div class="pp classico">
+                  <div class="inner">
+                    <div class="hd">
+                      <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                      <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                    </div>
+                    <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                    <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                    <div class="pay"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="acts">
+                <div class="bul"><span>Logotipo + NUIT em destaque</span><span>Tabela com linhas finas</span><span>Rodapé fiscal completo</span></div>
+                <div style="flex:1"></div>
+                <button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg> Ver em tamanho real</button>
+                <button class="btn p" disabled style="opacity:.55">Layout activo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ B · MURAL ══════════════ -->
+  <div class="stage" id="B" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><span class="ttl">Design dos documentos</span><span class="sub">7 layouts · aplica-se a facturas, cotações, recibos e PDFs</span><div style="flex:1"></div><button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg> Ver activo em tamanho real</button></div>
+          <div class="wall">
+            <div class="tcard on"><span class="pill info flag">Activo</span>
+              <div class="pp classico">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Clássico</b><span>· Formal e fiscal</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp moderno"><div class="band"></div>
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Moderno</b><span>· Faixa de marca</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp minimal">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Minimal</b><span>· Limpo e leve</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp corporativo">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Corporativo</b><span>· Barra lateral e zebra</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp basic-claro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Basic claro</b><span>· Essencial</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp basic-escuro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Basic escuro</b><span>· Essencial, fundo escuro</span></div>
+            </div>
+            <div class="tcard">
+              <div class="pp elegante">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>
+              <div class="meta"><b>Elegante</b><span>· Serifado e centrado</span></div>
+            </div>
+            <button class="newt">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+              <b>Template personalizado</b>
+              <small>A equipa Quota desenha o seu layout.<br>4 500 MZN após aprovação.</small>
+            </button>          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ C · FOLHA GRANDE + TIRA ══════════════ -->
+  <div class="stage" id="C" role="tabpanel" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i></i><i></i><i class="on"></i><div class="gap"></div><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><span class="ttl">Design dos documentos</span><span class="sub">Aplica-se a facturas, cotações, recibos e PDFs</span><div style="flex:1"></div><button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></svg> Template personalizado</button></div>
+          <div class="stage2">
+            <div class="paper">
+              <div class="badge"><b>Corporativo</b><span>Barra lateral e zebra</span></div>
+              <div class="acts"><button class="btn g"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg> Tamanho real</button><button class="btn p">Usar este layout</button></div>
+<div class="pp corporativo">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div>            </div>
+            <div class="strip">
+              <div class="t"><div class="pp classico">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Clássico</small></div>
+              <div class="t"><div class="pp moderno"><div class="band"></div>
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Moderno</small></div>
+              <div class="t"><div class="pp minimal">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Minimal</small></div>
+              <div class="t on"><div class="pp corporativo">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Corporativo</small></div>
+              <div class="t"><div class="pp basic-claro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Basic claro</small></div>
+              <div class="t"><div class="pp basic-escuro">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Basic escuro</small></div>
+              <div class="t"><div class="pp elegante">
+                <div class="inner">
+                  <div class="hd">
+                    <div class="brand"><span class="logo"></span><span class="lines"><i class="l dk m"></i><i class="l xs"></i></span></div>
+                    <div class="right"><i class="l xs"></i><i class="l s"></i></div>
+                  </div>
+                  <div class="tbl"><i class="th"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i><i class="tr"></i></div>
+                  <div class="tot"><i class="l xs"></i><i class="l xs"></i><i class="big"></i></div>
+                  <div class="pay"></div>
+                </div>
+              </div><small>Elegante</small></div>            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. As folhas são <em>esquemáticas</em>: reproduzem o traço distintivo de cada template (faixa escura no Moderno, barra lateral e zebra no Corporativo, serifa centrada no Elegante, fundo escuro no Basic escuro), não o documento completo.</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    A: {
+      n: "4",
+      items: [
+        ["Estrat\u00e9gia", "Emparelhar, como em /documentos e /clientes. Os sete layouts ficam numa galeria \u00e0 esquerda; o seleccionado abre grande \u00e0 direita."],
+        ["Ganha", "Compara-se e decide-se no mesmo ecr\u00e3: os sete est\u00e3o vis\u00edveis ao mesmo tempo e a folha escolhida \u00e9 leg\u00edvel. Mesma gram\u00e1tica do resto do painel. O pedido personalizado sai da p\u00e1gina principal e passa a um bot\u00e3o na barra de contexto."],
+        ["Perde", "S\u00f3 <b>4 dos 7</b> cabem sem rolar a galeria, e as miniaturas s\u00e3o pequenas (~130&nbsp;px) \u2014 distinguem o tra\u00e7o geral, n\u00e3o o detalhe. E 300&nbsp;px ficam presos \u00e0 galeria mesmo depois de escolher."],
+        ["Melhor se", "Quiser coer\u00eancia total com as p\u00e1ginas j\u00e1 feitas e escolher sem sair do ecr\u00e3."]
+      ]
+    },
+    B: {
+      n: "5",
+      items: [
+        ["Estrat\u00e9gia", "Assumir que a tarefa \u00e9 comparar. Todos os sete lado a lado, em miniaturas grandes o suficiente para se distinguirem. A grelha <em>\u00e9</em> a compara\u00e7\u00e3o \u2014 n\u00e3o h\u00e1 painel de detalhe."],
+        ["Ganha", "\u00c9 o que mostra mais templates <b>a um tamanho que serve para comparar</b>: 5 dos 8 cart\u00f5es sem rolar, contra 4 miniaturas pequenas em A. Um s\u00f3 contentor, sem painel a roubar largura. O pedido personalizado entra como o oitavo cart\u00e3o, no fim das op\u00e7\u00f5es."],
+        ["Perde", "Nenhuma folha aparece em tamanho \u00fatil sem abrir a pr\u00e9-visualiza\u00e7\u00e3o \u2014 escolher fica a um clique, <em>confirmar</em> a dois. E a \u00faltima fila ainda obriga a rolar."],
+        ["Melhor se", "A p\u00e1gina for visitada poucas vezes e a decis\u00e3o for r\u00e1pida \u2014 que \u00e9 o caso real: escolhe-se o template uma vez."]
+      ]
+    },
+    C: {
+      n: "7",
+      items: [
+        ["Estrat\u00e9gia", "Privilegiar a fidelidade de impress\u00e3o. Uma folha grande ao centro, ocupando a altura toda, e uma tira horizontal com os sete por baixo."],
+        ["Ganha", "\u00c9 o \u00fanico que mostra o documento perto do que sai na impressora \u2014 e o assunto da p\u00e1gina \u00e9 exactamente o que vai impresso. Tamb\u00e9m \u00e9 o \u00fanico onde <b>os 7 cabem todos</b> sem rolar, ainda que como miniaturas de navega\u00e7\u00e3o."],
+        ["Perde", "Compara\u00e7\u00e3o lado a lado: as miniaturas da tira t\u00eam ~78&nbsp;px, servem para navegar, n\u00e3o para comparar. Volta a ser uma escolha sequencial, ainda que sem o custo do carrossel."],
+        ["Melhor se", "O que importa for julgar bem <em>uma</em> folha, e n\u00e3o pesar as sete entre si."]
+      ]
+    }
+  };
+
+  var why = document.getElementById("why");
+  var cnum = document.getElementById("cnum");
+
+  function paint(k) {
+    var d = meta[k];
+    cnum.textContent = d.n;
+    why.innerHTML = d.items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+  }
+
+  wire(document.querySelector(".switch"), function (t) { paint(t.getAttribute("aria-controls")); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i < 0) return;
+    document.querySelectorAll(".switch [role=tab]")[i].click();
+  });
+
+  paint("A");
+})();
+</script>
+</body>
+</html>

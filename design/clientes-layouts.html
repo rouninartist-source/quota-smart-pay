@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{color-scheme:light dark}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+<title>Quota · Clientes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap">
+<style>
+/* ── Quota tokens, lifted from src/styles.css ─────────────── */
+:root{
+  --page:      oklch(0.955 0.006 265);
+  --bg:        oklch(1 0 0);
+  --fg:        oklch(0.18 0.02 265);
+  --surface:   oklch(0.985 0.004 265);
+  --surface-2: oklch(0.965 0.006 265);
+  --card:      oklch(1 0 0);
+  --line:      oklch(0.925 0.006 265);
+  --line-soft: oklch(0.925 0.006 265 / .6);
+  --muted:     oklch(0.52 0.02 265);
+  --primary:   oklch(0.52 0.24 258);
+  --primary-fg:oklch(0.99 0.003 255);
+  --glow:      oklch(0.72 0.18 258);
+  --success:   oklch(0.68 0.16 155);
+  --warning:   oklch(0.78 0.15 65);
+  --warning-fg:oklch(0.24 0.05 60);
+  --danger:    oklch(0.6 0.22 25);
+  --whatsapp:  oklch(0.72 0.17 152);
+  --shadow:    0 1px 0 oklch(0.925 0.006 265 / .6), 0 1px 3px oklch(0.16 0.04 258 / .05);
+  --shadow-lg: 0 1px 2px oklch(0.16 0.04 258 / .04), 0 12px 40px -12px oklch(0.16 0.04 258 / .14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --page:      oklch(0.11 0.025 258);
+    --bg:        oklch(0.14 0.03 258);
+    --fg:        oklch(0.98 0.003 255);
+    --surface:   oklch(0.18 0.04 258);
+    --surface-2: oklch(0.22 0.04 258);
+    --card:      oklch(0.20 0.045 258);
+    --line:      oklch(1 0 0 / .10);
+    --line-soft: oklch(1 0 0 / .07);
+    --muted:     oklch(0.72 0.02 265);
+    --primary:   oklch(0.68 0.20 258);
+    --primary-fg:oklch(0.14 0.03 258);
+    --glow:      oklch(0.78 0.17 258);
+    --success:   oklch(0.75 0.17 155);
+    --warning:   oklch(0.82 0.16 70);
+    --warning-fg:oklch(0.98 0.003 255);
+    --danger:    oklch(0.68 0.22 25);
+    --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+    --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+  }
+}
+:root[data-theme="dark"]{
+  --page:      oklch(0.11 0.025 258);
+  --bg:        oklch(0.14 0.03 258);
+  --fg:        oklch(0.98 0.003 255);
+  --surface:   oklch(0.18 0.04 258);
+  --surface-2: oklch(0.22 0.04 258);
+  --card:      oklch(0.20 0.045 258);
+  --line:      oklch(1 0 0 / .10);
+  --line-soft: oklch(1 0 0 / .07);
+  --muted:     oklch(0.72 0.02 265);
+  --primary:   oklch(0.68 0.20 258);
+  --primary-fg:oklch(0.14 0.03 258);
+  --glow:      oklch(0.78 0.17 258);
+  --success:   oklch(0.75 0.17 155);
+  --warning:   oklch(0.82 0.16 70);
+  --warning-fg:oklch(0.98 0.003 255);
+  --danger:    oklch(0.68 0.22 25);
+  --shadow:    inset 0 1px 0 oklch(1 0 0 / .04), 0 1px 3px oklch(0 0 0 / .3);
+  --shadow-lg: 0 1px 2px oklch(0 0 0 / .4), 0 12px 40px -12px oklch(0 0 0 / .6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--page); color:var(--fg);
+  font-family:"Manrope",system-ui,-apple-system,sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Sora","Manrope",system-ui,sans-serif}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── page chrome ──────────────────────────────────────────── */
+.wrap{max-width:1240px;margin:0 auto;padding:32px 24px 64px;display:flex;flex-direction:column;gap:24px}
+
+.brief{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.brief h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.brief p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+
+.count{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.count b{font-family:"Sora",sans-serif;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.count .arrow{color:var(--muted)}
+.count .to{color:var(--primary)}
+
+/* switcher */
+.switch{display:flex;gap:6px;flex-wrap:wrap;background:var(--surface-2);padding:5px;border-radius:10px;align-self:flex-start;border:1px solid var(--line-soft)}
+.switch button{
+  font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;background:transparent;color:var(--muted);
+  padding:8px 15px;border-radius:7px;transition:.18s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;gap:8px;
+}
+.switch button:hover{color:var(--fg)}
+.switch button[aria-selected="true"]{background:var(--card);color:var(--fg);border-color:var(--line);box-shadow:var(--shadow)}
+.switch button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.switch .key{font-size:10px;font-weight:700;color:var(--primary);letter-spacing:.06em}
+
+/* rationale strip */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.why div{background:var(--bg);padding:14px 16px}
+.why dt{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.why dd{margin:0;font-size:12.5px;line-height:1.45}
+
+/* ── app frame ────────────────────────────────────────────── */
+.stage{overflow-x:auto;border-radius:16px}
+.frame{
+  min-width:940px;height:700px;display:flex;
+  background:var(--bg);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow-lg);overflow:hidden;
+}
+/* sidebar stub — out of scope, deliberately dimmed */
+.side{width:212px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);opacity:.45;padding:14px 12px;display:flex;flex-direction:column;gap:5px}
+.side .logo{height:30px;border-radius:7px;background:var(--primary);opacity:.5;margin-bottom:10px}
+.side i{display:block;height:26px;border-radius:6px;background:var(--surface-2)}
+.side i.on{background:var(--primary);opacity:.35}
+.side .gap{height:14px}
+
+.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{height:52px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 18px;background:var(--bg)}
+.topbar .search{flex:1;max-width:260px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--muted);gap:7px}
+.topbar .spacer{flex:1}
+.topbar .dot{width:30px;height:30px;border-radius:7px;background:var(--surface-2)}
+.topbar .ava{width:30px;height:30px;border-radius:50%;background:var(--primary);color:var(--primary-fg);display:grid;place-items:center;font-size:11px;font-weight:700}
+
+.content{flex:1;min-height:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+
+/* ── shared UI atoms ──────────────────────────────────────── */
+.panel{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0}
+.panel > header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px 10px}
+.panel > header h3{margin:0;font-size:12.5px;font-weight:600;letter-spacing:-.01em}
+.panel .body{flex:1;min-height:0;overflow:auto;padding:0 8px 8px}
+.panel .body.pad{padding:0 15px 14px}
+.link{font-size:11px;font-weight:600;color:var(--primary);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.pill.ok{background:color-mix(in oklab,var(--success) 14%,transparent);color:var(--success)}
+.pill.warn{background:color-mix(in oklab,var(--warning) 20%,transparent);color:var(--warning-fg)}
+.pill.bad{background:color-mix(in oklab,var(--danger) 13%,transparent);color:var(--danger)}
+.pill.info{background:color-mix(in oklab,var(--primary) 12%,transparent);color:var(--primary)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+.ava-sm{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:10.5px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.ava-sm.n{background:var(--surface-2);color:var(--muted)}
+
+.row{display:flex;align-items:center;gap:11px;padding:8px 9px;border-radius:8px;text-decoration:none;color:inherit}
+.row:hover{background:color-mix(in oklab,var(--surface-2) 70%,transparent)}
+.row .who{min-width:0;flex:1}
+.row .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .amt{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .amt.in{color:var(--success)}
+
+.btn{font:inherit;cursor:pointer;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;white-space:nowrap;transition:.16s}
+.btn.p{background:var(--primary);color:var(--primary-fg);border:1px solid transparent;height:32px;padding:0 13px;font-size:12px}
+.btn.p:hover{opacity:.9}
+.btn.g{background:var(--bg);color:var(--fg);border:1px solid var(--line);height:32px;padding:0 12px;font-size:12px}
+.btn.g:hover{background:var(--surface-2)}
+.btn.wa{background:color-mix(in oklab,var(--whatsapp) 14%,transparent);color:var(--whatsapp);border:1px solid color-mix(in oklab,var(--whatsapp) 26%,transparent);height:28px;padding:0 10px;font-size:11px}
+.btn.wa:hover{background:color-mix(in oklab,var(--whatsapp) 22%,transparent)}
+.btn.xs{height:26px;padding:0 9px;font-size:11px}
+.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+.bar{height:7px;border-radius:99px;background:var(--surface-2);overflow:hidden;display:flex}
+.bar i{display:block;background:var(--primary)}
+.bar i.soft{background:color-mix(in oklab,var(--primary) 30%,transparent)}
+
+svg{display:block}
+
+/* ── atoms ────────────────────────────────────────────────── */
+.srch{display:flex;align-items:center;gap:7px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:12px;color:var(--muted);min-width:0;flex:1;max-width:280px;white-space:nowrap;overflow:hidden}
+.srch svg{flex-shrink:0}
+.ctx{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 11px;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow)}
+.ava-lg{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:grid;place-items:center;font-size:13px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+.kv{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:11.5px;padding:5px 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── A · Lista + ficha ────────────────────────────────────── */
+#A .split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 356px;gap:14px}
+#A .listw{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#A .scroll{flex:1;min-height:0;overflow:auto;padding:5px}
+#A .crow{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:9px;cursor:pointer}
+#A .crow:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+#A .crow.sel{background:color-mix(in oklab,var(--primary) 9%,transparent);box-shadow:inset 2px 0 0 var(--primary)}
+#A .crow .who{flex:1;min-width:0}
+#A .crow .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#A .crow .who span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+#A .crow .amt{text-align:right;flex-shrink:0}
+#A .crow .amt b{display:block;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+#A .crow .amt span{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+#A .foot{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:8px 14px;display:flex;gap:14px;font-size:11px;color:var(--muted)}
+#A .foot b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+#A .card{min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow-lg);overflow:hidden}
+#A .card .hd{flex-shrink:0;padding:14px 15px;border-bottom:1px solid var(--line-soft);background:var(--surface);display:flex;gap:11px;align-items:center}
+#A .card .hd .txt b{display:block;font-family:"Sora",sans-serif;font-size:14px;font-weight:600;letter-spacing:-.01em}
+#A .card .hd .txt span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+#A .card .bd{flex:1;min-height:0;overflow:auto;padding:13px 15px;display:flex;flex-direction:column;gap:13px}
+#A .card h5{margin:0 0 6px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#A .contact{display:flex;flex-direction:column;gap:5px}
+#A .contact a{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;border:1px solid var(--line-soft);background:var(--surface);text-decoration:none;color:inherit;font-size:11.5px;transition:.14s}
+#A .contact a:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent);background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#A .contact a .ic{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;flex-shrink:0;background:var(--surface-2);color:var(--muted)}
+#A .contact a .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#A .money{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#A .money div{border:1px solid var(--line-soft);border-radius:9px;background:var(--surface);padding:9px 11px}
+#A .money .k{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#A .money .v{font-family:"Sora",sans-serif;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px;letter-spacing:-.02em}
+#A .money .v.bad{color:var(--danger)}
+#A .docs{display:flex;flex-direction:column}
+#A .docs a{display:flex;align-items:center;gap:9px;padding:6px 4px;border-bottom:1px solid var(--line-soft);text-decoration:none;color:inherit;font-size:11.5px}
+#A .docs a:hover{background:color-mix(in oklab,var(--surface-2) 60%,transparent)}
+#A .docs a .n{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+#A .docs a .d{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
+#A .note-b{font-size:11.5px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line-soft);border-radius:8px;padding:9px 11px}
+#A .acts{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:9px 12px;display:flex;gap:7px}
+#A .acts .btn{flex:1}
+
+/* ── B · Linhas de contacto ───────────────────────────────── */
+#B .listw{flex:1;min-height:0;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#B .scroll{flex:1;min-height:0;overflow:auto}
+#B .ln{display:flex;align-items:center;gap:14px;padding:0 15px;height:58px;border-bottom:1px solid var(--line-soft);transition:.14s}
+#B .ln:hover{background:color-mix(in oklab,var(--surface-2) 60%,transparent)}
+#B .ln:last-child{border-bottom:0}
+#B .ln .who{width:212px;flex-shrink:0;min-width:0}
+#B .ln .who b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#B .ln .who span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+#B .ln .con{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#B .ln .con a{font-size:11.5px;color:var(--muted);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+#B .ln .con a:hover{color:var(--primary)}
+#B .ln .con a svg{flex-shrink:0;opacity:.6}
+#B .ln .city{width:88px;flex-shrink:0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#B .ln .amt{width:96px;flex-shrink:0;text-align:right}
+#B .ln .amt b{display:block;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
+#B .ln .amt span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+#B .ln .qa{display:flex;gap:6px;flex-shrink:0}
+#B .ln .qa button{font:inherit;cursor:pointer;font-size:11px;font-weight:600;height:30px;padding:0 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:.16s}
+#B .ln .qa button:hover{border-color:color-mix(in oklab,var(--primary) 40%,transparent);color:var(--primary);background:color-mix(in oklab,var(--primary) 5%,transparent)}
+#B .ln .qa button.wa:hover{border-color:color-mix(in oklab,var(--whatsapp) 45%,transparent);color:var(--whatsapp);background:color-mix(in oklab,var(--whatsapp) 8%,transparent)}
+#B .ln .qa button.icon{width:30px;padding:0}
+#B .foot{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:8px 15px;display:flex;gap:14px;font-size:11px;color:var(--muted)}
+#B .foot b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* linha em edição — expande no lugar, sem modal */
+#B .edit{background:color-mix(in oklab,var(--primary) 5%,transparent);border-bottom:1px solid var(--line);padding:13px 15px}
+#B .edit h5{margin:0 0 10px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#B .edit .grid2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+#B .edit .fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+#B .edit .fld.wide{grid-column:span 2}
+#B .edit .fld label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#B .edit .fld .in{height:30px;border:1px solid var(--line);border-radius:7px;background:var(--bg);display:flex;align-items:center;padding:0 9px;font-size:12px;white-space:nowrap;overflow:hidden}
+#B .edit .fld .in.focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent)}
+#B .edit .row2{display:flex;gap:8px;margin-top:11px;align-items:center}
+
+/* ── C · Tabela + gaveta ──────────────────────────────────── */
+#C .stagew{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;border:1px solid var(--line-soft);border-radius:10px;background:var(--card);box-shadow:var(--shadow);overflow:hidden}
+#C .scroll{flex:1;min-height:0;overflow:auto;padding:0 6px}
+#C .tbl{width:100%;border-collapse:collapse}
+#C .tbl thead th{position:sticky;top:0;z-index:2;background:var(--card);font-size:9.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);text-align:left;padding:11px 10px 8px;border-bottom:1px solid var(--line)}
+#C .tbl thead th.r{text-align:right}
+#C .tbl tbody tr{border-bottom:1px solid var(--line-soft);cursor:pointer}
+#C .tbl tbody tr:hover{background:color-mix(in oklab,var(--surface-2) 65%,transparent)}
+#C .tbl td{padding:0 10px;height:36px;font-size:12px}
+#C .tbl td.r{text-align:right;font-variant-numeric:tabular-nums}
+#C .tbl .nm{font-weight:600;display:flex;align-items:center;gap:8px}
+#C .tbl .nm .av{width:22px;height:22px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;font-size:9px;font-weight:700;background:color-mix(in oklab,var(--primary) 11%,transparent);color:var(--primary)}
+#C .tbl .mu{color:var(--muted);font-variant-numeric:tabular-nums}
+#C .drawer{position:absolute;inset:0 0 0 auto;width:330px;background:var(--card);border-left:1px solid var(--line);box-shadow:-18px 0 40px -20px oklch(0 0 0 / .28);display:flex;flex-direction:column;z-index:5}
+#C .drawer .hd{flex-shrink:0;padding:13px 14px;border-bottom:1px solid var(--line-soft);background:var(--surface);display:flex;gap:10px;align-items:center}
+#C .drawer .hd .txt b{display:block;font-family:"Sora",sans-serif;font-size:13.5px;font-weight:600}
+#C .drawer .hd .txt span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
+#C .drawer .x{margin-left:auto;width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+#C .drawer .bd{flex:1;min-height:0;overflow:auto;padding:13px 14px;display:flex;flex-direction:column;gap:12px}
+#C .drawer h5{margin:0 0 6px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+#C .drawer .fld{display:flex;flex-direction:column;gap:4px;margin-bottom:7px}
+#C .drawer .fld label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+#C .drawer .fld .in{height:30px;border:1px solid var(--line);border-radius:7px;background:var(--surface);display:flex;align-items:center;padding:0 9px;font-size:12px}
+#C .drawer .fld .in.focus{border-color:var(--primary);background:var(--bg);box-shadow:0 0 0 3px color-mix(in oklab,var(--primary) 12%,transparent)}
+#C .drawer .acts{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--surface);padding:9px 12px;display:flex;gap:7px}
+#C .drawer .acts .btn{flex:1}
+#C .scrim{position:absolute;inset:0;background:oklch(0 0 0 / .12);z-index:4}
+
+.note{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:var(--surface-2);padding:1.5px 6px;border-radius:5px;color:var(--fg)}
+.dup{display:flex;flex-wrap:wrap;gap:7px}
+.dup span{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);background:var(--bg)}
+.dup span b{color:var(--danger);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:720px){.wrap{padding:20px 14px 48px}.brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="brief">
+    <div>
+      <p class="eyebrow">Quota · Clientes</p>
+      <h1>Três formas de arrumar o CRM</h1>
+      <p>Aqui o problema não é densidade — a base tem <strong>3 clientes</strong>. É o contrário: <strong>270&nbsp;px de cabeçalho e KPIs</strong> antes do primeiro nome, três cartões de métrica para contar três fichas, e linhas de 88&nbsp;px que despejam NUIT, email, telefone e morada numa só corrida de texto cinzento. A linha não é clicável — só os três botões pequenos à direita fazem alguma coisa — e editar abre um <em>modal</em> que tapa a lista.</p>
+    </div>
+    <div class="count">
+      <b class="tnum">6</b><span class="arrow">&rarr;</span><b class="to tnum" id="cnum">2</b>
+      <span style="font-size:11px;color:var(--muted);max-width:80px;line-height:1.3">contentores<br>visíveis</span>
+    </div>
+  </header>
+
+  <div class="dup">
+    <span>Cabeçalho + KPIs antes do primeiro nome <b>~270&nbsp;px</b></span>
+    <span>Três KPIs para <b>3 fichas</b></span>
+    <span>&laquo;Top cliente&raquo; lê-se <b>na própria lista</b></span>
+    <span>Editar tapa a lista com um <b>modal</b></span>
+    <span>Confirmar eliminação <b>empurra o layout</b></span>
+    <span>Linha não clicável <b>~88&nbsp;px</b></span>
+  </div>
+
+  <div class="switch" role="tablist" aria-label="Iterações de layout">
+    <button role="tab" aria-selected="true" aria-controls="A" id="tab-A"><span class="key">A</span> Lista + ficha</button>
+    <button role="tab" aria-selected="false" aria-controls="B" id="tab-B"><span class="key">B</span> Cartões de contacto</button>
+    <button role="tab" aria-selected="false" aria-controls="C" id="tab-C"><span class="key">C</span> Tabela + gaveta</button>
+  </div>
+
+  <dl class="why" id="why"></dl>
+
+  <!-- ══════════════ A · LISTA + FICHA ══════════════ -->
+  <div class="stage" id="A" role="tabpanel" aria-labelledby="tab-A">
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i class="on"></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, NUIT, email ou telefone</div><div style="flex:1"></div><button class="btn g">Importar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo cliente</button></div>
+          <div class="split">
+            <div class="listw">
+              <div class="scroll">
+                  <div class="crow"><span class="ava-sm">JC</span><span class="who"><b>João Comercial, Lda</b><span>NUIT 400123456 · 3 documentos</span></span><span class="amt"><b>72 964</b><span>facturado</span></span></div>
+                  <div class="crow sel"><span class="ava-sm">BL</span><span class="who"><b>Beira Logística, SA</b><span>NUIT 400556677 · 2 documentos</span></span><span class="amt"><b>146 160</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">FN</span><span class="who"><b>Farmácia Nampula</b><span>NUIT 400889900 · 2 documentos</span></span><span class="amt"><b>74 472</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">CZ</span><span class="who"><b>Construções Zambeze</b><span>NUIT 400221144 · 4 documentos</span></span><span class="amt"><b>116 237</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">EG</span><span class="who"><b>Escola Girassol</b><span>NUIT 400334455 · 5 documentos</span></span><span class="amt"><b>214 714</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">TB</span><span class="who"><b>Tech Beira</b><span>NUIT 400667788 · 3 documentos</span></span><span class="amt"><b>280 952</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">AN</span><span class="who"><b>Auto Peças Nampula</b><span>NUIT 400990011 · 6 documentos</span></span><span class="amt"><b>347 190</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">AC</span><span class="who"><b>Agro Chimoio</b><span>NUIT 400443322 · 2 documentos</span></span><span class="amt"><b>298 711</b><span>facturado</span></span></div>
+                  <div class="crow"><span class="ava-sm">SE</span><span class="who"><b>Seguros Emose Sul</b><span>NUIT 400776655 · 4 documentos</span></span><span class="amt"><b>572 422</b><span>facturado</span></span></div>              </div>
+              <div class="foot"><span>9 clientes</span><span>Facturado <b>2 123 822</b></span></div>
+            </div>
+
+            <div class="card">
+              <div class="hd"><span class="ava-lg">BL</span><span class="txt" style="min-width:0"><b>Beira Logística, SA</b><span>NUIT 400556677 · Beira</span></span></div>
+              <div class="bd">
+                <div>
+                  <h5>Contactos</h5>
+                  <div class="contact">
+                    <a href="#"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></span><span class="t">+258 82 330 1188</span><span class="pill ok">WhatsApp</span></a>
+                    <a href="#"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><span class="t">compras@beiralog.co.mz</span></a>
+                    <a href="#"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="t">Rua do Porto 45, Beira</span></a>
+                  </div>
+                </div>
+
+                <div class="money">
+                  <div><div class="k">Facturado</div><div class="v">146 160</div></div>
+                  <div><div class="k">Em aberto</div><div class="v bad">146 160</div></div>
+                </div>
+
+                <div>
+                  <h5>Documentos recentes</h5>
+                  <div class="docs">
+                    <a href="#"><span class="n">FT 2026/00186</span><span class="pill bad">Vencida</span><span class="d">146 160</span></a>
+                    <a href="#"><span class="n">COT 2026/319</span><span class="pill ok">Aceite</span><span class="d">116 237</span></a>
+                  </div>
+                </div>
+
+                <div>
+                  <h5>Notas</h5>
+                  <p class="note-b">Pagamento habitual a 30 dias. Contacto preferencial por WhatsApp.</p>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="btn g">Editar</button>
+                <button class="btn p" style="flex:1.4"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ B · CARTÕES DE CONTACTO ══════════════ -->
+  <div class="stage" id="B" role="tabpanel" aria-labelledby="tab-B" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i class="on"></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, NUIT, email ou telefone</div><div style="flex:1"></div><button class="btn g">Importar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo cliente</button></div>
+          <div class="listw">
+            <div class="scroll">
+              <div class="ln">
+                <span class="ava-sm">JC</span>
+                <span class="who"><b>João Comercial, Lda</b><span>NUIT 400123456</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> joao@comercial.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 84 210 4477</a></span>
+                <span class="city">Maputo</span>
+                <span class="amt"><b>72 964</b><span>3 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">BL</span>
+                <span class="who"><b>Beira Logística, SA</b><span>NUIT 400556677</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> compras@beiralog.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 82 330 1188</a></span>
+                <span class="city">Beira</span>
+                <span class="amt"><b>146 160</b><span>2 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="edit">
+                <h5>A editar · Beira Logística, SA</h5>
+                <div class="grid2">
+                  <div class="fld wide"><label>Nome</label><div class="in">Beira Logística, SA</div></div>
+                  <div class="fld"><label>NUIT</label><div class="in focus">400556677</div></div>
+                  <div class="fld"><label>Email</label><div class="in">compras@beiralog.co.mz</div></div>
+                  <div class="fld"><label>Telefone</label><div class="in">+258 82 330 1188</div></div>
+                  <div class="fld"><label>Cidade</label><div class="in">Beira</div></div>
+                  <div class="fld wide"><label>Endereço</label><div class="in">Rua do Porto 45, Beira</div></div>
+                  <div class="fld"><label>Notas</label><div class="in">Pagamento a 30 dias</div></div>
+                </div>
+                <div class="row2">
+                  <button class="btn g" style="color:var(--danger);border-color:color-mix(in oklab,var(--danger) 30%,transparent)">Eliminar</button>
+                  <span style="flex:1"></span>
+                  <button class="btn g">Cancelar</button>
+                  <button class="btn p">Guardar</button>
+                </div>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">FN</span>
+                <span class="who"><b>Farmácia Nampula</b><span>NUIT 400889900</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> geral@farmacianampula.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 86 774 2200</a></span>
+                <span class="city">Nampula</span>
+                <span class="amt"><b>74 472</b><span>2 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">CZ</span>
+                <span class="who"><b>Construções Zambeze</b><span>NUIT 400221144</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> obras@zambeze.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 84 900 3311</a></span>
+                <span class="city">Tete</span>
+                <span class="amt"><b>116 237</b><span>4 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">EG</span>
+                <span class="who"><b>Escola Girassol</b><span>NUIT 400334455</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> admin@girassol.ac.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 87 221 5566</a></span>
+                <span class="city">Matola</span>
+                <span class="amt"><b>214 714</b><span>5 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">TB</span>
+                <span class="who"><b>Tech Beira</b><span>NUIT 400667788</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> info@techbeira.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 85 440 9922</a></span>
+                <span class="city">Beira</span>
+                <span class="amt"><b>280 952</b><span>3 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">AN</span>
+                <span class="who"><b>Auto Peças Nampula</b><span>NUIT 400990011</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> vendas@autopecas.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 84 118 7733</a></span>
+                <span class="city">Nampula</span>
+                <span class="amt"><b>347 190</b><span>6 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">AC</span>
+                <span class="who"><b>Agro Chimoio</b><span>NUIT 400443322</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> geral@agrochimoio.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 86 505 4411</a></span>
+                <span class="city">Chimoio</span>
+                <span class="amt"><b>298 711</b><span>2 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+              <div class="ln">
+                <span class="ava-sm">SE</span>
+                <span class="who"><b>Seguros Emose Sul</b><span>NUIT 400776655</span></span>
+                <span class="con"><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> sul@emose.co.mz</a><a href="#"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg> +258 82 667 0099</a></span>
+                <span class="city">Maputo</span>
+                <span class="amt"><b>572 422</b><span>4 documentos</span></span>
+                <span class="qa">
+                  <button class="wa icon" title="WhatsApp"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-4.2-7.6L21 3l-1.4 4.2A9 9 0 0 1 21 12Z"/></svg></button>
+                  <button class="icon" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3Z"/></svg></button>
+                  <button><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg> Facturar</button>
+                </span>
+              </div>
+            </div>
+            <div class="foot"><span>9 clientes</span><span>Facturado <b>2 123 822</b></span><span style="margin-left:auto">Editar abre na própria linha</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ C · TABELA + GAVETA ══════════════ -->
+  <div class="stage" id="C" role="tabpanel" aria-labelledby="tab-C" hidden>
+    <div class="frame">
+      <nav class="side" aria-hidden="true"><div class="logo"></div><i></i><i></i><i class="on"></i><i></i><div class="gap"></div><i></i><i></i><i></i></nav>
+      <div class="pane">
+        <div class="topbar" aria-hidden="true"><div class="search"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar…</div><div class="spacer"></div><div class="dot"></div><div class="dot"></div><div class="ava">HM</div></div>
+        <div class="content">
+          <div class="ctx"><div class="srch"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg> Procurar nome, NUIT, email ou telefone</div><div style="flex:1"></div><button class="btn g">Importar</button><button class="btn p"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> Novo cliente</button></div>
+          <div class="stagew">
+            <div class="scroll">
+              <table class="tbl">
+                <thead><tr><th>Cliente</th><th>NUIT</th><th>Telefone</th><th>Cidade</th><th class="r">Docs</th><th class="r">Facturado</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><span class="nm"><span class="av">JC</span>João Comercial, Lda</span></td>
+                    <td class="mu">400123456</td>
+                    <td class="mu">+258 84 210 4477</td>
+                    <td class="mu">Maputo</td>
+                    <td class="r mu">3</td>
+                    <td class="r" style="font-weight:700">72 964</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">BL</span>Beira Logística, SA</span></td>
+                    <td class="mu">400556677</td>
+                    <td class="mu">+258 82 330 1188</td>
+                    <td class="mu">Beira</td>
+                    <td class="r mu">2</td>
+                    <td class="r" style="font-weight:700">146 160</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">FN</span>Farmácia Nampula</span></td>
+                    <td class="mu">400889900</td>
+                    <td class="mu">+258 86 774 2200</td>
+                    <td class="mu">Nampula</td>
+                    <td class="r mu">2</td>
+                    <td class="r" style="font-weight:700">74 472</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">CZ</span>Construções Zambeze</span></td>
+                    <td class="mu">400221144</td>
+                    <td class="mu">+258 84 900 3311</td>
+                    <td class="mu">Tete</td>
+                    <td class="r mu">4</td>
+                    <td class="r" style="font-weight:700">116 237</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">EG</span>Escola Girassol</span></td>
+                    <td class="mu">400334455</td>
+                    <td class="mu">+258 87 221 5566</td>
+                    <td class="mu">Matola</td>
+                    <td class="r mu">5</td>
+                    <td class="r" style="font-weight:700">214 714</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">TB</span>Tech Beira</span></td>
+                    <td class="mu">400667788</td>
+                    <td class="mu">+258 85 440 9922</td>
+                    <td class="mu">Beira</td>
+                    <td class="r mu">3</td>
+                    <td class="r" style="font-weight:700">280 952</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">AN</span>Auto Peças Nampula</span></td>
+                    <td class="mu">400990011</td>
+                    <td class="mu">+258 84 118 7733</td>
+                    <td class="mu">Nampula</td>
+                    <td class="r mu">6</td>
+                    <td class="r" style="font-weight:700">347 190</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">AC</span>Agro Chimoio</span></td>
+                    <td class="mu">400443322</td>
+                    <td class="mu">+258 86 505 4411</td>
+                    <td class="mu">Chimoio</td>
+                    <td class="r mu">2</td>
+                    <td class="r" style="font-weight:700">298 711</td>
+                  </tr>
+                  <tr>
+                    <td><span class="nm"><span class="av">SE</span>Seguros Emose Sul</span></td>
+                    <td class="mu">400776655</td>
+                    <td class="mu">+258 82 667 0099</td>
+                    <td class="mu">Maputo</td>
+                    <td class="r mu">4</td>
+                    <td class="r" style="font-weight:700">572 422</td>
+                  </tr>                </tbody>
+              </table>
+            </div>
+
+            <div class="scrim"></div>
+            <aside class="drawer">
+              <div class="hd"><span class="ava-lg">BL</span><span class="txt" style="min-width:0"><b>Beira Logística, SA</b><span>NUIT 400556677</span></span><button class="x" aria-label="Fechar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+              <div class="bd">
+                <div>
+                  <h5>Ficha</h5>
+                  <div class="fld"><label>Nome</label><div class="in">Beira Logística, SA</div></div>
+                  <div class="fld"><label>NUIT</label><div class="in focus">400556677</div></div>
+                  <div class="fld"><label>Email</label><div class="in">compras@beiralog.co.mz</div></div>
+                  <div class="fld"><label>Telefone</label><div class="in">+258 82 330 1188</div></div>
+                  <div class="fld"><label>Endereço</label><div class="in">Rua do Porto 45, Beira</div></div>
+                </div>
+                <div>
+                  <h5>Actividade</h5>
+                  <div class="kv"><dt>Facturado</dt><dd>146 160</dd></div>
+                  <div class="kv"><dt>Em aberto</dt><dd style="color:var(--danger)">146 160</dd></div>
+                  <div class="kv"><dt>Último documento</dt><dd>21/08/2026</dd></div>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="btn g">Eliminar</button>
+                <button class="btn p" style="flex:1.6">Guardar</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Ficheiro estático — abrir com <code>file://</code>, sem build. Tokens copiados de <code>src/styles.css</code>; segue o tema do sistema. Base de exemplo com 9 clientes para mostrar como cada layout cresce (a real tem 3).</p>
+
+</div>
+<script>
+(function () {
+  var meta = {
+    A: {
+      n: "2",
+      items: [
+        ["Estrat\u00e9gia", "Emparelhar, como em Documentos. Lista \u00e0 esquerda, ficha completa \u00e0 direita. O cabe\u00e7alho e os tr\u00eas KPIs desaparecem: os n\u00fameros de cada cliente passam a viver na ficha desse cliente, que \u00e9 onde s\u00e3o \u00fateis."],
+        ["Ganha", "Acaba o modal \u2014 editar acontece no painel, sem tapar a lista. Os contactos deixam de ser texto cinzento corrido e passam a ac\u00e7\u00f5es: tocar no n\u00famero abre WhatsApp, no email abre o mail. E aparece o que faltava: quanto est\u00e1 <em>em aberto</em> e os documentos recentes do cliente."],
+        ["Perde", "356&nbsp;px fixos para a ficha, mesmo quando s\u00f3 se quer percorrer nomes. Com 3 clientes o painel \u00e9 maior do que a lista que o alimenta."],
+        ["Melhor se", "Quiser a mesma gram\u00e1tica de /documentos e que a p\u00e1gina responda a &laquo;quem \u00e9 este cliente e o que lhe fa\u00e7o agora&raquo;."]
+      ]
+    },
+    B: {
+      n: "1",
+      items: [
+        ["Estrat\u00e9gia", "Assumir que a base \u00e9 pequena. Uma grelha de cart\u00f5es de contacto \u2014 avatar, nome, NUIT, facturado \u2014 com WhatsApp, email e Facturar em cada cart\u00e3o."],
+        ["Ganha", "\u00c9 o mais leve dos tr\u00eas: um s\u00f3 contentor. Com 3 a 12 clientes lê-se de relance e as ac\u00e7\u00f5es est\u00e3o todas \u00e0 vista, sem selec\u00e7\u00e3o nem navega\u00e7\u00e3o. Para uma PME moçambicana que trata os clientes por nome, uma agenda \u00e9 mais honesta do que uma tabela."],
+        ["Perde", "N\u00e3o escala. A partir de ~20 clientes a grelha obriga a rolar e comparar valores entre cart\u00f5es fica pior do que numa coluna. Sem ordena\u00e7\u00e3o."],
+        ["Melhor se", "A base ficar pequena e o gesto dominante for contactar, n\u00e3o analisar."]
+      ]
+    },
+    C: {
+      n: "1",
+      items: [
+        ["Estrat\u00e9gia", "Preparar para crescer. Tabela compacta com NUIT, telefone, cidade, n.\u00ba de documentos e facturado; a ficha completa abre numa gaveta lateral."],
+        ["Ganha", "\u00c9 o \u00fanico que aguenta centenas de clientes: colunas orden\u00e1veis, compara\u00e7\u00e3o vertical imediata, ~16 linhas por ecr\u00e3. A gaveta substitui o modal e mant\u00e9m a lista vis\u00edvel por tr\u00e1s."],
+        ["Perde", "A gaveta ainda cobre parte da tabela \u2014 \u00e9 um modal mais educado, n\u00e3o a sua aus\u00eancia. E com 3 clientes uma tabela de seis colunas parece um formul\u00e1rio vazio."],
+        ["Melhor se", "Contar com uma base grande e quiser ordenar e comparar clientes entre si."]
+      ]
+    }
+  };
+
+  var why = document.getElementById("why");
+  var cnum = document.getElementById("cnum");
+
+  function paint(k) {
+    var d = meta[k];
+    cnum.textContent = d.n;
+    why.innerHTML = d.items.map(function (r) {
+      return "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>";
+    }).join("");
+  }
+
+  function wire(tablist, onPick) {
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[role="tab"]'));
+    function pick(t) {
+      tabs.forEach(function (b) {
+        var on = b === t;
+        b.setAttribute("aria-selected", on ? "true" : "false");
+        var p = document.getElementById(b.getAttribute("aria-controls"));
+        if (p) p.hidden = !on;
+      });
+      if (onPick) onPick(t);
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener("click", function () { pick(t); });
+      t.addEventListener("keydown", function (e) {
+        var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        var next = tabs[(i + d + tabs.length) % tabs.length];
+        next.focus(); pick(next);
+      });
+    });
+  }
+
+  wire(document.querySelector(".switch"), function (t) { paint(t.getAttribute("aria-controls")); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var i = ["1", "2", "3"].indexOf(e.key);
+    if (i < 0) return;
+    var tab = document.querySelectorAll(".switch [role=tab]")[i];
+    if (tab) tab.click();
+  });
+
+  paint("A");
+})();
+</script>
+</body>
+</html>

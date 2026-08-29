@@ -3,6 +3,8 @@
  * pedidos de templates personalizados (pagos).
  */
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "./supabase";
 
 export type DocTemplateId =
   | "classico"
@@ -113,33 +115,48 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
+function fail(action: string, error: { message: string }) {
+  console.error(`[templates] ${action}:`, error.message);
+  toast.error(`Não foi possível ${action}`, { description: error.message });
 }
 
-function writeJson(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* ignore */
+/* ---------------- layout activo ---------------- */
+
+let templateId: DocTemplateId = "classico";
+let companyRowId: string | null = null;
+let tplHydrated = false;
+
+async function loadTemplate() {
+  const sb = supabase;
+  if (!sb) return;
+  const { data, error } = await sb.from("company").select("id,doc_template").limit(1).maybeSingle();
+  if (error || !data) return;
+  companyRowId = data.id as string;
+  const v = data.doc_template as DocTemplateId;
+  if (docTemplates.some((t) => t.id === v)) {
+    templateId = v;
+    emit();
   }
 }
 
 export function getDocTemplate(): DocTemplateId {
-  const v = readJson<DocTemplateId>(TEMPLATE_KEY, "classico");
-  return docTemplates.some((t) => t.id === v) ? v : "classico";
+  return templateId;
 }
 
-export function setDocTemplate(id: DocTemplateId) {
-  writeJson(TEMPLATE_KEY, id);
+export async function setDocTemplate(id: DocTemplateId) {
+  const sb = supabase;
+  const previous = templateId;
+  templateId = id;
   emit();
+  if (!sb) return;
+  if (!companyRowId) await loadTemplate();
+  if (!companyRowId) return;
+  const { error } = await sb.from("company").update({ doc_template: id }).eq("id", companyRowId);
+  if (error) {
+    templateId = previous;
+    emit();
+    fail("aplicar o layout", error);
+  }
 }
 
 /** Layout activo dos documentos (client-only, evita mismatch de hidratação). */
@@ -148,8 +165,12 @@ export function useDocTemplate(): DocTemplateId {
 
   useEffect(() => {
     const refresh = () => setId(getDocTemplate());
-    refresh();
     listeners.add(refresh);
+    if (!tplHydrated) {
+      tplHydrated = true;
+      void loadTemplate();
+    }
+    refresh();
     return () => {
       listeners.delete(refresh);
     };
@@ -158,58 +179,146 @@ export function useDocTemplate(): DocTemplateId {
   return id;
 }
 
-export function listTickets(): TemplateTicket[] {
-  return readJson<TemplateTicket[]>(TICKETS_KEY, []).sort((a, b) => b.createdAt - a.createdAt);
+/* ---------------- tickets ---------------- */
+
+type TicketRow = {
+  id: string;
+  ref: string;
+  title: string;
+  description: string;
+  contact: string;
+  documents: string[] | null;
+  fee: number;
+  status: TicketStatus;
+  created_at: string;
+  resolved_at: string | null;
+};
+
+const toTicket = (r: TicketRow): TemplateTicket => ({
+  id: r.id,
+  ref: r.ref,
+  title: r.title,
+  description: r.description,
+  contact: r.contact,
+  documents: r.documents ?? [],
+  fee: Number(r.fee),
+  status: r.status,
+  createdAt: new Date(r.created_at).getTime(),
+  resolvedAt: r.resolved_at ? new Date(r.resolved_at).getTime() : undefined,
+});
+
+let tickets: TemplateTicket[] = [];
+let ticketsHydrated = false;
+
+const TICKET_SELECT = "id,ref,title,description,contact,documents,fee,status,created_at,resolved_at";
+
+async function loadTickets() {
+  const sb = supabase;
+  if (!sb) return;
+  const { data, error } = await sb
+    .from("template_tickets")
+    .select(TICKET_SELECT)
+    .order("created_at", { ascending: false });
+  if (error) {
+    ticketsHydrated = false;
+    fail("carregar os pedidos", error);
+    return;
+  }
+  tickets = ((data ?? []) as TicketRow[]).map(toTicket);
+  emit();
 }
 
-export function addTicket(
+export function listTickets(): TemplateTicket[] {
+  return tickets;
+}
+
+export async function addTicket(
   input: Omit<TemplateTicket, "id" | "ref" | "status" | "createdAt" | "fee"> & { fee?: number },
-): TemplateTicket {
-  const all = readJson<TemplateTicket[]>(TICKETS_KEY, []);
-  const ticket: TemplateTicket = {
-    ...input,
-    fee: input.fee ?? CUSTOM_TEMPLATE_FEE,
-    id: `tk-${Date.now()}`,
-    ref: `TPL-${String(all.length + 1).padStart(4, "0")}`,
-    status: "aberto",
-    createdAt: Date.now(),
-  };
-  writeJson(TICKETS_KEY, [ticket, ...all]);
+): Promise<TemplateTicket | undefined> {
+  const sb = supabase;
+  if (!sb) return undefined;
+
+  const { data: ref, error: refError } = await sb.rpc("next_ticket_ref");
+  if (refError) {
+    fail("obter a referência do pedido", refError);
+    return undefined;
+  }
+
+  const { data, error } = await sb
+    .from("template_tickets")
+    .insert({
+      ref: ref as string,
+      title: input.title,
+      description: input.description,
+      contact: input.contact,
+      documents: input.documents,
+      fee: input.fee ?? CUSTOM_TEMPLATE_FEE,
+    })
+    .select(TICKET_SELECT)
+    .single();
+
+  if (error || !data) {
+    fail("criar o pedido", error ?? { message: "sem resposta" });
+    return undefined;
+  }
+
+  const ticket = toTicket(data as TicketRow);
+  tickets = [ticket, ...tickets];
   emit();
   return ticket;
 }
 
-export function setTicketStatus(id: string, status: TicketStatus) {
-  writeJson(
-    TICKETS_KEY,
-    readJson<TemplateTicket[]>(TICKETS_KEY, []).map((t) =>
-      t.id === id
-        ? { ...t, status, resolvedAt: status === "resolvido" ? Date.now() : undefined }
-        : t,
-    ),
+export async function setTicketStatus(id: string, status: TicketStatus) {
+  const sb = supabase;
+  if (!sb) return;
+  const resolvedAt = status === "resolvido" ? new Date().toISOString() : null;
+  const previous = tickets;
+  tickets = tickets.map((t) =>
+    t.id === id
+      ? { ...t, status, resolvedAt: resolvedAt ? Date.parse(resolvedAt) : undefined }
+      : t,
   );
   emit();
+  const { error } = await sb
+    .from("template_tickets")
+    .update({ status, resolved_at: resolvedAt })
+    .eq("id", id);
+  if (error) {
+    tickets = previous;
+    emit();
+    fail("mudar o estado do pedido", error);
+  }
 }
 
-export function deleteTicket(id: string) {
-  writeJson(
-    TICKETS_KEY,
-    readJson<TemplateTicket[]>(TICKETS_KEY, []).filter((t) => t.id !== id),
-  );
+export async function deleteTicket(id: string) {
+  const sb = supabase;
+  if (!sb) return;
+  const previous = tickets;
+  tickets = tickets.filter((t) => t.id !== id);
   emit();
+  const { error } = await sb.from("template_tickets").delete().eq("id", id);
+  if (error) {
+    tickets = previous;
+    emit();
+    fail("apagar o pedido", error);
+  }
 }
 
 export function useTickets(): TemplateTicket[] {
-  const [tickets, setTickets] = useState<TemplateTicket[]>([]);
+  const [list, setList] = useState<TemplateTicket[]>(tickets);
 
   useEffect(() => {
-    const refresh = () => setTickets(listTickets());
-    refresh();
+    const refresh = () => setList(listTickets());
     listeners.add(refresh);
+    if (!ticketsHydrated) {
+      ticketsHydrated = true;
+      void loadTickets();
+    }
+    refresh();
     return () => {
       listeners.delete(refresh);
     };
   }, []);
 
-  return tickets;
+  return list;
 }

@@ -118,8 +118,8 @@ export function DraftInvoiceCard({
             </p>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => {
-                  const invoice = approveDraft(draftId);
+                onClick={async () => {
+                  const invoice = await approveDraft(draftId);
                   if (invoice) {
                     toast.success(`Factura ${invoice.number} criada em rascunho`);
                     void navigate({ to: "/dashboard/facturas/$id", params: { id: invoice.id } });
