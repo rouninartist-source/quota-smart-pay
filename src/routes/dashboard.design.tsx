@@ -367,3 +367,117 @@ function TemplatePreview({ id, large }: { id: DocTemplateId; large?: boolean }) 
     </div>
   );
 }
+
+/** Selector de layouts em carrossel — um layout de cada vez, informação reduzida. */
+function LayoutSlider({
+  selected,
+  onPreview,
+}: {
+  selected: DocTemplateId;
+  onPreview: (t: DocTemplate) => void;
+}) {
+  const [index, setIndex] = useState(() => {
+    const i = docTemplates.findIndex((t) => t.id === selected);
+    return i < 0 ? 0 : i;
+  });
+
+  const total = docTemplates.length;
+  const go = (dir: 1 | -1) => setIndex((i) => (i + dir + total) % total);
+  const current = docTemplates[index];
+  const active = selected === current.id;
+
+  return (
+    <section
+      aria-label="Escolher layout do documento"
+      className="overflow-hidden rounded-lg border border-border/60 bg-card shadow-card"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="truncate font-display text-[15px] font-semibold">{current.name}</h2>
+          <p className="truncate text-[12px] text-muted-foreground">{current.tagline}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="mr-1 text-[11px] tabular-nums text-muted-foreground">
+            {index + 1}/{total}
+          </span>
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Layout anterior"
+            className="grid h-8 w-8 place-items-center rounded-md border border-border/70 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Layout seguinte"
+            className="grid h-8 w-8 place-items-center rounded-md border border-border/70 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Track */}
+      <div className="overflow-hidden bg-muted/40">
+        <div
+          className="flex transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {docTemplates.map((t) => (
+            <div key={t.id} className="w-full shrink-0 px-4 py-5">
+              <div className="mx-auto max-w-[360px]">
+                <TemplatePreview id={t.id} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Dots + acções */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          {docTemplates.map((t, i) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Ver layout ${t.name}`}
+              aria-current={i === index}
+              className={cn(
+                "h-1.5 rounded-full transition-all",
+                i === index ? "w-5 bg-primary" : "w-1.5 bg-border hover:bg-muted-foreground/50",
+              )}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onPreview(current)}
+            className="inline-flex h-9 items-center gap-2 rounded-md border border-border/70 bg-background px-3 text-[13px] font-medium transition hover:bg-muted"
+          >
+            <Eye className="h-3.5 w-3.5" /> Visualizar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setDocTemplate(current.id);
+              toast.success(`Layout ${current.name} aplicado aos documentos`);
+            }}
+            disabled={active}
+            className={cn(
+              "h-9 rounded-md px-4 text-[13px] font-medium transition",
+              active
+                ? "cursor-default bg-primary/10 text-primary"
+                : "bg-primary text-primary-foreground hover:opacity-90",
+            )}
+          >
+            {active ? "Layout activo" : "Usar este layout"}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
