@@ -13,6 +13,7 @@ export function PageHeader({
   actions,
   className,
   children,
+  sticky = true,
 }: {
   title: string;
   description?: string;
@@ -21,9 +22,19 @@ export function PageHeader({
   actions?: React.ReactNode;
   className?: string;
   children?: React.ReactNode;
+  /** Fica fixo no topo da área de conteúdo enquanto se faz scroll. */
+  sticky?: boolean;
 }) {
   return (
-    <header className={cn("space-y-4", className)}>
+    <header
+      className={cn(
+        "space-y-4",
+        sticky &&
+          "sticky -top-6 z-20 -mx-4 border-b border-border/60 bg-background/90 px-4 pb-4 pt-6 backdrop-blur-xl md:-top-8 md:-mx-6 md:px-6 md:pt-8",
+        className,
+      )}
+    >
+
       {crumbs && crumbs.length > 0 && (
         <nav aria-label="Navegação hierárquica">
           <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
