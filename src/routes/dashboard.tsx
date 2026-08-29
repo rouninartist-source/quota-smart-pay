@@ -26,7 +26,7 @@ function DashboardLayout() {
   const { open: searchOpen, setOpen: setSearchOpen } = useCommandPalette();
 
   return (
-    <div className="relative flex min-h-dvh w-full bg-background text-foreground">
+    <div className="relative flex h-dvh w-full overflow-hidden bg-background text-foreground">
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed((v) => !v)}
@@ -35,17 +35,18 @@ function DashboardLayout() {
       <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar
           onOpenMobileMenu={() => setMobileOpen(true)}
           onOpenSearch={() => setSearchOpen(true)}
         />
-        <main className="flex-1 pb-24 md:pb-10">
+        <main className="flex-1 overflow-y-auto overscroll-contain pb-24 md:pb-10">
           <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-6 md:py-8">
             <Outlet />
           </div>
         </main>
       </div>
+
 
       <MobileBottomNav />
     </div>

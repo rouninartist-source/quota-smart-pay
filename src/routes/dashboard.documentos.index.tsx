@@ -182,11 +182,12 @@ function DocumentosList() {
             <p className="text-xs text-muted-foreground">Ajuste o filtro ou emita um novo documento.</p>
           </div>
         ) : (
-          <>
+          <div className="max-h-[calc(100dvh-24rem)] min-h-[240px] overflow-y-auto overscroll-contain">
             <div className="hidden md:block">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 z-10 bg-card">
                   <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+
                     <th className="px-5 py-3 font-medium">Número</th>
                     <th className="px-5 py-3 font-medium">Tipo</th>
                     <th className="px-5 py-3 font-medium">Cliente</th>
@@ -261,9 +262,10 @@ function DocumentosList() {
                 </li>
               ))}
             </ul>
-          </>
+          </div>
         )}
       </div>
+
     </div>
   );
 }
