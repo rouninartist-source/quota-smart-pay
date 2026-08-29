@@ -919,7 +919,56 @@ aplicada; falta observar A-não-vê-B com duas contas reais.
 
 ---
 
-## 20. Suggested next steps
+## 20. Isolamento verificado e sessão-sem-empresa resolvida
+
+### Isolamento entre empresas — **provado**
+
+Ficou por verificar em §19 por causa do limite de registos. Feito agora, com duas
+contas reais (a segunda confirmada pela API de administração):
+
+```
+B antes de ter empresa   ve clientes: []   emitir: "sem empresa associada"
+B cria empresa           200
+A ve   : João Comercial, Beira Logística, Farmácia Nampula, Tirson
+B ve   : Cliente exclusivo do B
+A tem  : 5 facturas        B tem: 0
+B numeracao: FT 2026/00001   ← começa do zero, independente de A
+FUGA DE DADOS: NENHUMA
+```
+
+A numeração por empresa também se confirma aqui: a primeira factura de B é a
+`00001`, sem relação com as de A.
+
+### Sessão sem empresa — resolvido
+
+`src/lib/org-store.ts` + `src/components/app/CompleteOrgSetup.tsx`. Quem tenha
+sessão mas nenhuma empresa (criado pelo dashboard do Supabase, ou registo
+falhado a meio) vê um ecrã que cria a empresa ali mesmo, em vez de um painel
+vazio sem explicação.
+
+Testado no browser: login → ecrã "Falta criar a sua empresa" → criar → painel a
+funcionar.
+
+O `ready` do `useOrg()` distingue "ainda não sei" de "não tem empresa", senão o
+ecrã piscava antes de a resposta chegar.
+
+### Limpeza
+
+Contas e empresas de teste apagadas. Fica só `tirson@93interactions.com` e a
+empresa `Quota Studio`. A chave de administração foi obtida do CLI quando
+necessária e **apagada do scratchpad** — nunca foi impressa nem versionada.
+
+### ⚠️ Nota: apagar um utilizador deixa a empresa órfã
+
+`org_members` tem cascade no utilizador, mas a `orgs` fica. Isso é defensável
+(uma empresa pode ter vários membros e não deve desaparecer quando um sai), mas
+uma empresa **sem membros nenhuns** fica inalcançável, com os dados presos.
+Quando houver gestão de equipa, decidir: impedir a saída do último membro, ou
+transferir/arquivar a empresa.
+
+---
+
+## 21. Suggested next steps
 
 1. Decide on the two open dashboard items (hollow work zone, mobile status badges).
    The Bancada has the same hollowness with poucas linhas — mesma decisão se aplica.
@@ -932,7 +981,7 @@ aplicada; falta observar A-não-vê-B com duas contas reais.
 
 ---
 
-## 21. Project relocation (done)
+## 22. Project relocation (done)
 
 Moved from `Projects/pickup360/tools/quota/quota-smart-pay` → `Projects/quota-smart-pay`.
 `pickup360` was not a git repo, so nothing tracked this as a subdirectory; git history

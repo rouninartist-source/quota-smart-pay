@@ -2,6 +2,8 @@ import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth";
+import { useOrg } from "@/lib/org-store";
+import { CompleteOrgSetup } from "@/components/app/CompleteOrgSetup";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -49,6 +51,7 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardLayout() {
   const navigate = useNavigate();
   const { session, loading } = useSession();
+  const { org, ready: orgReady } = useOrg();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { open: searchOpen, setOpen: setSearchOpen } = useCommandPalette();
@@ -76,6 +79,19 @@ function DashboardLayout() {
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
+  }
+
+  // Com sessão mas sem empresa não há nada que o painel possa mostrar — e
+  // qualquer emissão falharia. Melhor resolver o impasse aqui.
+  if (isSupabaseConfigured && session && !orgReady) {
+    return (
+      <div className="grid h-dvh place-items-center bg-background">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (isSupabaseConfigured && session && orgReady && !org) {
+    return <CompleteOrgSetup email={session.user.email} />;
   }
 
   return (
