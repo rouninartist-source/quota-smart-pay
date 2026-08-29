@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Eye, Palette, Send, Sparkles, Ticket, Trash2, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Palette,
+  Send,
+  Sparkles,
+  Ticket,
+  Trash2,
+  X,
+} from "lucide-react";
+
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatMZN } from "@/lib/format";
