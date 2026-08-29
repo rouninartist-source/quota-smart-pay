@@ -262,8 +262,8 @@ function DocumentosList() {
                 </li>
               ))}
             </ul>
-          </>
-        )}
+          </div>
+
       </div>
     </div>
   );
