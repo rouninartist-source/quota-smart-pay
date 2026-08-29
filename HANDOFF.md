@@ -855,7 +855,71 @@ sério passaria por limitar as linguagens do shiki.
 
 ---
 
-## 19. Suggested next steps
+## 19. Teste ponta-a-ponta pelo frontend
+
+Conta usada: `tirson@93interactions.com` (criada pelo utilizador, já confirmada).
+Foi associada à empresa inicial para ver os dados existentes:
+
+```sql
+insert into public.org_members (org_id, user_id, role)
+values ('00000000-0000-0000-0000-000000000001',
+        'f7aff71a-1a96-4d64-a475-a9d2c008a034', 'owner');
+```
+
+A conta de teste `teste.quota@gmail.com` que eu tinha criado foi **apagada**.
+
+### Percurso completo, feito no browser
+
+1. `/dashboard` sem sessão → **redirecciona para `/login`**
+2. Login pelo formulário real → entra no painel
+3. Painel lê do Postgres: saldo 70 932, 76% liquidado, 4 documentos
+4. Lista de documentos: 36 linhas
+5. **Exportar CSV** → ficheiro descarregado
+6. **Criar factura** → `FT 2026/00009`, cliente escolhido da base, linha
+   2 × 12 500 · IVA 16% → 29 000,00 MZN
+7. **Imprimir** → `/facturas/$id/imprimir` renderiza o documento com os dados da
+   empresa, o layout Corporativo escolhido e o bloco de pagamento
+8. **PDF** gerado (195 KB, A4, 1 página)
+9. **Anular** → estado `cancelada` na base de dados, documento preservado
+10. **Terminar sessão** → volta a `/login`
+
+Sem erros de consola em nenhum passo.
+
+### Dois bugs apanhados por este teste
+
+**1. Contador semeado a partir da contagem, não do máximo.**
+`org_counters` ficou em 4 com facturas numeradas até `00006`. A emissão seguinte
+teria gerado `FT 2026/00005` — número repetido, a rebentar contra o índice único
+`(org_id, number)`. Corrigido em `20260829234500_fix_counter_seed.sql`, que lê o
+**maior número já emitido**. Verificado: o próximo passou a `FT 2026/00007`.
+
+**2. Id de cliente do tempo do localStorage.**
+`facturas/nova` tinha `useState(cliente ?? "cli-demo-1")`. Com ids UUID, o insert
+falhava com `invalid input syntax for type uuid`. Agora o valor por omissão é
+"cliente pontual" e há um guarda que só envia `client_id` se for um UUID.
+
+O erro apareceu ao utilizador como toast — o `fail()` dos stores fez o trabalho.
+
+### ⚠️ Lacuna conhecida: sessão sem empresa
+
+Quem for criado **pelo dashboard do Supabase** (em vez do `/registo`) fica sem
+empresa: `current_org_id()` devolve `null`, o RLS não mostra nada e emitir falha
+com "sem empresa associada ao utilizador". O `/registo` não tem este problema
+porque chama `create_org`.
+
+Foi resolvido à mão para esta conta. **Falta tratar em código** — o mínimo é
+detectar "com sessão, sem empresa" e levar a pessoa a criar a empresa, em vez de
+mostrar um painel vazio sem explicação.
+
+### Ainda por verificar
+
+O **isolamento entre empresas** continua sem teste de ponta a ponta (o Supabase
+limitou os registos a 429 quando tentei criar duas contas). A estrutura está
+aplicada; falta observar A-não-vê-B com duas contas reais.
+
+---
+
+## 20. Suggested next steps
 
 1. Decide on the two open dashboard items (hollow work zone, mobile status badges).
    The Bancada has the same hollowness with poucas linhas — mesma decisão se aplica.
@@ -868,7 +932,7 @@ sério passaria por limitar as linguagens do shiki.
 
 ---
 
-## 20. Project relocation (done)
+## 21. Project relocation (done)
 
 Moved from `Projects/pickup360/tools/quota/quota-smart-pay` → `Projects/quota-smart-pay`.
 `pickup360` was not a git repo, so nothing tracked this as a subdirectory; git history
