@@ -778,7 +778,84 @@ Correr novas com `supabase db push` (o CLI já está ligado ao projecto).
 
 ---
 
-## 18. Suggested next steps
+## 18. Multi-empresa e registo self-service
+
+### Porquê
+
+A página `/registo` já existia e é **self-service em três passos** (conta →
+empresa → pronto), sem ninguém a aprovar. Com a política anterior
+(`auth.uid() is not null`) isso era uma **fuga de dados**: o segundo cliente a
+registar-se veria as facturas do primeiro.
+
+### Migração `20260829230000_multi_tenant.sql`
+
+- `orgs` + `org_members`; `org_id` em todas as tabelas de dados.
+- `current_org_id()` (`security definer`, `stable`) usada nas políticas **e como
+  default da coluna** — a app não precisa de enviar `org_id` em cada insert.
+- Política `org_isolated`: `org_id = current_org_id()` em leitura e escrita.
+- Número do documento passou a ser único **por empresa**
+  (`unique (org_id, number)`), não globalmente.
+- **Numeração por empresa** via `org_counters` com `on conflict do update`
+  (atómico). Uma sequência global daria buracos na numeração de cada cliente e
+  revelaria o volume dos outros.
+- `create_org()` cria empresa + membro + linha de definições **numa transacção** —
+  um registo a meio deixaria um utilizador sem empresa e sem acesso a nada.
+
+Dados existentes preservados e atribuídos a uma empresa inicial
+(`00000000-…-0001`), com o contador semeado a partir das facturas já emitidas.
+
+### Páginas de autenticação
+
+**Eu tinha criado um `/entrar` sem verificar — já existiam `/login` e `/registo`
+desenhados.** O `/entrar` foi apagado e as páginas originais foram ligadas ao
+Supabase Auth. A guarda do painel aponta agora para `/login`.
+
+### Verificado
+
+- `/`, `/login`, `/registo` → 200, sem erros de consola.
+- `/dashboard` sem sessão → redirecciona para `/login`.
+- Sem sessão: `INSERT` → **42501 RLS**; `next_document_number` → **"sem empresa
+  associada ao utilizador"**.
+- Dados intactos depois da migração: 4 facturas, 7 linhas, 3 pagamentos,
+  12 produtos, 8 serviços, 4 clientes.
+
+### ⚠️ Por verificar — isolamento entre empresas
+
+**Não consegui testar A-não-vê-B de ponta a ponta**: o Supabase devolveu **429**
+(limite de registos por hora) ao criar as duas contas de teste. A estrutura e as
+políticas estão aplicadas e verificadas, mas **o isolamento real ainda não foi
+observado**. Fazer isto assim que houver duas contas.
+
+### Primeira conta
+
+Confirmação de email está ligada. Criar a primeira conta em
+Authentication → Users → Add user (**Auto Confirm User**), ou desligar a
+confirmação em Authentication → Providers → Email.
+
+A empresa inicial (com os dados de demonstração) **não tem membros**. Uma conta
+nova cria uma empresa própria e começa vazia. Para ficar com os dados de
+demonstração, associar a conta à empresa inicial:
+
+```sql
+insert into public.org_members (org_id, user_id, role)
+values ('00000000-0000-0000-0000-000000000001', '<user-uuid>', 'owner');
+```
+
+Apagar também a conta de teste `teste.quota@gmail.com`.
+
+### Build
+
+`bun run build` já funciona sem flags — `NODE_OPTIONS=--max-old-space-size=6144`
+passou para o script no `package.json`.
+
+**Tentei primeiro reduzir o bundle** carregando shiki e mermaid sob procura, mas
+medi e **não mudou nada**: o Vite já os separava em chunks próprios e o bundle do
+servidor manteve-se em 22 MB. Revertido — não vale a complexidade. A redução a
+sério passaria por limitar as linguagens do shiki.
+
+---
+
+## 19. Suggested next steps
 
 1. Decide on the two open dashboard items (hollow work zone, mobile status badges).
    The Bancada has the same hollowness with poucas linhas — mesma decisão se aplica.
@@ -791,7 +868,7 @@ Correr novas com `supabase db push` (o CLI já está ligado ao projecto).
 
 ---
 
-## 19. Project relocation (done)
+## 20. Project relocation (done)
 
 Moved from `Projects/pickup360/tools/quota/quota-smart-pay` → `Projects/quota-smart-pay`.
 `pickup360` was not a git repo, so nothing tracked this as a subdirectory; git history

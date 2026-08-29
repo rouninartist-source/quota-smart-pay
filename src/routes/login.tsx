@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { signIn } from "@/lib/auth";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import loginVisual from "@/assets/login-visual.jpg";
@@ -18,7 +20,26 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
+  const navigate = useNavigate();
   const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await signIn(email.trim(), password);
+    setBusy(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    void navigate({ to: "/dashboard" });
+  }
 
   return (
     <main className="grid min-h-screen bg-background lg:grid-cols-2">
@@ -42,13 +63,16 @@ function Login() {
 
             <form
               className="mt-9 space-y-4"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={submit}
             >
               <div>
                 <label htmlFor="email" className="text-[13px] font-medium">E-mail</label>
                 <input
                   id="email"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   placeholder="nome@empresa.co.mz"
                   className="mt-1.5 w-full rounded-md border border-border bg-surface px-3.5 py-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-card"
                 />
@@ -65,6 +89,9 @@ function Login() {
                   <input
                     id="password"
                     type={show ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     placeholder="••••••••"
                     className="w-full rounded-md border border-border bg-surface px-3.5 py-3 pr-11 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-card"
                   />
@@ -79,12 +106,19 @@ function Login() {
                 </div>
               </div>
 
-              <Link
-                to="/empresas"
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              {error && (
+                <p role="alert" className="text-[12.5px] font-medium text-destructive">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={busy}
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
               >
-                Iniciar sessão <ArrowRight className="h-4 w-4" />
-              </Link>
+                {busy ? "A entrar…" : "Iniciar sessão"} <ArrowRight className="h-4 w-4" />
+              </button>
             </form>
 
             <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">

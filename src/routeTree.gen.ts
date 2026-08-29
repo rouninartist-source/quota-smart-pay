@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegistoRouteImport } from './routes/registo'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EmpresasRouteImport } from './routes/empresas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AppRouteImport } from './routes/app'
@@ -53,11 +52,6 @@ const RegistoRoute = RegistoRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntrarRoute = EntrarRouteImport.update({
-  id: '/entrar',
-  path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmpresasRoute = EmpresasRouteImport.update({
@@ -230,7 +224,6 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/empresas': typeof EmpresasRoute
-  '/entrar': typeof EntrarRoute
   '/login': typeof LoginRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
@@ -266,7 +259,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/empresas': typeof EmpresasRoute
-  '/entrar': typeof EntrarRoute
   '/login': typeof LoginRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
@@ -300,7 +292,6 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/empresas': typeof EmpresasRoute
-  '/entrar': typeof EntrarRoute
   '/login': typeof LoginRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
@@ -339,7 +330,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/dashboard'
     | '/empresas'
-    | '/entrar'
     | '/login'
     | '/registo'
     | '/api/chat'
@@ -375,7 +365,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/empresas'
-    | '/entrar'
     | '/login'
     | '/registo'
     | '/api/chat'
@@ -408,7 +397,6 @@ export interface FileRouteTypes {
     | '/app'
     | '/dashboard'
     | '/empresas'
-    | '/entrar'
     | '/login'
     | '/registo'
     | '/api/chat'
@@ -446,7 +434,6 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   EmpresasRoute: typeof EmpresasRoute
-  EntrarRoute: typeof EntrarRoute
   LoginRoute: typeof LoginRoute
   RegistoRoute: typeof RegistoRoute
   ApiChatRoute: typeof ApiChatRoute
@@ -468,13 +455,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/entrar': {
-      id: '/entrar'
-      path: '/entrar'
-      fullPath: '/entrar'
-      preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/empresas': {
@@ -806,7 +786,6 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   DashboardRoute: DashboardRouteWithChildren,
   EmpresasRoute: EmpresasRoute,
-  EntrarRoute: EntrarRoute,
   LoginRoute: LoginRoute,
   RegistoRoute: RegistoRoute,
   ApiChatRoute: ApiChatRoute,

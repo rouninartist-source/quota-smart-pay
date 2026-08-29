@@ -1,4 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { signUp, signIn } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { useRef, useState } from "react";
 import {
   ArrowRight,
@@ -71,6 +73,7 @@ function Registo() {
   const [step, setStep] = useState(1);
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Passo 1
   const [fullName, setFullName] = useState("");
@@ -111,14 +114,60 @@ function Registo() {
     setStep((s) => Math.min(3, s + 1));
   };
 
-  const finish = () => {
-    saveCompany({
+  /**
+   * Registo self-service: cria a conta, cria a empresa e associa-a ao
+   * utilizador. O `create_org` do Postgres faz as duas últimas coisas numa só
+   * transacção — sem isso, um registo a meio deixava um utilizador sem empresa
+   * e sem acesso a nada.
+   */
+  const finish = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+
+    const created = await signUp(email.trim(), password);
+    if (created.error) {
+      setBusy(false);
+      setError(created.error);
+      return;
+    }
+
+    // Sem sessão devolvida, o projecto exige confirmação por email.
+    if ("needsConfirmation" in created && created.needsConfirmation) {
+      const signedIn = await signIn(email.trim(), password);
+      if (signedIn.error) {
+        setBusy(false);
+        setError(
+          "Conta criada. Confirme o email e depois inicie sessão para terminar a configuração da empresa.",
+        );
+        return;
+      }
+    }
+
+    const sb = supabase;
+    if (sb) {
+      const { error: orgError } = await sb.rpc("create_org", {
+        p_name: companyName.trim(),
+        p_nuit: nuit.trim(),
+        p_sector: sector,
+        p_iva_regime: iva,
+      });
+      if (orgError && !orgError.message.includes("já pertence")) {
+        setBusy(false);
+        setError(orgError.message);
+        return;
+      }
+    }
+
+    await saveCompany({
       name: companyName.trim(),
       nuit: nuit.trim(),
       email: email.trim(),
       phone: phone.trim(),
       ...(logo ? { logo } : {}),
     });
+
+    setBusy(false);
     navigate({ to: "/dashboard" });
   };
 
