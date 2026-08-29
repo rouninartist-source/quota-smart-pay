@@ -732,7 +732,53 @@ só do lado do servidor.
 
 ---
 
-## 17. Suggested next steps
+## 17. Autenticação e commit
+
+### Estado: **a app exige sessão iniciada**
+
+`supabase/migrations/20260829220000_require_auth.sql` fechou o acesso anónimo.
+Verificado contra a base de dados real:
+
+- leitura com a chave publicável sem sessão → **vazio**
+- `INSERT` sem sessão → **42501 violates row-level security**
+- `DELETE` sem sessão → 204 mas **0 linhas afectadas** (RLS só apaga o que deixa ver);
+  contagens depois: 4 facturas, 7 linhas, 3 pagamentos, 12 produtos, 8 serviços —
+  nada se perdeu
+
+Guarda no painel testada: `/dashboard` sem sessão → redirecciona para `/entrar`;
+palavra-passe errada → "Invalid login credentials".
+
+### ⚠️ Falta criar a primeira conta — a app está trancada até isso
+
+O projecto tem **confirmação de email ligada**, por isso registar pela página de
+entrada não devolve sessão. Caminho mais rápido:
+
+> Supabase Dashboard → **Authentication → Users → Add user** → preencher email e
+> palavra-passe e **marcar "Auto Confirm User"**.
+
+Em alternativa, desligar a confirmação em Authentication → Providers → Email.
+
+Foi criada uma conta de teste `teste.quota@gmail.com` (por confirmar) só para
+validar o fluxo — **apagar**; eu não tenho chave de administração para o fazer.
+
+### Migrações aplicadas
+
+```
+20260829202203_init.sql                    esquema base + numeração + RLS dev
+20260829210000_settings_tickets_catalog    settings jsonb, tickets, seed catálogo
+20260829220000_require_auth.sql            fecha o anónimo
+```
+
+Correr novas com `supabase db push` (o CLI já está ligado ao projecto).
+
+### Commit
+
+`81e2d37` — 47 ficheiros, +11375 / −2191. Ramo `dev`, **por publicar**
+(`git push` ainda não feito).
+
+---
+
+## 18. Suggested next steps
 
 1. Decide on the two open dashboard items (hollow work zone, mobile status badges).
    The Bancada has the same hollowness with poucas linhas — mesma decisão se aplica.
@@ -745,7 +791,7 @@ só do lado do servidor.
 
 ---
 
-## 18. Project relocation (done)
+## 19. Project relocation (done)
 
 Moved from `Projects/pickup360/tools/quota/quota-smart-pay` → `Projects/quota-smart-pay`.
 `pickup360` was not a git repo, so nothing tracked this as a subdirectory; git history
