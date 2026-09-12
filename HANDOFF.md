@@ -1014,3 +1014,37 @@ Notas:
 - Desempenho no Hostinger: o Passenger adormece o processo Node quando não há tráfego; o primeiro pedido depois de uns minutos demora alguns segundos (arranque). É da plataforma, não da app.
 - Planos: sem cobrança automática — mudar de plano actualiza `orgs.plan`; a equipa confirma a facturação.
 - A conta de teste (tirson@93interactions.com) tem documentos criados pelos testes automáticos (FT/PF/REC de 12-09).
+
+## 2026-09-12 (tarde) — Segunda lista do QA ("Notas / Quotes")
+
+| # | Item | Estado / interpretação |
+|---|------|------------------------|
+| 1 | Trial para todos os pacotes | Toda a conta começa com 14 dias no Basic (o pacote escolhido no registo fica em `plan_requested`) |
+| 2 | Escolher pacote antes de criar conta | Passo inicial do `/registo` |
+| 3 | Preço manual, sem setas | CSS global: campos numéricos sem spinner |
+| 4 | Layout: sem "em dívida", cliente à direita, empresa à esquerda, logo no topo | Feito nos templates (`InvoiceDocument`, `BasicDocument`) |
+| 5 | Botão Imprimir em Documentos e Novo Documento | Imprimir (caixa de impressão) e PDF (pré-visualização) |
+| 6–7 | Enviar por WhatsApp ou e-mail registado, ou outro e-mail | `ShareDialog` (bancada → documento com `?partilhar=1`, lista, documento) |
+| 8 | Não emitir sem valor e quantidade | Todas as linhas exigem descrição, qtd > 0 e valor > 0; linha em falta fica assinalada |
+| 9 | Filtros VD e Pró-forma | Separadores Pró-formas e VD; entradas no menu |
+| 10 | Thumbnail do WhatsApp | O link do PDF leva número/tipo/valor nas meta tags e imagem por tipo (`public/og/*.png`). O WhatsApp não vê o documento privado — é o máximo sem o expor |
+| 11 | Anular não funcionava | Testado: Anular funciona (documento e selecção na lista) |
+| 12 | Notificação → documento | Notificações reais derivadas dos documentos; clicar abre o documento |
+| 13–14 | Cotação visual: foto e coluna de imagem | Upload por linha (JPEG reduzido guardado na linha); coluna Imagem antes da descrição |
+| 15 | Categorias em dropdown | Lista das existentes + "nova categoria" |
+| 16 | Remover stock | Removido da UI (colunas ficam na BD, sem uso) |
+| 17 | Serviço → criar cotação/factura | Botões no editor do serviço e do produto; `?item=s:<id>` / `p:<id>` pré-preenche a linha |
+| 18 | Foto de perfil | Upload (redimensionada) nos user_metadata; aparece no menu |
+| 19 | Várias contas bancárias | Lista em Definições; todas impressas |
+| 20–21 | Só bancos / só carteiras / ambos | `paymentMode` em Definições; aplica-se aos documentos |
+| 22 | Ligar WhatsApp / cobrança | Ligação = número da empresa + modelo de cobrança (Cobrar usa-o). Envio automático exige API oficial da Meta — explicado na página |
+| 23 | Countdown do trial | Barra, planos e sidebar; ao expirar: banner e bloqueio de novos documentos |
+| 24 | Trial só Basic com 3 operações de IA | `use_ai_credit()` no Postgres; assistente pára ao 3.º uso no trial |
+| 25 | Plano sob consulta | Card "Empresarial · sob consulta" (planos e registo) |
+| 26 | Empresas adicionais sem plano próprio | `orgs.parent_org`; herdam o plano da raiz; página de planos gere a raiz |
+| 27–28 | Utilizadores, papéis, convites com senha própria | `/dashboard/utilizadores`: membros (dono/admin/membro), convites por ligação (`/convite/:token`) partilhável por WhatsApp/e-mail; limite por plano (3 / 3 / 5) |
+| 29 | Tipo de modo escuro | Definições → Aparência: Sistema / Claro / Escuro / Escuro suave |
+| 30 | Melhorar dark mode | Aplicação antes da pintura, contraste dos avisos e do documento, variante suave |
+
+Migrações novas: `20260912190000_trial_invites.sql`, `20260912193000_invites_org_default.sql` (aplicadas).
+Env nova (opcional): `VITE_SITE_URL` — base absoluta da imagem OG (por omissão `https://quota.milsonuix.com`).
