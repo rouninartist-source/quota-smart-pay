@@ -18,3 +18,9 @@ export const plans: Plan[] = [
 ];
 
 export const getPlan = (id?: string) => plans.find((p) => p.id === id) ?? plans[0];
+
+/** Utilizadores por empresa em cada plano. */
+export const planUserLimit = (id?: string) => (id === "multi" ? 5 : 3);
+
+export const TRIAL_DAYS = 14;
+export const TRIAL_AI_LIMIT = 3;

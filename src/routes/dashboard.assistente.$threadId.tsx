@@ -31,6 +31,7 @@ import {
   useThreads,
 } from "@/lib/agent-threads";
 import { cn } from "@/lib/utils";
+import { useAiCredit } from "@/lib/org-store";
 
 export const Route = createFileRoute("/dashboard/assistente/$threadId")({
   head: () => ({
@@ -106,6 +107,7 @@ function ChatWindow({
   onDelete: (id: string) => void;
 }) {
   const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+  const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -159,9 +161,21 @@ function ChatWindow({
     setAttachments((a) => [...a, ...next]);
   }
 
-  function send(text: string) {
+  async function send(text: string) {
     const trimmed = text.trim();
     if ((!trimmed && attachments.length === 0) || busy) return;
+    // No período experimental há 3 operações de IA; o Postgres conta.
+    const credit = await useAiCredit();
+    if (!credit.allowed) {
+      toast.error(`Limite do período experimental: ${credit.limit} operações de Quota AI.`, {
+        description: "Escolha um plano com Quota AI para continuar.",
+        action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
+      });
+      return;
+    }
+    if (credit.limit !== null) {
+      toast.message(`Quota AI · ${credit.uses} de ${credit.limit} operações do trial`);
+    }
     void sendMessage({
       text: trimmed || "Analisa o ficheiro em anexo e propõe o documento adequado.",
       files: attachments.map((a) => ({

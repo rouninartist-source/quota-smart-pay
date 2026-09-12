@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as VerificarCodeRouteImport } from './routes/verificar.$code'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
+import { Route as DashboardUtilizadoresRouteImport } from './routes/dashboard.utilizadores'
 import { Route as DashboardServicosRouteImport } from './routes/dashboard.servicos'
 import { Route as DashboardRecibosRouteImport } from './routes/dashboard.recibos'
 import { Route as DashboardProdutosRouteImport } from './routes/dashboard.produtos'
@@ -35,6 +36,7 @@ import { Route as DashboardDefinicoesRouteImport } from './routes/dashboard.defi
 import { Route as DashboardCotacoesRouteImport } from './routes/dashboard.cotacoes'
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as DashboardFacturasIndexRouteImport } from './routes/dashboard.facturas.index'
 import { Route as DashboardEquipaIndexRouteImport } from './routes/dashboard.equipa.index'
@@ -101,6 +103,11 @@ const VerificarCodeRoute = VerificarCodeRouteImport.update({
 const DashboardWhatsappRoute = DashboardWhatsappRouteImport.update({
   id: '/whatsapp',
   path: '/whatsapp',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardUtilizadoresRoute = DashboardUtilizadoresRouteImport.update({
+  id: '/utilizadores',
+  path: '/utilizadores',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardServicosRoute = DashboardServicosRouteImport.update({
@@ -178,6 +185,11 @@ const DashboardAssistenteRoute = DashboardAssistenteRouteImport.update({
   path: '/assistente',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -253,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/cotacoes': typeof DashboardCotacoesRoute
@@ -268,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/produtos': typeof DashboardProdutosRoute
   '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
+  '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -292,6 +306,7 @@ export interface FileRoutesByTo {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/cotacoes': typeof DashboardCotacoesRoute
   '/dashboard/definicoes': typeof DashboardDefinicoesRoute
@@ -303,6 +318,7 @@ export interface FileRoutesByTo {
   '/dashboard/produtos': typeof DashboardProdutosRoute
   '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
+  '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -329,6 +345,7 @@ export interface FileRoutesById {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/cotacoes': typeof DashboardCotacoesRoute
@@ -344,6 +361,7 @@ export interface FileRoutesById {
   '/dashboard/produtos': typeof DashboardProdutosRoute
   '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
+  '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -371,6 +389,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/convite/$token'
     | '/dashboard/assistente'
     | '/dashboard/clientes'
     | '/dashboard/cotacoes'
@@ -386,6 +405,7 @@ export interface FileRouteTypes {
     | '/dashboard/produtos'
     | '/dashboard/recibos'
     | '/dashboard/servicos'
+    | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
     | '/dashboard/'
@@ -410,6 +430,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/convite/$token'
     | '/dashboard/clientes'
     | '/dashboard/cotacoes'
     | '/dashboard/definicoes'
@@ -421,6 +442,7 @@ export interface FileRouteTypes {
     | '/dashboard/produtos'
     | '/dashboard/recibos'
     | '/dashboard/servicos'
+    | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
     | '/dashboard'
@@ -446,6 +468,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/convite/$token'
     | '/dashboard/assistente'
     | '/dashboard/clientes'
     | '/dashboard/cotacoes'
@@ -461,6 +484,7 @@ export interface FileRouteTypes {
     | '/dashboard/produtos'
     | '/dashboard/recibos'
     | '/dashboard/servicos'
+    | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
     | '/dashboard/'
@@ -487,6 +511,7 @@ export interface RootRouteChildren {
   RecuperarRoute: typeof RecuperarRoute
   RegistoRoute: typeof RegistoRoute
   ApiChatRoute: typeof ApiChatRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   VerificarCodeRoute: typeof VerificarCodeRoute
   FacturasIdImprimirRoute: typeof FacturasIdImprimirRoute
 }
@@ -568,6 +593,13 @@ declare module '@tanstack/react-router' {
       path: '/whatsapp'
       fullPath: '/dashboard/whatsapp'
       preLoaderRoute: typeof DashboardWhatsappRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/utilizadores': {
+      id: '/dashboard/utilizadores'
+      path: '/utilizadores'
+      fullPath: '/dashboard/utilizadores'
+      preLoaderRoute: typeof DashboardUtilizadoresRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/servicos': {
@@ -674,6 +706,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/assistente'
       preLoaderRoute: typeof DashboardAssistenteRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
       id: '/api/chat'
@@ -835,6 +874,7 @@ interface DashboardRouteChildren {
   DashboardProdutosRoute: typeof DashboardProdutosRoute
   DashboardRecibosRoute: typeof DashboardRecibosRoute
   DashboardServicosRoute: typeof DashboardServicosRoute
+  DashboardUtilizadoresRoute: typeof DashboardUtilizadoresRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
@@ -855,6 +895,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardProdutosRoute: DashboardProdutosRoute,
   DashboardRecibosRoute: DashboardRecibosRoute,
   DashboardServicosRoute: DashboardServicosRoute,
+  DashboardUtilizadoresRoute: DashboardUtilizadoresRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
@@ -873,6 +914,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarRoute: RecuperarRoute,
   RegistoRoute: RegistoRoute,
   ApiChatRoute: ApiChatRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   VerificarCodeRoute: VerificarCodeRoute,
   FacturasIdImprimirRoute: FacturasIdImprimirRoute,
 }

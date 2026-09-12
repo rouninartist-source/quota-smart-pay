@@ -9,7 +9,25 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import type { PlanId } from "./plans";
 
-export type Org = { id: string; name: string; nuit: string; plan: PlanId };
+export type Org = {
+  id: string;
+  name: string;
+  nuit: string;
+  plan: PlanId;
+  /** Fim do período experimental; `null` quando já há plano escolhido (pago). */
+  trialEndsAt: string | null;
+  planRequested: PlanId | null;
+  /** Empresa-mãe (só nas empresas adicionais do plano Multi-Empresas). */
+  parentOrg: string | null;
+  aiUses: number;
+};
+
+/** Estado do trial da conta (a raiz manda). */
+export function trialState(org: Org | null, now = Date.now()) {
+  if (!org || !org.trialEndsAt) return { active: false, expired: false, daysLeft: 0 };
+  const ms = new Date(org.trialEndsAt).getTime() - now;
+  return { active: ms > 0, expired: ms <= 0, daysLeft: Math.max(0, Math.ceil(ms / 86_400_000)) };
+}
 
 let orgs: Org[] = [];
 let org: Org | null = null;
@@ -25,14 +43,21 @@ async function load() {
   const sb = supabase;
   if (!sb) return;
   const [full, { data: current }] = await Promise.all([
-    sb.from("orgs").select("id,name,nuit,plan").order("name"),
+    sb.from("orgs").select("id,name,nuit,plan,trial_ends_at,plan_requested,parent_org,ai_uses").order("name"),
     sb.rpc("current_org_id"),
   ]);
-  // Base de dados ainda sem a migração dos planos: lê sem a coluna.
-  const list: Partial<Org>[] = full.error
-    ? ((await sb.from("orgs").select("id,name,nuit").order("name")).data ?? [])
-    : (full.data ?? []);
-  orgs = list.map((o) => ({ ...(o as Org), plan: (o.plan ?? "basic") as PlanId }));
+  type Row = { id: string; name: string; nuit: string; plan?: string; trial_ends_at?: string | null; plan_requested?: string | null; parent_org?: string | null; ai_uses?: number };
+  const list = ((full.data ?? []) as Row[]).map<Org>((o) => ({
+    id: o.id,
+    name: o.name,
+    nuit: o.nuit,
+    plan: (o.plan ?? "basic") as PlanId,
+    trialEndsAt: o.trial_ends_at ?? null,
+    planRequested: (o.plan_requested ?? null) as PlanId | null,
+    parentOrg: o.parent_org ?? null,
+    aiUses: o.ai_uses ?? 0,
+  }));
+  orgs = list;
   org = orgs.find((o) => o.id === current) ?? orgs[0] ?? null;
   emit();
 }
@@ -47,7 +72,7 @@ export function getOrg() {
   return org;
 }
 
-export async function createOrg(input: { name: string; nuit?: string; sector?: string; ivaRegime?: string }) {
+export async function createOrg(input: { name: string; nuit?: string; sector?: string; ivaRegime?: string; plan?: PlanId }) {
   const sb = supabase;
   if (!sb) return { error: "Supabase não configurado." };
   const { data, error } = await sb.rpc("create_org", {
@@ -55,6 +80,7 @@ export async function createOrg(input: { name: string; nuit?: string; sector?: s
     p_nuit: input.nuit ?? "",
     p_sector: input.sector ?? "",
     p_iva_regime: input.ivaRegime ?? "normal",
+    p_plan: input.plan ?? null,
   });
   if (error) return { error: error.message };
   await refreshOrg();
@@ -71,13 +97,30 @@ export async function switchOrg(id: string) {
   return {};
 }
 
+/** Escolher plano — aplica-se à conta (raiz + empresas filhas) e termina o trial. */
 export async function setOrgPlan(plan: PlanId) {
   const sb = supabase;
   if (!sb || !org) return { error: "Sem empresa activa." };
-  const { error } = await sb.from("orgs").update({ plan }).eq("id", org.id);
+  const { error } = await sb.rpc("set_org_plan", { p_plan: plan });
   if (error) return { error: error.message };
   await refreshOrg();
   return {};
+}
+
+/** A empresa-raiz da conta (dona do plano) para a empresa activa. */
+export function rootOf(o: Org | null, all: Org[] = orgs) {
+  if (!o) return null;
+  return o.parentOrg ? (all.find((x) => x.id === o.parentOrg) ?? o) : o;
+}
+
+/** Consome um crédito de IA; no trial há 3. */
+export async function useAiCredit(): Promise<{ allowed: boolean; uses: number; limit: number | null }> {
+  const sb = supabase;
+  if (!sb) return { allowed: true, uses: 0, limit: null };
+  const { data, error } = await sb.rpc("use_ai_credit");
+  if (error) return { allowed: true, uses: 0, limit: null };
+  void refreshOrg();
+  return data as { allowed: boolean; uses: number; limit: number | null };
 }
 
 /**

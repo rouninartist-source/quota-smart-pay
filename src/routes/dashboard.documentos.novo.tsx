@@ -27,6 +27,7 @@ import { shrinkImage } from "@/lib/images";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
 import { useCompany } from "@/lib/company-store";
+import { rootOf, trialState, useOrg } from "@/lib/org-store";
 import {
   addInvoice,
   documentKinds,
@@ -108,6 +109,8 @@ function Documentos() {
   const products = useProducts();
   const services = useServices();
   const company = useCompany();
+  const { org, orgs } = useOrg();
+  const trial = trialState(rootOf(org, orgs));
 
   const initialKind: DocumentKind =
     (tipo && (tipo in documentKinds ? (tipo as DocumentKind) : legacyKind[tipo])) || "ft";
@@ -219,6 +222,13 @@ function Documentos() {
 
   /** Grava e devolve a factura criada; toda a acção passa por aqui. */
   async function persist(status: InvoiceStatus) {
+    if (trial.expired) {
+      toast.error("O período experimental terminou.", {
+        description: "Escolha um plano para continuar a emitir documentos.",
+        action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
+      });
+      return undefined;
+    }
     if (!hasClient) {
       toast.error("Indique o cliente.");
       return undefined;

@@ -125,6 +125,7 @@ export const menuTree: NavNode[] = [
 ];
 
 export const generalItems: NavItem[] = [
+  { label: "Utilizadores", to: "/dashboard/utilizadores", icon: Users },
   { label: "Perfil", to: "/dashboard/perfil", icon: UserRound },
   { label: "Definições", to: "/dashboard/definicoes", icon: Settings },
 ];

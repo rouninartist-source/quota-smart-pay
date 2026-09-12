@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { switchOrg, useOrg } from "@/lib/org-store";
+import { rootOf, switchOrg, trialState, useOrg } from "@/lib/org-store";
 import { getPlan } from "@/lib/plans";
 
 type Props = {
@@ -30,7 +30,9 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
   const notifications = useNotifications();
   const unread = notifications.filter((n) => !n.read).length;
   const { org, orgs } = useOrg();
-  const plan = getPlan(org?.plan);
+  const root = rootOf(org, orgs);
+  const plan = getPlan(root?.plan);
+  const trial = trialState(root);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/60 bg-background/80 px-3 backdrop-blur-xl md:px-6">
@@ -67,6 +69,16 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             <span className="hidden rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary lg:inline">
               Plano actual: {plan.name}
             </span>
+            {trial.active && (
+              <span className="hidden rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground dark:text-warning lg:inline">
+                Trial · {trial.daysLeft}d
+              </span>
+            )}
+            {trial.expired && (
+              <span className="hidden rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive lg:inline">
+                Trial terminado
+              </span>
+            )}
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>

@@ -1,8 +1,8 @@
-import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import { useOrg } from "@/lib/org-store";
+import { rootOf, trialState, useOrg } from "@/lib/org-store";
 import { CompleteOrgSetup } from "@/components/app/CompleteOrgSetup";
 import { hydrateInvoices } from "@/lib/invoices-store";
 import { hydrateClients } from "@/lib/clients-store";
@@ -23,6 +23,8 @@ const FITS_VIEWPORT = new Set([
   "/dashboard/design",
   "/dashboard/assistente",
   "/dashboard/equipa",
+  "/dashboard/utilizadores",
+  "/dashboard/planos",
   "/dashboard/documentos",
   "/dashboard/equipa",
   "/dashboard/documentos/novo",
@@ -56,7 +58,8 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardLayout() {
   const navigate = useNavigate();
   const { session, loading } = useSession();
-  const { org, ready: orgReady } = useOrg();
+  const { org, orgs, ready: orgReady } = useOrg();
+  const trial = trialState(rootOf(org, orgs));
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { open: searchOpen, setOpen: setSearchOpen } = useCommandPalette();
@@ -136,6 +139,15 @@ function DashboardLayout() {
               fitsViewport ? "py-4 md:flex md:h-full md:flex-col md:py-4" : "py-6 md:py-8",
             )}
           >
+            {trial.expired && path !== "/dashboard/planos" && (
+              <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12px]">
+                <span className="font-semibold">O período experimental terminou.</span>
+                <span className="text-muted-foreground">Pode consultar tudo, mas emitir documentos exige um plano.</span>
+                <Link to="/dashboard/planos" className="ml-auto rounded-md bg-primary px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground hover:opacity-90">
+                  Escolher plano
+                </Link>
+              </div>
+            )}
             <Outlet />
           </div>
         </main>

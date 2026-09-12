@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Building2, Check, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { createOrg, switchOrg, useOrg } from "@/lib/org-store";
+import { createOrg, rootOf, switchOrg, useOrg } from "@/lib/org-store";
 import { getPlan } from "@/lib/plans";
 import { useSession } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -27,7 +27,7 @@ function Empresas() {
   const navigate = useNavigate();
   const { session, loading } = useSession();
   const { org, orgs, ready } = useOrg();
-  const plan = getPlan(org?.plan);
+  const plan = getPlan(rootOf(org, orgs)?.plan);
   const canAdd = orgs.length < plan.maxOrgs;
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -85,7 +85,7 @@ function Empresas() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold">{w.name}</span>
-                    <span className="block truncate text-[12px] text-muted-foreground">NUIT {w.nuit || "—"} · Plano {getPlan(w.plan).name}</span>
+                    <span className="block truncate text-[12px] text-muted-foreground">NUIT {w.nuit || "—"} · {w.parentOrg ? "Incluída no plano" : `Plano ${getPlan(w.plan).name}`}</span>
                   </span>
                   {active ? (
                     <span className="inline-flex items-center gap-1 text-[12px] font-medium text-primary"><Check className="h-3.5 w-3.5" /> Activa · entrar</span>

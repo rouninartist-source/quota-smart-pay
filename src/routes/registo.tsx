@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { signUp, signIn } from "@/lib/auth";
+import { plans, TRIAL_AI_LIMIT, type PlanId } from "@/lib/plans";
 import { supabase } from "@/lib/supabase";
 import { useRef, useState } from "react";
 import {
@@ -71,6 +72,8 @@ function Registo() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
+  // Pacote escolhido antes de criar a conta. O trial corre sempre no Basic.
+  const [plan, setPlan] = useState<PlanId | null>(null);
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -153,6 +156,7 @@ function Registo() {
         p_nuit: nuit.trim(),
         p_sector: sector,
         p_iva_regime: iva,
+        p_plan: plan,
       });
       if (orgError && !orgError.message.includes("já pertence")) {
         setBusy(false);
@@ -203,6 +207,54 @@ function Registo() {
           >
             Ir para o início de sessão
           </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (!plan) {
+    return (
+      <main className="min-h-screen bg-background px-6 py-8 md:px-14">
+        <Link to="/" className="inline-flex items-center gap-2">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary">
+            <span className="font-display text-xs font-bold text-primary-foreground">Q</span>
+          </div>
+          <span className="font-display text-[15px] font-semibold tracking-tight">Quota</span>
+        </Link>
+        <div className="mx-auto mt-10 max-w-4xl animate-fade-up">
+          <h1 className="font-display text-[28px] font-semibold tracking-tight">Escolha o pacote</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Todos começam com <b className="text-foreground">14 dias grátis no plano Basic</b> (inclui {TRIAL_AI_LIMIT} operações de Quota AI). O pacote que escolher fica registado e activa-se quando confirmar.
+          </p>
+          <div className="mt-8 grid gap-3 md:grid-cols-3">
+            {plans.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPlan(p.id)}
+                className="flex flex-col rounded-lg border border-border/70 bg-card p-5 text-left shadow-sm transition hover:border-primary/60 hover:shadow-elegant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span className="font-display text-[17px] font-semibold">{p.name}</span>
+                <span className="mt-0.5 text-[11.5px] text-muted-foreground">{p.tagline}</span>
+                <span className="mt-4 font-display text-[24px] font-semibold tabular-nums">
+                  {new Intl.NumberFormat("pt-PT").format(p.monthly)} <span className="text-[12px] font-normal text-muted-foreground">MT / mês</span>
+                </span>
+                <ul className="mt-4 space-y-1.5 text-[12.5px]">
+                  {[`${p.maxOrgs} empresa${p.maxOrgs === 1 ? "" : "s"}`, p.users, p.ai ? "Quota AI incluído" : "Sem Quota AI"].map((f) => (
+                    <li key={f} className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-success" /> {f}</li>
+                  ))}
+                </ul>
+                <span className="mt-5 inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2.5 text-[12px] font-semibold text-primary-foreground">
+                  Começar com {p.name} <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-6 text-[12.5px] text-muted-foreground">
+            Grupos e volumes maiores: plano Empresarial <b className="text-foreground">sob consulta</b> —{" "}
+            <a href="https://wa.me/258840000000" target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">fale connosco</a>.
+            {" "}Já tem conta? <Link to="/login" className="font-medium text-foreground hover:text-primary">Iniciar sessão</Link>
+          </p>
         </div>
       </main>
     );
