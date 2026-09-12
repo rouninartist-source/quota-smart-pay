@@ -115,7 +115,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
           <DropdownMenuContent align="end" className="w-60">
             {quickCreate.map((a) => (
               <DropdownMenuItem key={a.label} asChild>
-                <Link to={a.to} className="gap-2.5">
+                <Link to={a.to} search={a.search} className="gap-2.5">
                   <a.icon className="h-4 w-4 text-muted-foreground" />
                   {a.label}
                 </Link>

@@ -32,7 +32,7 @@ const FITS_VIEWPORT = new Set([
  * Rotas cujos filhos dinâmicos herdam o bloqueio — /equipa e /assistente
  * redireccionam para /equipa/ch-x e /assistente/t-x.
  */
-const FITS_VIEWPORT_PREFIXES = ["/dashboard/assistente/", "/dashboard/equipa/"];
+const FITS_VIEWPORT_PREFIXES = ["/dashboard/assistente/", "/dashboard/equipa/", "/dashboard/documentos/"];
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({

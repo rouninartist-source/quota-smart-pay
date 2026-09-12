@@ -122,7 +122,7 @@ export function DraftInvoiceCard({
                   const invoice = await approveDraft(draftId);
                   if (invoice) {
                     toast.success(`Factura ${invoice.number} criada em rascunho`);
-                    void navigate({ to: "/dashboard/facturas/$id", params: { id: invoice.id } });
+                    void navigate({ to: "/dashboard/documentos/$id", params: { id: invoice.id } });
                   }
                 }}
                 className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-[13px] font-medium text-primary-foreground hover:opacity-90"
@@ -150,7 +150,7 @@ export function DraftInvoiceCard({
                   <button
                     onClick={() =>
                       void navigate({
-                        to: "/dashboard/facturas/$id",
+                        to: "/dashboard/documentos/$id",
                         params: { id: draft.invoiceId! },
                       })
                     }

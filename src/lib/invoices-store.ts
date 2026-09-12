@@ -17,6 +17,19 @@ export type InvoiceStatus =
   | "parcial"
   | "cancelada";
 
+/** Tipo de documento — decide o prefixo do número e o rótulo impresso. */
+export type DocumentKind = "ft" | "cot" | "cotv" | "pf" | "fr";
+
+export const documentKinds: Record<DocumentKind, { code: string; label: string; short: string; fiscal: boolean }> = {
+  cot: { code: "COT", label: "Cotação", short: "Cotação", fiscal: false },
+  cotv: { code: "COT", label: "Cotação visual", short: "Cotação visual", fiscal: false },
+  ft: { code: "FT", label: "Factura", short: "Factura", fiscal: true },
+  pf: { code: "PF", label: "Factura pró-forma", short: "Pró-forma", fiscal: false },
+  fr: { code: "FR", label: "VD/Factura-recibo", short: "VD/Recibo", fiscal: true },
+};
+
+export const isQuoteKind = (k: DocumentKind) => k === "cot" || k === "cotv";
+
 export type InvoiceLine = {
   description: string;
   qty: number;
@@ -47,6 +60,9 @@ export type Payment = {
 export type Invoice = {
   id: string;
   number: string;
+  kind: DocumentKind;
+  /** Desconto global em percentagem, aplicado ao subtotal. */
+  discount: number;
   issued: string;
   due: string;
   status: InvoiceStatus;
@@ -90,10 +106,16 @@ export function lineNet(l: InvoiceLine) {
   return l.qty * l.price;
 }
 
+/**
+ * O desconto global reduz cada linha na mesma proporção, por isso o IVA é
+ * calculado sobre o valor já descontado — como na pré-visualização.
+ */
 export function invoiceTotals(inv: Invoice) {
-  const net = inv.lines.reduce((a, l) => a + lineNet(l), 0);
-  const vat = inv.lines.reduce((a, l) => a + (lineNet(l) * l.vat) / 100, 0);
-  return { net, vat, total: net + vat };
+  const sub = inv.lines.reduce((a, l) => a + lineNet(l), 0);
+  const factor = 1 - (inv.discount ?? 0) / 100;
+  const net = sub * factor;
+  const vat = inv.lines.reduce((a, l) => a + (lineNet(l) * factor * l.vat) / 100, 0);
+  return { sub, discount: sub - net, net, vat, total: net + vat };
 }
 
 export function invoiceTotal(inv: Invoice) {
@@ -140,6 +162,8 @@ type PaymentRow = {
 type InvoiceRow = {
   id: string;
   number: string;
+  kind: string;
+  discount: number;
   issued: string;
   due: string;
   status: InvoiceStatus;
@@ -153,7 +177,7 @@ type InvoiceRow = {
 };
 
 const SELECT =
-  "id,number,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
+  "id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
   "invoice_lines(id,position,description,note,qty,price,vat,image_url)," +
   "payments(id,paid_on,amount,method,reference)";
 
@@ -161,6 +185,8 @@ function toInvoice(r: InvoiceRow): Invoice {
   return {
     id: r.id,
     number: r.number,
+    kind: (r.kind in documentKinds ? r.kind : "ft") as DocumentKind,
+    discount: Number(r.discount ?? 0),
     issued: r.issued,
     due: r.due,
     status: r.status,
@@ -282,7 +308,7 @@ export function getInvoice(id: string) {
  * Número atribuído pela base de dados (sequência atómica). Dois dispositivos a
  * emitir ao mesmo tempo nunca recebem o mesmo número.
  */
-export async function nextInvoiceNumber(kind: "ft" | "rec" | "cot" = "ft") {
+export async function nextInvoiceNumber(kind: DocumentKind | "rec" = "ft") {
   const sb = supabase;
   if (!sb) return "";
   const { data, error } = await sb.rpc("next_document_number", { p_kind: kind });
@@ -300,18 +326,25 @@ export const nextReceiptNumber = () => nextInvoiceNumber("rec");
  * abre. Abrir e abandonar um rascunho não pode consumir um número fiscal.
  */
 export async function addInvoice(
-  input: Omit<Invoice, "id" | "number"> & { number?: string },
+  input: Omit<Invoice, "id" | "number" | "kind" | "discount"> & {
+    number?: string;
+    kind?: DocumentKind;
+    discount?: number;
+  },
 ) {
   const sb = supabase;
   if (!sb) return undefined;
 
-  const number = input.number?.trim() || (await nextInvoiceNumber("ft"));
+  const kind = input.kind ?? "ft";
+  const number = input.number?.trim() || (await nextInvoiceNumber(kind));
   if (!number) return undefined;
 
   const { data, error } = await sb
     .from("invoices")
     .insert({
       number,
+      kind,
+      discount: input.discount ?? 0,
       issued: input.issued,
       due: input.due,
       status: input.status,
@@ -471,6 +504,8 @@ export async function duplicateInvoice(id: string) {
   const inv = getInvoice(id);
   if (!inv) return undefined;
   return addInvoice({
+    kind: inv.kind,
+    discount: inv.discount,
     issued: today(),
     due: iso(15),
     status: "rascunho",

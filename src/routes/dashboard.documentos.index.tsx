@@ -5,18 +5,25 @@ import { toast } from "sonner";
 import { formatDate, formatMZN } from "@/lib/format";
 import {
   cancelInvoice,
+  documentKinds,
   duplicateInvoice,
   invoiceBalance,
+  invoicePaid,
   invoiceTotal,
+  isQuoteKind,
+  paymentMethodLabels,
   settleInvoice,
   statusMeta,
   statusToneClass,
   useInvoices,
   type Invoice,
 } from "@/lib/invoices-store";
+import { useCompany } from "@/lib/company-store";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
-import { quotations, receipts, type Quotation, type Receipt } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+
+type Kind = "factura" | "recibo" | "cotacao";
+type Filter = "todos" | Kind;
 
 export const Route = createFileRoute("/dashboard/documentos/")({
   head: () => ({
@@ -36,11 +43,16 @@ export const Route = createFileRoute("/dashboard/documentos/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { tipo?: Filter; doc?: string } => {
+    const tipo = (["todos", "factura", "recibo", "cotacao"] as const).find((k) => k === search.tipo);
+    return {
+      ...(tipo ? { tipo } : {}),
+      ...(typeof search.doc === "string" ? { doc: search.doc } : {}),
+    };
+  },
   component: DocumentosList,
 });
 
-type Kind = "factura" | "recibo" | "cotacao";
-type Filter = "todos" | Kind;
 
 const filterLabels: Record<Filter, string> = {
   todos: "Todos",
@@ -56,13 +68,6 @@ const kindBadge: Record<Kind, string> = {
   cotacao: "bg-muted text-muted-foreground",
 };
 
-const quoteTone: Record<string, string> = {
-  aceite: "success",
-  enviada: "info",
-  rascunho: "muted",
-  expirada: "muted",
-};
-
 type Row = {
   key: string;
   id: string;
@@ -76,9 +81,9 @@ type Row = {
   total: number;
   statusLabel: string;
   statusClass: string;
-  invoice?: Invoice;
-  quote?: Quotation;
-  receipt?: Receipt;
+  invoice: Invoice;
+  /** Uma factura com recibo aparece duas vezes: como factura e como recibo. */
+  asReceipt?: boolean;
 };
 
 function splitNumber(n: string) {
@@ -89,61 +94,59 @@ function splitNumber(n: string) {
 function DocumentosList() {
   const invoices = useInvoices();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<Filter>("todos");
+  const { tipo, doc } = Route.useSearch();
+  const company = useCompany();
+  const [filter, setFilterState] = useState<Filter>(tipo ?? "todos");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(doc ? `factura-${doc}` : null);
+
+  // O filtro vive no URL para os atalhos do menu (Cotações / Facturas / Recibos) funcionarem.
+  useEffect(() => setFilterState(tipo ?? "todos"), [tipo]);
+  useEffect(() => {
+    if (doc) setSelected(`factura-${doc}`);
+  }, [doc]);
+  const setFilter = (f: Filter) =>
+    navigate({ to: "/dashboard/documentos", search: f === "todos" ? {} : { tipo: f }, replace: true });
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
   const [confirmCancel, setConfirmCancel] = useState(false);
   const bodyRef = useRef<HTMLTableSectionElement>(null);
 
   const rows = useMemo<Row[]>(() => {
-    const fromInvoices: Row[] = invoices.map((inv) => {
+    const out: Row[] = [];
+    for (const inv of invoices) {
       const meta = statusMeta[inv.status];
-      return {
+      out.push({
         key: `factura-${inv.id}`,
         id: inv.id,
         ...splitNumber(inv.number),
-        kind: "factura" as const,
+        kind: isQuoteKind(inv.kind) ? "cotacao" : "factura",
         client: inv.client.name,
         date: inv.issued,
         total: invoiceTotal(inv),
         statusLabel: meta.label,
         statusClass: statusToneClass[meta.tone],
         invoice: inv,
-      };
-    });
-
-    const fromQuotes: Row[] = quotations.map((q) => ({
-      key: `cotacao-${q.id}`,
-      id: q.id,
-      ...splitNumber(q.number),
-      kind: "cotacao" as const,
-      client: q.client,
-      date: q.issued,
-      total: q.total,
-      statusLabel: q.status.charAt(0).toUpperCase() + q.status.slice(1),
-      statusClass: statusToneClass[quoteTone[q.status] ?? "muted"],
-      quote: q,
-    }));
-
-    // Um recibo é, por definição, dinheiro recebido — o estado é sempre Pago.
-    const fromReceipts: Row[] = receipts.map((r) => ({
-      key: `recibo-${r.id}`,
-      id: r.id,
-      ...splitNumber(r.number),
-      kind: "recibo" as const,
-      client: r.client,
-      method: r.method,
-      date: r.date,
-      total: r.amount,
-      statusLabel: "Pago",
-      statusClass: statusToneClass.success,
-      receipt: r,
-    }));
-
-    return [...fromInvoices, ...fromQuotes, ...fromReceipts].sort((a, b) =>
-      b.date.localeCompare(a.date),
-    );
+      });
+      // O recibo é, por definição, dinheiro recebido — o estado é sempre Pago.
+      if (inv.receiptNumber) {
+        const last = (inv.payments ?? []).at(-1);
+        out.push({
+          key: `recibo-${inv.id}`,
+          id: inv.id,
+          ...splitNumber(inv.receiptNumber),
+          kind: "recibo",
+          client: inv.client.name,
+          method: last ? paymentMethodLabels[last.method] : undefined,
+          date: inv.receiptIssued ?? inv.issued,
+          total: invoicePaid(inv),
+          statusLabel: "Pago",
+          statusClass: statusToneClass.success,
+          invoice: inv,
+          asReceipt: true,
+        });
+      }
+    }
+    return out.sort((a, b) => b.date.localeCompare(a.date));
   }, [invoices]);
 
   const visible = useMemo(() => {
@@ -171,16 +174,16 @@ function DocumentosList() {
 
   const picked = useMemo(() => visible.filter((r) => checked.has(r.key)), [visible, checked]);
 
-  /**
-   * Só as facturas vivem no store — cotações e recibos vêm de mock-data e são
-   * imutáveis. Por isso cada acção mostra a quantos documentos se aplica, em vez
-   * de falhar em silêncio sobre a selecção toda.
-   */
+  /** Cada acção mostra a quantos documentos se aplica (recibos e cotações não se cobram). */
   const actionable = useMemo(() => {
-    const invs = picked.map((r) => r.invoice).filter((i): i is Invoice => !!i);
+    const seen = new Set<string>();
+    const invs = picked
+      .filter((r) => !r.asReceipt)
+      .map((r) => r.invoice)
+      .filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
     return {
       invoices: invs,
-      unpaid: invs.filter((i) => i.status !== "cancelada" && invoiceBalance(i) > 0.01),
+      unpaid: invs.filter((i) => !isQuoteKind(i.kind) && i.status !== "cancelada" && invoiceBalance(i) > 0.01),
       live: invs.filter((i) => i.status !== "cancelada"),
     };
   }, [picked]);
@@ -225,7 +228,7 @@ function DocumentosList() {
         `${r.prefix} ${r.rest}`,
         r.kind === "factura" ? "Factura" : r.kind === "recibo" ? "Recibo" : "Cotação",
         r.client,
-        r.invoice?.client.nuit ?? "",
+        r.invoice.client.nuit,
         formatDate(r.date),
         csvNumber(r.total),
         r.statusLabel,
@@ -291,8 +294,22 @@ function DocumentosList() {
       ?.scrollIntoView({ block: "nearest" });
   };
 
-  const openRow = (r: Row) => {
-    if (r.invoice) navigate({ to: "/dashboard/facturas/$id", params: { id: r.id } });
+  const openRow = (r: Row) => navigate({ to: "/dashboard/documentos/$id", params: { id: r.id } });
+  const printRow = (r: Row) =>
+    window.open(
+      `/facturas/${r.id}/imprimir${r.asReceipt ? "?tipo=recibo" : r.kind === "cotacao" ? "?tipo=cotacao" : ""}`,
+      "_blank",
+      "noreferrer",
+    );
+  const chaseRow = (r: Row) => {
+    const inv = r.invoice;
+    const phone = inv.client.phone.replace(/\D/g, "");
+    if (!phone) return toast.error("O cliente não tem telefone na ficha.");
+    const text = encodeURIComponent(
+      `Olá ${inv.client.name}, lembramos o documento ${inv.number} no valor de ` +
+        `${formatMZN(invoiceBalance(inv), { decimals: false })} MZN, com vencimento a ${formatDate(inv.due)}.`,
+    );
+    window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener");
   };
 
   return (
@@ -578,7 +595,15 @@ function DocumentosList() {
         </section>
 
         {/* Documento seleccionado */}
-        {current && <DocumentPanel row={current} onOpen={() => openRow(current)} />}
+        {current && (
+          <DocumentPanel
+            row={current}
+            company={company}
+            onOpen={() => openRow(current)}
+            onPrint={() => printRow(current)}
+            onChase={() => chaseRow(current)}
+          />
+        )}
       </div>
     </div>
   );
@@ -624,20 +649,32 @@ function BulkButton({
   );
 }
 
-function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
-  const kindLabel =
-    row.kind === "factura" ? "Factura" : row.kind === "recibo" ? "Recibo" : "Cotação";
+function DocumentPanel({
+  row,
+  company,
+  onOpen,
+  onPrint,
+  onChase,
+}: {
+  row: Row;
+  company: ReturnType<typeof useCompany>;
+  onOpen: () => void;
+  onPrint: () => void;
+  onChase: () => void;
+}) {
+  const inv = row.invoice;
+  const kindLabel = row.asReceipt ? "Recibo" : documentKinds[inv.kind].label;
 
   // Um recibo já é dinheiro recebido e um rascunho ainda não saiu — nada a cobrar.
   const canChase =
-    !!row.invoice && ["enviada", "vencida", "parcial"].includes(row.invoice.status);
+    !row.asReceipt && !isQuoteKind(inv.kind) && ["enviada", "vencida", "parcial"].includes(inv.status);
 
   return (
     <section className="hidden min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-elegant xl:flex">
       <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border/70 bg-surface px-4 py-3">
         <div className="min-w-0">
-          <p className="font-display text-[13px] font-semibold">Quota Studio, Lda.</p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">NUIT 400987654 · Maputo</p>
+          <p className="truncate font-display text-[13px] font-semibold">{company.name}</p>
+          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">NUIT {company.nuit}</p>
         </div>
         <div className="shrink-0 text-right">
           <p className="font-display text-[11.5px] font-bold uppercase tracking-[0.07em] text-primary">
@@ -656,11 +693,9 @@ function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
               Cliente
             </p>
             <p className="mt-1 truncate text-[12px] font-semibold">{row.client}</p>
-            {row.invoice && (
-              <p className="mt-0.5 whitespace-nowrap text-[10.5px] tabular-nums text-muted-foreground">
-                NUIT {row.invoice.client.nuit}
-              </p>
-            )}
+            <p className="mt-0.5 whitespace-nowrap text-[10.5px] tabular-nums text-muted-foreground">
+              NUIT {inv.client.nuit || "—"}
+            </p>
           </div>
           <div className="shrink-0 text-right">
             <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -670,8 +705,13 @@ function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
           </div>
         </div>
 
-        {/* Só as facturas têm linhas guardadas; os outros tipos mostram o que existe. */}
-        {row.invoice ? (
+        {row.asReceipt ? (
+          <dl className="mt-2.5 flex flex-col gap-2">
+            <Meta label="Método" value={row.method ?? "—"} />
+            <Meta label="Liquida" value={inv.number} />
+            <Meta label="Estado" value="Pago" />
+          </dl>
+        ) : (
           <table className="mt-2.5 w-full border-collapse">
             <thead>
               <tr className="border-b border-border/70 text-[9px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
@@ -681,7 +721,7 @@ function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
               </tr>
             </thead>
             <tbody>
-              {row.invoice.lines.map((l, i) => (
+              {inv.lines.map((l, i) => (
                 <tr key={i} className="border-b border-border/50">
                   <td className="max-w-0 truncate py-2 pr-2 text-[11.5px]">{l.description}</td>
                   <td className="py-2 text-right text-[11.5px] tabular-nums">{l.qty}</td>
@@ -692,23 +732,6 @@ function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
               ))}
             </tbody>
           </table>
-        ) : (
-          <dl className="mt-2.5 flex flex-col gap-2">
-            {row.quote && (
-              <>
-                <Meta label="Válida até" value={formatDate(row.quote.valid)} />
-                <Meta label="Probabilidade" value={`${row.quote.probability}%`} />
-                <Meta label="Estado" value={row.statusLabel} />
-              </>
-            )}
-            {row.receipt && (
-              <>
-                <Meta label="Método" value={row.receipt.method} />
-                <Meta label="Liquida" value={row.receipt.invoice} />
-                <Meta label="Estado" value="Pago" />
-              </>
-            )}
-          </dl>
         )}
 
         <div className="ml-auto mt-3 flex w-[min(200px,70%)] flex-col gap-1.5">
@@ -722,22 +745,26 @@ function DocumentPanel({ row, onOpen }: { row: Row; onOpen: () => void }) {
       </div>
 
       <div className="flex shrink-0 gap-2 border-t border-border/70 bg-surface px-3 py-2.5">
-        <button className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[11.5px] font-semibold transition hover:bg-muted">
+        <button
+          onClick={onPrint}
+          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[11.5px] font-semibold transition hover:bg-muted"
+        >
           <Download className="h-3.5 w-3.5" /> PDF
         </button>
         {canChase && (
-          <button className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 py-2 text-[11.5px] font-semibold text-success transition hover:bg-success/15">
+          <button
+            onClick={onChase}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 py-2 text-[11.5px] font-semibold text-success transition hover:bg-success/15"
+          >
             <MessageCircle className="h-3.5 w-3.5" /> Cobrar
           </button>
         )}
-        {row.invoice && (
-          <button
-            onClick={onOpen}
-            className="inline-flex flex-[1.2] items-center justify-center gap-1.5 rounded-md bg-primary px-2 py-2 text-[11.5px] font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            Abrir <ArrowRight className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          onClick={onOpen}
+          className="inline-flex flex-[1.2] items-center justify-center gap-1.5 rounded-md bg-primary px-2 py-2 text-[11.5px] font-semibold text-primary-foreground transition hover:opacity-90"
+        >
+          Abrir <ArrowRight className="h-3.5 w-3.5" />
+        </button>
       </div>
     </section>
   );

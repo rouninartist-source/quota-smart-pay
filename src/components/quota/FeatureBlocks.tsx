@@ -27,7 +27,7 @@ export function FeatureBlocks() {
             ))}
           </ul>
           <Link
-            to="/dashboard/facturas/nova"
+            to="/dashboard/documentos/novo"
             className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-medium text-primary transition hover:gap-2.5"
           >
             Criar documento <ArrowRight className="h-3.5 w-3.5" />

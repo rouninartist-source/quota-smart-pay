@@ -40,9 +40,9 @@ export function CommandPalette({
   const navigate = useNavigate();
 
   const go = React.useCallback(
-    (to: string) => {
+    (to: string, search?: Record<string, string>, params?: Record<string, string>) => {
       onOpenChange(false);
-      navigate({ to });
+      navigate({ to, search, params } as never);
     },
     [navigate, onOpenChange],
   );
@@ -55,7 +55,7 @@ export function CommandPalette({
 
         <CommandGroup heading="Criar">
           {quickCreate.map((a) => (
-            <CommandItem key={a.label} value={`criar ${a.label}`} onSelect={() => go(a.to)}>
+            <CommandItem key={a.label} value={`criar ${a.label}`} onSelect={() => go(a.to, a.search)}>
               <a.icon className="h-4 w-4 text-muted-foreground" />
               {a.label}
               {a.shortcut && <CommandShortcut>{a.shortcut}</CommandShortcut>}
@@ -68,7 +68,7 @@ export function CommandPalette({
         {navGroups.map((g) => (
           <CommandGroup key={g.label} heading={g.label}>
             {g.items.map((it) => (
-              <CommandItem key={it.to} value={`${g.label} ${it.label}`} onSelect={() => go(it.to)}>
+              <CommandItem key={`${it.to}-${it.label}`} value={`${g.label} ${it.label}`} onSelect={() => go(it.to, it.search)}>
                 <it.icon className="h-4 w-4 text-muted-foreground" />
                 {it.label}
               </CommandItem>
@@ -92,7 +92,7 @@ export function CommandPalette({
 
         <CommandGroup heading="Documentos recentes">
           {invoices.slice(0, 5).map((d) => (
-            <CommandItem key={d.id} value={`factura ${d.number} ${d.client}`} onSelect={() => go("/dashboard/facturas")}>
+            <CommandItem key={d.id} value={`factura ${d.number} ${d.client}`} onSelect={() => go("/dashboard/documentos/$id", undefined, { id: d.id })}>
               <span className="font-mono text-xs">{d.number}</span>
               <span className="truncate text-muted-foreground">{d.client}</span>
             </CommandItem>

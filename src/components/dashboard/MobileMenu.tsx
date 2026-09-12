@@ -23,6 +23,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
         <div className="px-3 py-3">
           <Link
             to={quickCreate[0].to}
+            search={quickCreate[0].search}
             onClick={onClose}
             className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground"
           >
@@ -44,6 +45,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                     <li key={it.to}>
                       <Link
                         to={it.to}
+                        search={it.search}
                         onClick={onClose}
                         aria-current={active ? "page" : undefined}
                         className={cn(

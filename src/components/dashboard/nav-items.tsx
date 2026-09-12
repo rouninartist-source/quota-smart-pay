@@ -44,9 +44,11 @@ export const navGroups: NavGroup[] = [
   {
     label: "Vendas",
     items: [
-      { label: "Cotações", to: "/dashboard/cotacoes", icon: FileSpreadsheet },
-      { label: "Facturas", to: "/dashboard/facturas", icon: FileText },
-      { label: "Recibos", to: "/dashboard/recibos", icon: ReceiptText },
+      { label: "Novo documento", to: "/dashboard/documentos/novo", icon: Plus },
+      { label: "Documentos", to: "/dashboard/documentos", icon: FolderOpen, exact: true },
+      { label: "Cotações", to: "/dashboard/documentos", icon: FileSpreadsheet, search: { tipo: "cotacao" } },
+      { label: "Facturas", to: "/dashboard/documentos", icon: FileText, search: { tipo: "factura" } },
+      { label: "Recibos", to: "/dashboard/documentos", icon: ReceiptText, search: { tipo: "recibo" } },
       { label: "Clientes", to: "/dashboard/clientes", icon: Users },
     ],
   },
@@ -60,6 +62,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "Espaço de trabalho",
     items: [
+      { label: "Design", to: "/dashboard/design", icon: Palette },
       { label: "Quota AI", to: "/dashboard/assistente", icon: Bot },
       { label: "WhatsApp", to: "/dashboard/whatsapp", icon: MessageCircle },
       { label: "Notificações", to: "/dashboard/notificacoes", icon: Bell },
@@ -72,15 +75,16 @@ export const navGroups: NavGroup[] = [
 export type QuickCreate = {
   label: string;
   to: string;
+  search?: Record<string, string>;
   icon: LucideIcon;
   shortcut?: string;
   description?: string;
 };
 
 export const quickCreate: QuickCreate[] = [
-  { label: "Nova factura", to: "/dashboard/facturas/nova", icon: FileText, shortcut: "F", description: "Emitir documento fiscal" },
-  { label: "Nova cotação", to: "/dashboard/cotacoes", icon: FileSpreadsheet, shortcut: "C", description: "Proposta para cliente" },
-  { label: "Novo recibo", to: "/dashboard/recibos", icon: ReceiptText, shortcut: "R", description: "A partir de uma factura" },
+  { label: "Nova factura", to: "/dashboard/documentos/novo", search: { tipo: "ft" }, icon: FileText, shortcut: "F", description: "Emitir documento fiscal" },
+  { label: "Nova cotação", to: "/dashboard/documentos/novo", search: { tipo: "cot" }, icon: FileSpreadsheet, shortcut: "C", description: "Proposta para cliente" },
+  { label: "VD / Factura-recibo", to: "/dashboard/documentos/novo", search: { tipo: "fr" }, icon: ReceiptText, shortcut: "R", description: "Factura paga no acto" },
   { label: "Novo cliente", to: "/dashboard/clientes", icon: Users, shortcut: "N", description: "Adicionar ao CRM" },
 ];
 
@@ -88,7 +92,7 @@ export const createIcon = Plus;
 
 export const mobileTabs: NavItem[] = [
   { label: "Início", to: "/dashboard", icon: LayoutDashboard, exact: true },
-  { label: "Facturas", to: "/dashboard/facturas", icon: FileText },
+  { label: "Documentos", to: "/dashboard/documentos", icon: FolderOpen },
   { label: "Clientes", to: "/dashboard/clientes", icon: Users },
   { label: "Mais", to: "/dashboard/definicoes", icon: Settings },
 ];

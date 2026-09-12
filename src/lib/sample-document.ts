@@ -3,6 +3,8 @@ import type { Invoice } from "@/lib/invoices-store";
 /** Documento de exemplo usado nas pré-visualizações de layout. */
 export const sampleInvoice: Invoice = {
   id: "sample",
+  kind: "ft",
+  discount: 0,
   number: "FT 2026/00042",
   issued: "2026-08-10",
   due: "2026-08-24",

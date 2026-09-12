@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   FileText,
@@ -10,10 +10,11 @@ import {
   Trash2,
   Send,
   Download,
-  Copy,
-  Check,
+  Save,
   Sparkles,
   Package,
+  Search,
+  X,
   ChevronLeft,
   ChevronDown,
   Percent,
@@ -21,6 +22,16 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useClients, type Client } from "@/lib/clients-store";
+import { useProducts, useServices } from "@/lib/catalog-store";
+import { useCompany } from "@/lib/company-store";
+import {
+  addInvoice,
+  documentKinds,
+  isQuoteKind,
+  type DocumentKind,
+  type InvoiceStatus,
+} from "@/lib/invoices-store";
 
 export const Route = createFileRoute("/dashboard/documentos/novo")({
   head: () => ({
@@ -40,28 +51,25 @@ export const Route = createFileRoute("/dashboard/documentos/novo")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    tipo: typeof search.tipo === "string" ? search.tipo : undefined,
+  validateSearch: (search: Record<string, unknown>): { tipo?: string; cliente?: string } => ({
+    ...(typeof search.tipo === "string" ? { tipo: search.tipo } : {}),
+    ...(typeof search.cliente === "string" ? { cliente: search.cliente } : {}),
   }),
   component: Documentos,
 });
 
-type DocType = {
-  id: string;
-  code: string;
-  label: string;
-  short: string;
-  desc: string;
-  icon: LucideIcon;
-};
+type DocType = { id: DocumentKind; code: string; label: string; short: string; desc: string; icon: LucideIcon };
 
 const docTypes: DocType[] = [
   { id: "cot", code: "COT", label: "Cotação", short: "Cotação", desc: "Proposta de preço enviada ao cliente", icon: FileText },
-  { id: "cotv", code: "COTV", label: "Cotação visual", short: "Cotação visual", desc: "Proposta com imagem de cada produto — ideal para WhatsApp", icon: ImagePlus },
+  { id: "cotv", code: "COT", label: "Cotação visual", short: "Cotação visual", desc: "Proposta com imagem de cada produto — ideal para WhatsApp", icon: ImagePlus },
   { id: "ft", code: "FT", label: "Factura", short: "Factura", desc: "Documento fiscal com IVA", icon: FileCheck2 },
   { id: "pf", code: "PF", label: "Factura pró-forma", short: "Pró-forma", desc: "Proposta com aspecto de factura, sem valor fiscal", icon: FileText },
   { id: "fr", code: "FR", label: "VD/Factura-recibo", short: "VD/Recibo", desc: "Factura já paga no acto", icon: Receipt },
 ];
+
+/** Aceita também os atalhos antigos (?tipo=factura, cotacao, recibo). */
+const legacyKind: Record<string, DocumentKind> = { factura: "ft", cotacao: "cot", recibo: "fr", proforma: "pf" };
 
 type Line = { id: number; desc: string; note: string; qty: number; price: number; vat: number; img: string };
 
@@ -77,23 +85,65 @@ const tileGradients = [
 
 const noteChips = ["Pagamento a 15 dias", "50% adiantamento", "Preços com IVA incluído", "Validade 30 dias"];
 
+const today = () => {
+  const d = new Date();
+  d.setHours(12, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+};
+const addDays = (iso: string, days: number) => {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function Documentos() {
-  const { tipo } = Route.useSearch();
-  const [type, setType] = useState<DocType>(docTypes.find((d) => d.id === tipo) ?? docTypes[2]);
-  const [client, setClient] = useState("Construções Beira, Lda.");
-  const [nuit, setNuit] = useState("400123456");
-  const [date, setDate] = useState("2026-07-27");
+  const { tipo, cliente } = Route.useSearch();
+  const navigate = useNavigate();
+  const clients = useClients();
+  const products = useProducts();
+  const services = useServices();
+  const company = useCompany();
+
+  const initialKind: DocumentKind =
+    (tipo && (tipo in documentKinds ? (tipo as DocumentKind) : legacyKind[tipo])) || "ft";
+  const [type, setType] = useState<DocType>(docTypes.find((d) => d.id === initialKind) ?? docTypes[2]);
+
+  // Cliente: ficha existente (clientId) ou pontual (só o nome/NUIT escritos).
+  const [clientId, setClientId] = useState<string>(cliente && UUID_RE.test(cliente) ? cliente : "");
+  const [client, setClient] = useState("");
+  const [nuit, setNuit] = useState("");
+  const [contact, setContact] = useState({ email: "", phone: "", address: "" });
+  const [clientOpen, setClientOpen] = useState(false);
+
+  const [date, setDate] = useState(today());
   const [validity, setValidity] = useState("15");
-  const [notes, setNotes] = useState("Pagamento a 15 dias. M-Pesa: 84 000 0000.");
+  const [notes, setNotes] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
   const [discount, setDiscount] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [lines, setLines] = useState<Line[]>([
-    { id: 1, desc: "Consultoria técnica", note: "2 sessões no local", qty: 2, price: 18500, vat: 16, img: "" },
-    { id: 2, desc: "Instalação de equipamento", note: "Inclui material", qty: 1, price: 42000, vat: 16, img: "" },
-  ]);
+  const [lines, setLines] = useState<Line[]>([{ id: 1, desc: "", note: "", qty: 1, price: 0, vat: 16, img: "" }]);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [busy, setBusy] = useState<"save" | "pdf" | "send" | null>(null);
+
+  // Preenche a partir da ficha quando vem ?cliente= ou quando o store chega.
+  useEffect(() => {
+    if (!clientId) return;
+    const c = clients.find((x) => x.id === clientId);
+    if (c) {
+      setClient(c.name);
+      setNuit(c.nuit);
+      setContact({ email: c.email, phone: c.phone, address: c.address });
+    }
+  }, [clientId, clients]);
+
+  useEffect(() => {
+    if (!notes) setNotes(company.paymentNote ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company.paymentNote]);
 
   const isVisual = type.id === "cotv";
+  const isQuote = isQuoteKind(type.id);
 
   const totals = useMemo(() => {
     const sub = lines.reduce((a, l) => a + l.qty * l.price, 0);
@@ -112,17 +162,114 @@ function Documentos() {
   const addLine = () =>
     setLines((ls) => [...ls, { id: Date.now(), desc: "", note: "", qty: 1, price: 0, vat: 16, img: "" }]);
 
-  const reference = `${type.code}/2026/0042`;
-  const hasClient = client.trim().length > 0;
-  const hasLines = lines.some((l) => l.desc.trim() && l.qty > 0 && l.price > 0);
-  const isReady = hasClient && hasLines;
-
-  const copyRef = () => {
-    navigator.clipboard?.writeText(reference);
-    setCopied(true);
-    toast.success("Referência copiada", { description: reference });
-    setTimeout(() => setCopied(false), 1600);
+  const addFromCatalog = (desc: string, price: number, vat: number) => {
+    setLines((ls) => {
+      // Substitui a linha vazia inicial em vez de a deixar para trás.
+      const blank = ls.length === 1 && !ls[0].desc && ls[0].price === 0;
+      const next = { id: Date.now(), desc, note: "", qty: 1, price, vat, img: "" };
+      return blank ? [next] : [...ls, next];
+    });
+    setCatalogOpen(false);
+    toast.success("Linha adicionada", { description: desc });
   };
+
+  const pickClient = (c: Client) => {
+    setClientId(c.id);
+    setClient(c.name);
+    setNuit(c.nuit);
+    setContact({ email: c.email, phone: c.phone, address: c.address });
+    setClientOpen(false);
+  };
+
+  const typeClient = (v: string) => {
+    setClient(v);
+    // Escrever um nome diferente do da ficha volta a ser cliente pontual.
+    if (clientId && clients.find((x) => x.id === clientId)?.name !== v) setClientId("");
+    setClientOpen(true);
+  };
+
+  const suggestions = useMemo(() => {
+    const q = client.trim().toLowerCase();
+    return clients.filter((c) => !q || c.name.toLowerCase().includes(q) || c.nuit.includes(q)).slice(0, 6);
+  }, [clients, client]);
+
+  const hasClient = client.trim().length > 0;
+  const validLines = lines.filter((l) => l.desc.trim() && l.qty > 0);
+  const isReady = hasClient && validLines.length > 0;
+  const reference = `${type.code} — atribuído ao emitir`;
+
+  /** Grava e devolve a factura criada; toda a acção passa por aqui. */
+  async function persist(status: InvoiceStatus) {
+    if (!hasClient) {
+      toast.error("Indique o cliente.");
+      return undefined;
+    }
+    if (!validLines.length) {
+      toast.error("Adicione ao menos uma linha com descrição e quantidade.");
+      return undefined;
+    }
+    const due = addDays(date, Number(validity) || 0);
+    const paidNow = type.id === "fr";
+    const created = await addInvoice({
+      kind: type.id,
+      discount,
+      issued: date,
+      due,
+      status: paidNow ? "paga" : status,
+      notes,
+      clientId: clientId || undefined,
+      client: { name: client.trim(), nuit: nuit.trim(), ...contact },
+      lines: validLines.map((l) => ({ description: l.desc.trim(), qty: l.qty, price: l.price, vat: l.vat, note: l.note || undefined, img: l.img || undefined })),
+      // Uma VD/factura-recibo já vem paga: fica logo com o pagamento registado.
+      payments: paidNow ? [{ id: "", date, amount: totals.total, method: "numerario" }] : [],
+    });
+    return created;
+  }
+
+  async function saveDraft() {
+    setBusy("save");
+    const created = await persist("rascunho");
+    setBusy(null);
+    if (!created) return;
+    toast.success(`${type.label} guardada`, { description: created.number });
+    navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
+  }
+
+  async function savePdf() {
+    setBusy("pdf");
+    const created = await persist("rascunho");
+    setBusy(null);
+    if (!created) return;
+    window.open(`/facturas/${created.id}/imprimir`, "_blank", "noreferrer");
+    navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
+  }
+
+  async function issueAndSend() {
+    setBusy("send");
+    const created = await persist("enviada");
+    setBusy(null);
+    if (!created) return;
+    const link = `${window.location.origin}/facturas/${created.id}/imprimir`;
+    const msg = [
+      `Estimado(a) ${created.client.name},`,
+      "",
+      `Segue ${isQuote ? "a cotação" : type.id === "pf" ? "a factura pró-forma" : "a factura"} ${created.number} no valor de ${mzn(totals.total)} MZN` +
+        (isQuote ? `, válida até ${formatDate(created.due)}.` : `, com vencimento a ${formatDate(created.due)}.`),
+      "",
+      `Documento em PDF: ${link}`,
+      isQuote ? "" : company.paymentNote,
+      "",
+      "Com os melhores cumprimentos,",
+      company.name,
+    ].filter((l) => l !== "").join("\n");
+    const phone = contact.phone.replace(/\D/g, "");
+    if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank", "noreferrer");
+    else if (contact.email) window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(`${type.label} ${created.number} — ${company.name}`)}&body=${encodeURIComponent(msg)}`;
+    toast.success(`${type.label} emitida`, {
+      description: `${created.number} · ${mzn(totals.total)} MZN` + (phone || contact.email ? " · a abrir o envio" : " · cliente sem contacto — partilhe o PDF"),
+    });
+    navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
+  }
 
   return (
     <div className="flex flex-col gap-3 md:h-full md:min-h-0">
@@ -163,40 +310,33 @@ function Documentos() {
             })}
           </div>
 
-          <button
-            onClick={copyRef}
-            title="Copiar referência"
-            className="inline-flex shrink-0 items-center gap-1.5 border-l border-border/60 py-1 pl-3 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground"
-          >
-            <span
-              aria-hidden
-              className={cn("h-1.5 w-1.5 rounded-full", isReady ? "bg-success" : "bg-warning")}
-            />
+          <span className="inline-flex shrink-0 items-center gap-1.5 border-l border-border/60 py-1 pl-3 text-[11px] font-semibold text-muted-foreground">
+            <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", isReady ? "bg-success" : "bg-warning")} />
             <span className="tabular-nums">{reference}</span>
             <span className="text-muted-foreground/70">· {isReady ? "Pronto" : "Rascunho"}</span>
-            {copied ? (
-              <Check className="h-3 w-3 text-success" />
-            ) : (
-              <Copy className="h-3 w-3 opacity-60" />
-            )}
-          </button>
+          </span>
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <button
-              onClick={() => toast.success("PDF gerado", { description: `${reference} pronto a descarregar.` })}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted"
+              onClick={saveDraft}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
+            >
+              <Save className="h-3.5 w-3.5" /> Guardar
+            </button>
+            <button
+              onClick={savePdf}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
             >
               <Download className="h-3.5 w-3.5" /> PDF
             </button>
             <button
-              onClick={() =>
-                toast.success(`${type.label} emitida`, {
-                  description: `${reference} · ${mzn(totals.total)} MZN enviado a ${client || "cliente"}.`,
-                })
-              }
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
+              onClick={issueAndSend}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              <Send className="h-3.5 w-3.5" /> Emitir e enviar
+              <Send className="h-3.5 w-3.5" /> {busy === "send" ? "A emitir…" : "Emitir e enviar"}
             </button>
           </div>
         </div>
@@ -207,11 +347,46 @@ function Documentos() {
         {/* Editor */}
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm">
           <div className="grid shrink-0 gap-2 border-b border-border/70 bg-surface px-4 py-3 sm:grid-cols-[1.5fr_0.9fr_0.9fr_0.7fr]">
-            <Field label="Cliente" value={client} onChange={setClient} />
+            <div className="relative flex min-w-0 flex-col gap-1">
+              <label className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                Cliente {clientId && <span className="normal-case tracking-normal text-success">· ficha</span>}
+              </label>
+              <span className="flex h-8 items-center rounded-md border border-border bg-card px-2 focus-within:border-primary/60 focus-within:ring-[3px] focus-within:ring-primary/12">
+                <input
+                  value={client}
+                  onChange={(e) => typeClient(e.target.value)}
+                  onFocus={() => setClientOpen(true)}
+                  onBlur={() => setTimeout(() => setClientOpen(false), 150)}
+                  placeholder="Nome ou NUIT"
+                  className="w-full min-w-0 bg-transparent text-[12.5px] font-medium outline-none"
+                />
+                <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
+              </span>
+              {clientOpen && suggestions.length > 0 && (
+                <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border border-border bg-card p-1 shadow-elegant">
+                  {suggestions.map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => pickClient(c)}
+                        className="flex w-full items-center justify-between gap-3 rounded px-2 py-1.5 text-left text-[12px] hover:bg-muted"
+                      >
+                        <span className="truncate font-medium">{c.name}</span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">{c.nuit || "—"}</span>
+                      </button>
+                    </li>
+                  ))}
+                  <li className="border-t border-border/60 px-2 pt-1.5 pb-1 text-[10.5px] text-muted-foreground">
+                    Ou continue a escrever para um cliente pontual.
+                  </li>
+                </ul>
+              )}
+            </div>
             <Field label="NUIT" value={nuit} onChange={setNuit} />
             <Field label="Emissão" value={date} onChange={setDate} type="date" />
             <Field
-              label={isVisual || type.id === "cot" ? "Validade" : "Prazo"}
+              label={isQuote ? "Validade" : "Prazo"}
               value={validity}
               onChange={setValidity}
               type="number"
@@ -303,12 +478,12 @@ function Documentos() {
               >
                 <Plus className="h-3 w-3" /> Linha
               </button>
-              <Link
-                to="/dashboard/produtos"
+              <button
+                onClick={() => setCatalogOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:border-solid hover:border-primary/60 hover:bg-primary/5 hover:text-primary"
               >
                 <Package className="h-3 w-3" /> Do catálogo
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -340,9 +515,9 @@ function Documentos() {
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-elegant">
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/70 bg-surface px-5 py-4">
             <div className="min-w-0">
-              <p className="font-display text-[14px] font-semibold">Quota Studio, Lda.</p>
-              <p className="mt-0.5 text-[10.5px] text-muted-foreground">
-                NUIT 400987654 · Maputo, Moçambique
+              <p className="font-display text-[14px] font-semibold">{company.name}</p>
+              <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">
+                NUIT {company.nuit} · {company.address}
               </p>
             </div>
             <div className="shrink-0 text-right">
@@ -370,7 +545,7 @@ function Documentos() {
                 </p>
                 <p className="mt-1 text-[12.5px] font-semibold tabular-nums">{formatDate(date)}</p>
                 <p className="mt-0.5 whitespace-nowrap text-[11px] text-muted-foreground">
-                  {isVisual || type.id === "cot" ? "Validade" : "Prazo"} {validity} dias
+                  {isQuote ? "Validade" : "Prazo"} {validity} dias
                 </p>
               </div>
             </div>
@@ -487,6 +662,93 @@ function Documentos() {
           </div>
         )}
       </section>
+
+      {catalogOpen && (
+        <CatalogPicker
+          products={products}
+          services={services}
+          onPick={addFromCatalog}
+          onClose={() => setCatalogOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Escolher do catálogo sem sair da bancada. */
+function CatalogPicker({
+  products,
+  services,
+  onPick,
+  onClose,
+}: {
+  products: ReturnType<typeof useProducts>;
+  services: ReturnType<typeof useServices>;
+  onPick: (desc: string, price: number, vat: number) => void;
+  onClose: () => void;
+}) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => inputRef.current?.focus(), []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const needle = q.trim().toLowerCase();
+  const items = [
+    ...products
+      .filter((p) => p.status !== "descontinuado")
+      .map((p) => ({ key: `p-${p.id}`, code: p.sku, name: p.name, meta: `${p.category} · ${p.unit}`, price: p.price, vat: p.vat })),
+    ...services
+      .filter((s) => s.status === "activo")
+      .map((s) => ({ key: `s-${s.id}`, code: s.code, name: s.name, meta: `${s.category} · ${s.billing}`, price: s.rate, vat: 16 })),
+  ].filter((i) => !needle || i.name.toLowerCase().includes(needle) || i.code.toLowerCase().includes(needle));
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="Catálogo"
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-border bg-card shadow-elegant"
+      >
+        <div className="flex items-center gap-2 border-b border-border/70 px-3 py-2">
+          <Search className="h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            ref={inputRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Procurar produto ou serviço"
+            className="h-8 flex-1 bg-transparent text-[12.5px] outline-none"
+          />
+          <button onClick={onClose} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-md hover:bg-muted">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <ul className="min-h-0 flex-1 overflow-y-auto p-1">
+          {items.length === 0 && (
+            <li className="px-3 py-8 text-center text-[12px] text-muted-foreground">Nada encontrado.</li>
+          )}
+          {items.map((i) => (
+            <li key={i.key}>
+              <button
+                onClick={() => onPick(i.name, i.price, i.vat)}
+                className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition hover:bg-muted"
+              >
+                <span className="w-16 shrink-0 text-[10.5px] font-semibold tabular-nums text-muted-foreground">{i.code}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[12.5px] font-medium">{i.name}</span>
+                  <span className="block truncate text-[10.5px] text-muted-foreground">{i.meta}</span>
+                </span>
+                <span className="shrink-0 text-[12px] font-semibold tabular-nums">{mzn(i.price)}</span>
+                <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

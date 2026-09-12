@@ -42,6 +42,7 @@ import { Route as DashboardFacturasNovaRouteImport } from './routes/dashboard.fa
 import { Route as DashboardFacturasIdRouteImport } from './routes/dashboard.facturas.$id'
 import { Route as DashboardEquipaChannelIdRouteImport } from './routes/dashboard.equipa.$channelId'
 import { Route as DashboardDocumentosNovoRouteImport } from './routes/dashboard.documentos.novo'
+import { Route as DashboardDocumentosIdRouteImport } from './routes/dashboard.documentos.$id'
 import { Route as DashboardAssistenteThreadIdRouteImport } from './routes/dashboard.assistente.$threadId'
 
 const RegistoRoute = RegistoRouteImport.update({
@@ -212,6 +213,11 @@ const DashboardDocumentosNovoRoute = DashboardDocumentosNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => DashboardDocumentosRoute,
 } as any)
+const DashboardDocumentosIdRoute = DashboardDocumentosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => DashboardDocumentosRoute,
+} as any)
 const DashboardAssistenteThreadIdRoute =
   DashboardAssistenteThreadIdRouteImport.update({
     id: '/$threadId',
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
+  '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
+  '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/verificar/$code': typeof VerificarCodeRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
+  '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/dashboard/'
     | '/dashboard/assistente/$threadId'
+    | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/dashboard'
     | '/dashboard/assistente/$threadId'
+    | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
@@ -418,6 +429,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/dashboard/'
     | '/dashboard/assistente/$threadId'
+    | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
@@ -674,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDocumentosNovoRouteImport
       parentRoute: typeof DashboardDocumentosRoute
     }
+    '/dashboard/documentos/$id': {
+      id: '/dashboard/documentos/$id'
+      path: '/$id'
+      fullPath: '/dashboard/documentos/$id'
+      preLoaderRoute: typeof DashboardDocumentosIdRouteImport
+      parentRoute: typeof DashboardDocumentosRoute
+    }
     '/dashboard/assistente/$threadId': {
       id: '/dashboard/assistente/$threadId'
       path: '/$threadId'
@@ -698,11 +717,13 @@ const DashboardAssistenteRouteWithChildren =
   DashboardAssistenteRoute._addFileChildren(DashboardAssistenteRouteChildren)
 
 interface DashboardDocumentosRouteChildren {
+  DashboardDocumentosIdRoute: typeof DashboardDocumentosIdRoute
   DashboardDocumentosNovoRoute: typeof DashboardDocumentosNovoRoute
   DashboardDocumentosIndexRoute: typeof DashboardDocumentosIndexRoute
 }
 
 const DashboardDocumentosRouteChildren: DashboardDocumentosRouteChildren = {
+  DashboardDocumentosIdRoute: DashboardDocumentosIdRoute,
   DashboardDocumentosNovoRoute: DashboardDocumentosNovoRoute,
   DashboardDocumentosIndexRoute: DashboardDocumentosIndexRoute,
 }

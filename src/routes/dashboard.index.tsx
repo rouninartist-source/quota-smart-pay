@@ -181,15 +181,18 @@ function DockTile({
   label,
   hint,
   to,
+  search,
 }: {
   Icon: typeof Plus;
   label: string;
   hint: string;
   to: string;
+  search?: Record<string, string>;
 }) {
   return (
     <Link
       to={to}
+      search={search}
       className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-surface px-3 py-2.5 transition hover:border-primary/40 hover:bg-primary/5"
     >
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-background text-primary shadow-card">
@@ -309,7 +312,7 @@ function DashboardOverview() {
           title="Documentos recentes"
           action={
             <Link
-              to="/dashboard/facturas"
+              to="/dashboard/documentos"
               className="text-[11px] font-medium text-primary hover:underline"
             >
               Ver todos
@@ -324,7 +327,7 @@ function DashboardOverview() {
             docs.map((d) => (
               <Link
                 key={d.id}
-                to="/dashboard/facturas/$id"
+                to="/dashboard/documentos/$id"
                 params={{ id: d.id }}
                 className="flex items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-muted/60"
               >
@@ -360,7 +363,8 @@ function DashboardOverview() {
             className="flex-1"
             action={
               <Link
-                to="/dashboard/facturas"
+                to="/dashboard/documentos"
+                search={{ tipo: "recibo" }}
                 className="text-[11px] font-medium text-primary hover:underline"
               >
                 Ver
@@ -419,9 +423,9 @@ function DashboardOverview() {
 
       {/* ══ dock de acções ══ */}
       <div className="grid shrink-0 grid-cols-2 gap-2.5 lg:grid-cols-4">
-        <DockTile Icon={Plus} label="Nova factura" hint="Emitir com IVA" to="/dashboard/facturas/nova" />
-        <DockTile Icon={Users} label="Novo cliente" hint="CRM" to="/dashboard/clientes" />
-        <DockTile Icon={FileText} label="Cotação" hint="Orçamento" to="/dashboard/cotacoes" />
+        <DockTile Icon={Plus} label="Nova factura" hint="Emitir com IVA" to="/dashboard/documentos/novo" search={{ tipo: "ft" }} />
+        <DockTile Icon={Users} label="Novo cliente" hint="CRM" to="/dashboard/clientes" search={{ novo: "1" }} />
+        <DockTile Icon={FileText} label="Cotação" hint="Orçamento" to="/dashboard/documentos/novo" search={{ tipo: "cot" }} />
         <DockTile Icon={MessageCircle} label="Cobrar" hint="WhatsApp" to="/dashboard/whatsapp" />
       </div>
     </div>

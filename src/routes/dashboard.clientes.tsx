@@ -261,7 +261,7 @@ function Clientes() {
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <Link
-                        to="/dashboard/facturas/nova"
+                        to="/dashboard/documentos/novo"
                         search={{ cliente: c.id }}
                         aria-label={`Facturar ${c.name}`}
                         className="inline-flex h-[30px] w-[30px] items-center justify-center gap-1.5 rounded-lg border border-border bg-surface text-[11px] font-semibold text-muted-foreground transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary sm:w-auto sm:px-2.5"
