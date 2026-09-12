@@ -11,7 +11,8 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { navGroups, quickCreate } from "@/components/dashboard/nav-items";
-import { clients, invoices } from "@/lib/mock-data";
+import { useClients } from "@/lib/clients-store";
+import { useInvoices } from "@/lib/invoices-store";
 
 export function useCommandPalette() {
   const [open, setOpen] = React.useState(false);
@@ -38,6 +39,8 @@ export function CommandPalette({
   onOpenChange: (v: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const clients = useClients();
+  const invoices = useInvoices();
 
   const go = React.useCallback(
     (to: string, search?: Record<string, string>, params?: Record<string, string>) => {
@@ -79,22 +82,22 @@ export function CommandPalette({
         <CommandSeparator />
 
         <CommandGroup heading="Clientes">
-          {clients.slice(0, 5).map((c) => (
-            <CommandItem key={c.id} value={`cliente ${c.name}`} onSelect={() => go("/dashboard/clientes")}>
+          {clients.slice(0, 8).map((c) => (
+            <CommandItem key={c.id} value={`cliente ${c.name} ${c.nuit}`} onSelect={() => go("/dashboard/documentos/novo", { cliente: c.id })}>
               <span className="grid h-5 w-5 place-items-center rounded bg-muted text-[10px] font-semibold">
                 {c.name.slice(0, 1)}
               </span>
               {c.name}
-              <CommandShortcut>{c.city}</CommandShortcut>
+              <CommandShortcut>Facturar</CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>
 
         <CommandGroup heading="Documentos recentes">
-          {invoices.slice(0, 5).map((d) => (
-            <CommandItem key={d.id} value={`factura ${d.number} ${d.client}`} onSelect={() => go("/dashboard/documentos/$id", undefined, { id: d.id })}>
+          {invoices.slice(0, 8).map((d) => (
+            <CommandItem key={d.id} value={`documento ${d.number} ${d.client.name}`} onSelect={() => go("/dashboard/documentos/$id", undefined, { id: d.id })}>
               <span className="font-mono text-xs">{d.number}</span>
-              <span className="truncate text-muted-foreground">{d.client}</span>
+              <span className="truncate text-muted-foreground">{d.client.name}</span>
             </CommandItem>
           ))}
         </CommandGroup>
