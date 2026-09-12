@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegistoRouteImport } from './routes/registo'
+import { Route as RecuperarRouteImport } from './routes/recuperar'
+import { Route as NovaPalavraPasseRouteImport } from './routes/nova-palavra-passe'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EmpresasRouteImport } from './routes/empresas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -48,6 +50,16 @@ import { Route as DashboardAssistenteThreadIdRouteImport } from './routes/dashbo
 const RegistoRoute = RegistoRouteImport.update({
   id: '/registo',
   path: '/registo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarRoute = RecuperarRouteImport.update({
+  id: '/recuperar',
+  path: '/recuperar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovaPalavraPasseRoute = NovaPalavraPasseRouteImport.update({
+  id: '/nova-palavra-passe',
+  path: '/nova-palavra-passe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -231,6 +243,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/login': typeof LoginRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
@@ -267,6 +281,8 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/empresas': typeof EmpresasRoute
   '/login': typeof LoginRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
@@ -301,6 +317,8 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/login': typeof LoginRoute
+  '/nova-palavra-passe': typeof NovaPalavraPasseRoute
+  '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
@@ -340,6 +358,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/empresas'
     | '/login'
+    | '/nova-palavra-passe'
+    | '/recuperar'
     | '/registo'
     | '/api/chat'
     | '/dashboard/assistente'
@@ -376,6 +396,8 @@ export interface FileRouteTypes {
     | '/app'
     | '/empresas'
     | '/login'
+    | '/nova-palavra-passe'
+    | '/recuperar'
     | '/registo'
     | '/api/chat'
     | '/dashboard/clientes'
@@ -409,6 +431,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/empresas'
     | '/login'
+    | '/nova-palavra-passe'
+    | '/recuperar'
     | '/registo'
     | '/api/chat'
     | '/dashboard/assistente'
@@ -447,6 +471,8 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   EmpresasRoute: typeof EmpresasRoute
   LoginRoute: typeof LoginRoute
+  NovaPalavraPasseRoute: typeof NovaPalavraPasseRoute
+  RecuperarRoute: typeof RecuperarRoute
   RegistoRoute: typeof RegistoRoute
   ApiChatRoute: typeof ApiChatRoute
   VerificarCodeRoute: typeof VerificarCodeRoute
@@ -460,6 +486,20 @@ declare module '@tanstack/react-router' {
       path: '/registo'
       fullPath: '/registo'
       preLoaderRoute: typeof RegistoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar': {
+      id: '/recuperar'
+      path: '/recuperar'
+      fullPath: '/recuperar'
+      preLoaderRoute: typeof RecuperarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nova-palavra-passe': {
+      id: '/nova-palavra-passe'
+      path: '/nova-palavra-passe'
+      fullPath: '/nova-palavra-passe'
+      preLoaderRoute: typeof NovaPalavraPasseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -808,6 +848,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   EmpresasRoute: EmpresasRoute,
   LoginRoute: LoginRoute,
+  NovaPalavraPasseRoute: NovaPalavraPasseRoute,
+  RecuperarRoute: RecuperarRoute,
   RegistoRoute: RegistoRoute,
   ApiChatRoute: ApiChatRoute,
   VerificarCodeRoute: VerificarCodeRoute,

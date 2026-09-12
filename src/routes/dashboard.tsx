@@ -71,7 +71,8 @@ function DashboardLayout() {
    * sempre o ecrã de espera — não há divergência na hidratação.
    */
   useEffect(() => {
-    if (isSupabaseConfigured && !loading && !session) void navigate({ to: "/login" });
+    if (isSupabaseConfigured && !loading && !session)
+      void navigate({ to: "/login", search: { next: window.location.pathname + window.location.search } });
   }, [loading, session, navigate]);
 
   if (isSupabaseConfigured && (loading || !session)) {

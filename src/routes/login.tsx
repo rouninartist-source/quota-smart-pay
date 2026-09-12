@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { signIn } from "@/lib/auth";
-import { useState } from "react";
+import { signIn, useSession } from "@/lib/auth";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import loginVisual from "@/assets/login-visual.jpg";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): { next?: string } =>
+    typeof search.next === "string" ? { next: search.next } : {},
   head: () => ({
     meta: [
       { title: "Entrar · Quota" },
@@ -21,7 +23,15 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const { session, loading } = useSession();
   const [show, setShow] = useState(false);
+  const target = next && next.startsWith("/dashboard") ? next : "/dashboard";
+
+  // Quem já tem sessão não precisa de ver o formulário.
+  useEffect(() => {
+    if (!loading && session) void navigate({ to: target as "/dashboard" });
+  }, [loading, session, navigate, target]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,6 +40,8 @@ function Login() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError("Indique um e-mail válido.");
+    if (!password) return setError("Indique a palavra-passe.");
     setBusy(true);
     setError(null);
     const { error: err } = await signIn(email.trim(), password);
@@ -38,7 +50,7 @@ function Login() {
       setError(err);
       return;
     }
-    void navigate({ to: "/dashboard" });
+    void navigate({ to: target as "/dashboard" });
   }
 
   return (
@@ -81,9 +93,9 @@ function Login() {
               <div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-[13px] font-medium">Palavra-passe</label>
-                  <a href="#" className="text-[12px] text-muted-foreground hover:text-foreground">
+                  <Link to="/recuperar" className="text-[12px] text-muted-foreground hover:text-foreground">
                     Esqueceu-se?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative mt-1.5">
                   <input
@@ -121,13 +133,6 @@ function Login() {
               </button>
             </form>
 
-            <div className="my-6 flex items-center gap-3 text-[11px] uppercase tracking-widest text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <button className="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm font-medium transition hover:bg-muted">
-              <GoogleMark /> Continuar com Google
-            </button>
 
             <p className="mt-8 text-center text-[13px] text-muted-foreground">
               Não tem conta?{" "}
@@ -186,16 +191,5 @@ function Login() {
         </div>
       </aside>
     </main>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.6 9.5 24 9.5z" />
-      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z" />
-      <path fill="#FBBC05" d="M10.4 28.7a14.5 14.5 0 0 1 0-9.4l-7.8-6.1a24 24 0 0 0 0 21.6l7.8-6.1z" />
-      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.4 0-11.7-3.7-13.6-9.1l-7.8 6.1C6.5 42.6 14.6 48 24 48z" />
-    </svg>
   );
 }

@@ -80,6 +80,8 @@ function Registo() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [done, setDone] = useState<"confirm" | null>(null);
 
   // Passo 2
   const [companyName, setCompanyName] = useState("");
@@ -95,7 +97,8 @@ function Registo() {
       if (!fullName.trim()) return "Indique o seu nome completo.";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return "Indique um e-mail válido.";
       if (phone.replace(/\D/g, "").length < 9) return "Indique um telefone válido.";
-      if (password.length < 6) return "A palavra-passe deve ter pelo menos 6 caracteres.";
+      if (password.length < 8) return "A palavra-passe deve ter pelo menos 8 caracteres.";
+      if (password !== confirm) return "As palavras-passe não coincidem.";
     }
     if (step === 2) {
       if (!companyName.trim()) return "Indique o nome da empresa.";
@@ -125,7 +128,7 @@ function Registo() {
     setBusy(true);
     setError(null);
 
-    const created = await signUp(email.trim(), password);
+    const created = await signUp(email.trim(), password, { full_name: fullName.trim(), phone: phone.trim() });
     if (created.error) {
       setBusy(false);
       setError(created.error);
@@ -136,10 +139,9 @@ function Registo() {
     if ("needsConfirmation" in created && created.needsConfirmation) {
       const signedIn = await signIn(email.trim(), password);
       if (signedIn.error) {
+        // A empresa é criada no primeiro início de sessão (ecrã "Complete a configuração").
         setBusy(false);
-        setError(
-          "Conta criada. Confirme o email e depois inicie sessão para terminar a configuração da empresa.",
-        );
+        setDone("confirm");
         return;
       }
     }
@@ -181,6 +183,30 @@ function Registo() {
     reader.onload = () => setLogo(String(reader.result));
     reader.readAsDataURL(file);
   };
+
+  if (done === "confirm") {
+    return (
+      <main className="grid min-h-screen place-items-center bg-background px-6">
+        <div className="w-full max-w-sm text-center animate-fade-up">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
+            <Check className="h-6 w-6" />
+          </div>
+          <h1 className="mt-4 font-display text-[24px] font-semibold tracking-tight">Confirme o seu e-mail</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Enviámos uma ligação para <span className="font-medium text-foreground">{email.trim()}</span>. Abra-a
+            para activar a conta; depois inicie sessão e a empresa <span className="font-medium text-foreground">{companyName.trim()}</span> fica
+            configurada no primeiro acesso.
+          </p>
+          <Link
+            to="/login"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
+            Ir para o início de sessão
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="grid min-h-screen bg-background lg:grid-cols-2">
@@ -262,7 +288,8 @@ function Registo() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         maxLength={72}
-                        placeholder="Mínimo 6 caracteres"
+                        autoComplete="new-password"
+                        placeholder="Mínimo 8 caracteres"
                         className="w-full rounded-md border border-border bg-surface px-3.5 py-3 pr-11 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-card"
                       />
                       <button
@@ -274,6 +301,19 @@ function Registo() {
                         {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
+                  </div>
+                  <div>
+                    <label htmlFor="pw-confirm" className="text-[13px] font-medium">Confirmar palavra-passe</label>
+                    <input
+                      id="pw-confirm"
+                      type={show ? "text" : "password"}
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      maxLength={72}
+                      autoComplete="new-password"
+                      placeholder="Repita a palavra-passe"
+                      className="mt-1.5 w-full rounded-md border border-border bg-surface px-3.5 py-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary/60 focus:bg-card"
+                    />
                   </div>
                 </>
               )}
