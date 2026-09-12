@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Package, Plus, Search, Download } from "lucide-react";
+import { Package, Plus, Search, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { type Product } from "@/lib/mock-data";
 import { useProducts } from "@/lib/catalog-store";
 import { formatMZN } from "@/lib/format";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
+import { ProductEditor } from "@/components/catalog/ProductEditor";
+import { ProductImport } from "@/components/catalog/ProductImport";
 
 export const Route = createFileRoute("/dashboard/produtos")({
   head: () => ({
@@ -46,6 +48,8 @@ function Produtos() {
   const products = useProducts();
   const [category, setCategory] = useState("todos");
   const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<Product | "new" | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
@@ -158,7 +162,16 @@ function Produtos() {
             >
               <Download className="h-3.5 w-3.5" /> Exportar
             </button>
-            <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90">
+            <button
+              onClick={() => setImporting(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted"
+            >
+              <Upload className="h-3.5 w-3.5" /> Importar
+            </button>
+            <button
+              onClick={() => setEditing("new")}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
+            >
               <Plus className="h-3.5 w-3.5" /> Novo produto
             </button>
           </div>
@@ -181,6 +194,10 @@ function Produtos() {
                 return (
                   <article
                     key={p.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setEditing(p)}
+                    onKeyDown={(e) => e.key === "Enter" && setEditing(p)}
                     className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-border/70 bg-surface transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant"
                   >
                     <div
@@ -238,6 +255,8 @@ function Produtos() {
           )}
         </div>
       </section>
+      {editing && <ProductEditor product={editing === "new" ? undefined : editing} onClose={() => setEditing(null)} />}
+      {importing && <ProductImport onClose={() => setImporting(false)} />}
     </div>
   );
 }

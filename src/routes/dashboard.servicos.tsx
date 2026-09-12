@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import { StatusBadge } from "@/components/app/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { type Service } from "@/lib/mock-data";
 import { useServices } from "@/lib/catalog-store";
+import { ServiceEditor } from "@/components/catalog/ServiceEditor";
 import { formatMZN } from "@/lib/format";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 
@@ -39,6 +41,7 @@ const columns: Column<Service>[] = [
 
 function ServicosPage() {
   const services = useServices();
+  const [editing, setEditing] = useState<Service | "new" | null>(null);
   const n = services.length || 1;
   const avg = Math.round(services.reduce((a, s) => a + s.rate, 0) / n);
   const margin = Math.round(services.reduce((a, s) => a + s.margin, 0) / n);
@@ -87,7 +90,7 @@ function ServicosPage() {
             <Button variant="outline" size="sm" className="h-8" onClick={exportCsv}>
               <Download className="h-3.5 w-3.5" /> Exportar
             </Button>
-            <Button size="sm" className="h-8">
+            <Button size="sm" className="h-8" onClick={() => setEditing("new")}>
               <Plus className="h-3.5 w-3.5" /> Novo serviço
             </Button>
           </div>
@@ -123,6 +126,7 @@ function ServicosPage() {
             },
           ]}
           bulkActions={[{ label: "Exportar", onClick: exportCsv }]}
+          onRowClick={(r) => setEditing(r)}
           empty={{
             title: "Sem serviços",
             description: "Adicione o primeiro serviço ao catálogo para o poder facturar.",
@@ -145,6 +149,7 @@ function ServicosPage() {
           )}
         />
       </div>
+      {editing && <ServiceEditor service={editing === "new" ? undefined : editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
