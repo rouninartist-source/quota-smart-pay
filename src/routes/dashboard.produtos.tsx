@@ -16,7 +16,7 @@ export const Route = createFileRoute("/dashboard/produtos")({
       { title: "Produtos · Quota Studio" },
       {
         name: "description",
-        content: "Catálogo de produtos com preços, stock, margens e imagens para cotações visuais.",
+        content: "Catálogo de produtos com preços, margens e imagens para cotações visuais.",
       },
       { property: "og:title", content: "Produtos · Quota Studio" },
       { property: "og:description", content: "Catálogo digital para facturação e cotações visuais." },
@@ -33,16 +33,6 @@ const tileGradients = [
   "linear-gradient(135deg, oklch(0.62 0.20 20), oklch(0.78 0.14 350))",
 ];
 
-type StockState = { label: string; tone: string };
-
-/** Stock e stock mínimo já vivem nos dados — o estado sai deles, não de um campo à parte. */
-function stockState(p: Product): StockState {
-  if (p.status === "descontinuado") return { label: "Descontinuado", tone: "bg-muted text-muted-foreground" };
-  if (p.stock === 0) return { label: "Esgotado", tone: "bg-destructive/10 text-destructive" };
-  if (p.stock < p.minStock)
-    return { label: `${p.stock} ${p.unit}`, tone: "bg-warning/15 text-warning-foreground dark:text-warning" };
-  return { label: `${p.stock} ${p.unit}`, tone: "bg-success/10 text-success" };
-}
 
 function Produtos() {
   const products = useProducts();
@@ -76,16 +66,16 @@ function Produtos() {
   }, [products, category, query]);
 
   const totals = useMemo(() => {
-    const value = visible.reduce((a, p) => a + p.price * p.stock, 0);
-    const low = visible.filter((p) => p.stock > 0 && p.stock < p.minStock).length;
-    const out = visible.filter((p) => p.stock === 0).length;
-    return { value, low, out };
+    const avg = visible.length ? visible.reduce((a, p) => a + p.price, 0) / visible.length : 0;
+    const margin = visible.filter((p) => p.price > 0).map((p) => ((p.price - p.cost) / p.price) * 100);
+    const avgMargin = margin.length ? margin.reduce((a, m) => a + m, 0) / margin.length : 0;
+    return { avg, avgMargin, inactive: visible.filter((p) => p.status === "descontinuado").length };
   }, [visible]);
 
   const exportCsv = () => {
     if (visible.length === 0) return;
     const csv = toCsv(
-      ["SKU", "Produto", "Categoria", "Preço (MZN)", "Custo (MZN)", "Margem (%)", "Stock", "Stock mínimo", "Unidade", "IVA (%)"],
+      ["SKU", "Produto", "Categoria", "Preço (MZN)", "Custo (MZN)", "Margem (%)", "Unidade", "IVA (%)"],
       visible.map((p) => [
         p.sku,
         p.name,
@@ -93,8 +83,6 @@ function Produtos() {
         csvNumber(p.price),
         csvNumber(p.cost),
         String(Math.round(((p.price - p.cost) / p.price) * 100)),
-        String(p.stock),
-        String(p.minStock),
         p.unit,
         String(p.vat),
       ]),
@@ -190,7 +178,6 @@ function Produtos() {
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {visible.map((p, i) => {
-                const st = stockState(p);
                 return (
                   <article
                     key={p.id}
@@ -218,11 +205,11 @@ function Produtos() {
                         </span>
                         <span
                           className={cn(
-                            "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
-                            st.tone,
+                            "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold",
+                            p.status === "descontinuado" ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary",
                           )}
                         >
-                          {st.label}
+                          {p.status === "descontinuado" ? "Descontinuado" : `/ ${p.unit}`}
                         </span>
                       </div>
                     </div>
@@ -238,19 +225,15 @@ function Produtos() {
             {visible.length} produto{visible.length === 1 ? "" : "s"}
           </span>
           <span>
-            Valor em stock{" "}
-            <b className="font-bold tabular-nums text-foreground">
-              {formatMZN(totals.value, { decimals: false })}
-            </b>
+            Preço médio{" "}
+            <b className="font-bold tabular-nums text-foreground">{formatMZN(totals.avg, { decimals: false })}</b>
           </span>
-          {totals.low > 0 && (
-            <span className="rounded-md bg-warning/15 px-2 py-0.5 font-semibold text-warning-foreground dark:text-warning">
-              {totals.low} abaixo do mínimo
-            </span>
-          )}
-          {totals.out > 0 && (
-            <span className="rounded-md bg-destructive/10 px-2 py-0.5 font-semibold text-destructive">
-              {totals.out} esgotado{totals.out === 1 ? "" : "s"}
+          <span>
+            Margem média <b className="font-bold tabular-nums text-foreground">{Math.round(totals.avgMargin)}%</b>
+          </span>
+          {totals.inactive > 0 && (
+            <span className="rounded-md bg-muted px-2 py-0.5 font-semibold text-muted-foreground">
+              {totals.inactive} descontinuado{totals.inactive === 1 ? "" : "s"}
             </span>
           )}
         </div>

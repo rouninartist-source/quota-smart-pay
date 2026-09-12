@@ -42,6 +42,11 @@ export function companyWallets(c: Company): WalletAccount[] {
   return c.paymentMode === "bank" ? [] : (c.wallets ?? []);
 }
 
+/** Substitui os campos {cliente} {numero} {valor} {vencimento} na mensagem. */
+export function fillTemplate(template: string, vars: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? `{${k}}`);
+}
+
 export const DEFAULT_WHATSAPP_TEMPLATE =
   "Olá {cliente}, lembramos o documento {numero} no valor de {valor} MZN, com vencimento a {vencimento}. Obrigado!";
 

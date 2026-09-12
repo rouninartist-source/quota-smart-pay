@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock-data";
-import { addProduct, deleteProduct, nextSku, updateProduct, type ProductInput } from "@/lib/catalog-store";
+import { addProduct, deleteProduct, nextSku, updateProduct, useProducts, type ProductInput } from "@/lib/catalog-store";
 import { Field, Modal, inputClass } from "./Modal";
 
 const num = (v: string) => Number(String(v).replace(",", ".")) || 0;
@@ -22,7 +23,15 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
   });
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [newCategory, setNewCategory] = useState(false);
+  const navigate = useNavigate();
+  const all = useProducts();
+  const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean))).sort();
   const set = <K extends keyof ProductInput>(k: K, v: ProductInput[K]) => setD((x) => ({ ...x, [k]: v }));
+  const createDoc = (tipo: "cot" | "ft") => {
+    onClose();
+    navigate({ to: "/dashboard/documentos/novo", search: { tipo, item: `p:${product!.id}` } });
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,7 +63,21 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
           <Field label="Nome"><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Categoria"><input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Consumíveis, Tecnologia…" /></Field>
+          <Field label="Categoria">
+            {newCategory || categories.length === 0 ? (
+              <input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Nova categoria" autoFocus={newCategory} />
+            ) : (
+              <select
+                className={inputClass}
+                value={d.category}
+                onChange={(e) => (e.target.value === "__nova" ? (setNewCategory(true), set("category", "")) : set("category", e.target.value))}
+              >
+                <option value="">Sem categoria</option>
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="__nova">+ Nova categoria…</option>
+              </select>
+            )}
+          </Field>
           <Field label="Unidade"><input className={inputClass} value={d.unit} onChange={(e) => set("unit", e.target.value)} placeholder="un, cx, kg" /></Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -66,15 +89,22 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
             </select>
           </Field>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Stock"><input className={inputClass} type="number" step="0.001" value={d.stock} onChange={(e) => set("stock", num(e.target.value))} /></Field>
-          <Field label="Stock mínimo"><input className={inputClass} type="number" step="0.001" value={d.minStock} onChange={(e) => set("minStock", num(e.target.value))} /></Field>
-          <Field label="Estado">
-            <select className={inputClass} value={d.active ? "1" : "0"} onChange={(e) => set("active", e.target.value === "1")}>
-              <option value="1">Activo</option><option value="0">Descontinuado</option>
-            </select>
-          </Field>
-        </div>
+        <Field label="Estado">
+          <select className={inputClass} value={d.active ? "1" : "0"} onChange={(e) => set("active", e.target.value === "1")}>
+            <option value="1">Activo</option><option value="0">Descontinuado</option>
+          </select>
+        </Field>
+        {product && (
+          <div className="flex flex-wrap gap-2 rounded-md border border-border/70 bg-surface p-3">
+            <span className="w-full text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Usar este produto</span>
+            <button type="button" onClick={() => createDoc("cot")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
+              <FileText className="h-3 w-3" /> Criar cotação
+            </button>
+            <button type="button" onClick={() => createDoc("ft")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
+              <FileCheck2 className="h-3 w-3" /> Criar factura
+            </button>
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-2 border-t border-border/70 pt-3">
           {product && !confirm && (
             <button type="button" onClick={() => setConfirm(true)} className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 px-2.5 py-1.5 text-[11.5px] font-semibold text-destructive hover:bg-destructive/8">

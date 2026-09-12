@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { shrinkImage } from "@/lib/images";
+import { Camera } from "lucide-react";
 import {
   changePassword,
   initialsOf,
@@ -89,12 +91,32 @@ function PerfilPage() {
       content: (
         <>
           <div className="flex items-center gap-4">
-            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
-              {initialsOf(draft, email.slice(0, 1).toUpperCase() || "Q")}
-            </span>
-            <p className="text-[12.5px] text-muted-foreground">
-              As iniciais vêm do nome. Fotografia de perfil: brevemente.
-            </p>
+            {draft.avatar ? (
+              <img src={draft.avatar} alt="" className="h-16 w-16 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary text-lg font-semibold text-primary-foreground">
+                {initialsOf(draft, email.slice(0, 1).toUpperCase() || "Q")}
+              </span>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium hover:bg-muted">
+                <Camera className="h-3.5 w-3.5" /> {draft.avatar ? "Trocar fotografia" : "Carregar fotografia"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (f) set("avatar", await shrinkImage(f, 160));
+                  }}
+                />
+              </label>
+              {draft.avatar && (
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => set("avatar", undefined)}>
+                  Remover
+                </Button>
+              )}
+            </div>
           </div>
           <FieldRow>
             <Field label="Nome" htmlFor="nome">

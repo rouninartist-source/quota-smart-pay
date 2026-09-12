@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search, Plus, FileText, Download, Printer, Send, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
-import { ShareDialog } from "@/components/documents/ShareDialog";
+import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
 import { toast } from "sonner";
 import { formatDate, formatMZN } from "@/lib/format";
 import {
@@ -20,7 +20,7 @@ import {
   useInvoicesReady,
   type Invoice,
 } from "@/lib/invoices-store";
-import { useCompany } from "@/lib/company-store";
+import { DEFAULT_WHATSAPP_TEMPLATE, fillTemplate, useCompany } from "@/lib/company-store";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
@@ -272,15 +272,21 @@ function DocumentosList() {
     });
   };
 
+  /** Mensagem de cobrança: o modelo definido em WhatsApp, com a ligação ao PDF. */
+  const chaseMessage = (inv: Invoice) =>
+    fillTemplate(company.whatsapp?.template ?? DEFAULT_WHATSAPP_TEMPLATE, {
+      cliente: inv.client.name,
+      numero: inv.number,
+      valor: formatMZN(invoiceBalance(inv)),
+      vencimento: formatDate(inv.due),
+    }) + `\n\nPDF: ${shareLink(inv)}`;
+
   const chase = () => {
     const inv = actionable.unpaid[0];
     if (!inv) return;
-    const text = encodeURIComponent(
-      `Olá ${inv.client.name}, lembramos o documento ${inv.number} no valor de ` +
-        `${formatMZN(invoiceBalance(inv), { decimals: false })} MZN, com vencimento a ${formatDate(inv.due)}.`,
-    );
     const phone = inv.client.phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener");
+    if (!phone) return toast.error("O cliente não tem telefone na ficha.");
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(chaseMessage(inv))}`, "_blank", "noopener");
   };
 
   const duplicate = () => {
@@ -326,11 +332,7 @@ function DocumentosList() {
     const inv = r.invoice;
     const phone = inv.client.phone.replace(/\D/g, "");
     if (!phone) return toast.error("O cliente não tem telefone na ficha.");
-    const text = encodeURIComponent(
-      `Olá ${inv.client.name}, lembramos o documento ${inv.number} no valor de ` +
-        `${formatMZN(invoiceBalance(inv), { decimals: false })} MZN, com vencimento a ${formatDate(inv.due)}.`,
-    );
-    window.open(`https://wa.me/${phone}?text=${text}`, "_blank", "noopener");
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(chaseMessage(inv))}`, "_blank", "noopener");
   };
 
   return (

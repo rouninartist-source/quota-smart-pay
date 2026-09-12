@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Service } from "@/lib/mock-data";
 import { addService, deleteService, nextServiceCode, updateService, type ServiceInput } from "@/lib/catalog-store";
@@ -21,6 +22,11 @@ export function ServiceEditor({ service, onClose }: { service?: Service; onClose
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const set = <K extends keyof ServiceInput>(k: K, v: ServiceInput[K]) => setD((x) => ({ ...x, [k]: v }));
+  const navigate = useNavigate();
+  const createDoc = (tipo: "cot" | "ft") => {
+    onClose();
+    navigate({ to: "/dashboard/documentos/novo", search: { tipo, item: `s:${service!.id}` } });
+  };
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -70,6 +76,17 @@ export function ServiceEditor({ service, onClose }: { service?: Service; onClose
             <option value="1">Activo</option><option value="0">Pausado</option>
           </select>
         </Field>
+        {service && (
+          <div className="flex flex-wrap gap-2 rounded-md border border-border/70 bg-surface p-3">
+            <span className="w-full text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Usar este serviço</span>
+            <button type="button" onClick={() => createDoc("cot")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
+              <FileText className="h-3 w-3" /> Criar cotação
+            </button>
+            <button type="button" onClick={() => createDoc("ft")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
+              <FileCheck2 className="h-3 w-3" /> Criar factura
+            </button>
+          </div>
+        )}
         <div className="mt-1 flex items-center gap-2 border-t border-border/70 pt-3">
           {service && !confirm && (
             <button type="button" onClick={() => setConfirm(true)} className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 px-2.5 py-1.5 text-[11.5px] font-semibold text-destructive hover:bg-destructive/8">

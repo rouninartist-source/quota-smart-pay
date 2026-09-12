@@ -16,6 +16,8 @@ export type Profile = {
   timezone: string;
   dailyDigest: boolean;
   whatsappAlerts: boolean;
+  /** Fotografia (data URL pequena). */
+  avatar?: string;
 };
 
 export const defaultProfile: Profile = {

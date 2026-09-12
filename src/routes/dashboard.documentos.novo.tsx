@@ -53,9 +53,10 @@ export const Route = createFileRoute("/dashboard/documentos/novo")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { tipo?: string; cliente?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tipo?: string; cliente?: string; item?: string } => ({
     ...(typeof search.tipo === "string" ? { tipo: search.tipo } : {}),
     ...(typeof search.cliente === "string" ? { cliente: search.cliente } : {}),
+    ...(typeof search.item === "string" ? { item: search.item } : {}),
   }),
   component: Documentos,
 });
@@ -101,7 +102,7 @@ const addDays = (iso: string, days: number) => {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function Documentos() {
-  const { tipo, cliente } = Route.useSearch();
+  const { tipo, cliente, item } = Route.useSearch();
   const navigate = useNavigate();
   const clients = useClients();
   const products = useProducts();
@@ -138,6 +139,18 @@ function Documentos() {
       setContact({ email: c.email, phone: c.phone, address: c.address });
     }
   }, [clientId, clients]);
+
+  // Vem do catálogo ("Criar cotação/factura" num produto ou serviço): a linha já entra preenchida.
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!item || prefilled.current) return;
+    const [kind, id] = item.split(":");
+    const p = kind === "p" ? products.find((x) => x.id === id) : undefined;
+    const sv = kind === "s" ? services.find((x) => x.id === id) : undefined;
+    if (!p && !sv) return;
+    prefilled.current = true;
+    setLines([{ id: Date.now(), desc: p ? p.name : sv!.name, note: "", qty: 1, price: p ? p.price : sv!.rate, vat: p ? p.vat : 16, img: "" }]);
+  }, [item, products, services]);
 
   useEffect(() => {
     if (!notes) setNotes(company.paymentNote ?? "");

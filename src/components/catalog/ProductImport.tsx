@@ -74,7 +74,7 @@ export function ProductImport({ onClose }: { onClose: () => void }) {
     if (n) toast.success(`${n} produto${n === 1 ? "" : "s"} importado${n === 1 ? "" : "s"}`);
     onClose();
   }
-  const template = "sku;nome;categoria;preco;custo;stock;stock_minimo;unidade;iva\nQT-101;Papel A4 80g (resma);Consumíveis;480;320;240;50;un;16\n";
+  const template = "sku;nome;categoria;preco;custo;unidade;iva\nQT-101;Papel A4 80g (resma);Consumíveis;480;320;un;16\n";
 
   return (
     <Modal title="Importar produtos (CSV)" onClose={onClose} wide>
@@ -82,8 +82,7 @@ export function ProductImport({ onClose }: { onClose: () => void }) {
         <p className="text-[12px] text-muted-foreground">
           Colunas reconhecidas: <code className="rounded bg-muted px-1">sku</code> <code className="rounded bg-muted px-1">nome</code>{" "}
           <code className="rounded bg-muted px-1">categoria</code> <code className="rounded bg-muted px-1">preco</code>{" "}
-          <code className="rounded bg-muted px-1">custo</code> <code className="rounded bg-muted px-1">stock</code>{" "}
-          <code className="rounded bg-muted px-1">stock_minimo</code> <code className="rounded bg-muted px-1">unidade</code>{" "}
+          <code className="rounded bg-muted px-1">custo</code> <code className="rounded bg-muted px-1">unidade</code>{" "}
           <code className="rounded bg-muted px-1">iva</code>. Separador ; ou ,. Um SKU já existente é actualizado.
         </p>
         <div className="flex flex-wrap items-center gap-2">
@@ -103,13 +102,13 @@ export function ProductImport({ onClose }: { onClose: () => void }) {
           <div className="overflow-x-auto rounded-md border border-border/70">
             <table className="w-full text-[11.5px]">
               <thead className="bg-surface text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">
-                <tr><th className="px-2 py-1.5 text-left">SKU</th><th className="px-2 py-1.5 text-left">Nome</th><th className="px-2 py-1.5 text-left">Categoria</th><th className="px-2 py-1.5 text-right">Preço</th><th className="px-2 py-1.5 text-right">Stock</th></tr>
+                <tr><th className="px-2 py-1.5 text-left">SKU</th><th className="px-2 py-1.5 text-left">Nome</th><th className="px-2 py-1.5 text-left">Categoria</th><th className="px-2 py-1.5 text-right">Preço</th><th className="px-2 py-1.5 text-left">Unidade</th></tr>
               </thead>
               <tbody>
                 {rows.slice(0, 50).map((r, i) => (
                   <tr key={i} className="border-t border-border/50">
                     <td className="px-2 py-1.5 tabular-nums">{r.sku}</td><td className="px-2 py-1.5">{r.name}</td><td className="px-2 py-1.5">{r.category}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums">{r.price}</td><td className="px-2 py-1.5 text-right tabular-nums">{r.stock}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{r.price}</td><td className="px-2 py-1.5">{r.unit}</td>
                   </tr>
                 ))}
               </tbody>

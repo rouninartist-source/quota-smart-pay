@@ -202,7 +202,11 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
               className="ml-1 grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label="Menu da conta"
             >
-              {initialsOf(profile, (session?.user.email ?? "?").slice(0, 2).toUpperCase())}
+              {profile.avatar ? (
+                <img src={profile.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                initialsOf(profile, (session?.user.email ?? "?").slice(0, 2).toUpperCase())
+              )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
