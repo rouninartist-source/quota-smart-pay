@@ -15,6 +15,7 @@ import {
 
 import { BankPicker } from "@/components/app/BankPicker";
 import { cn } from "@/lib/utils";
+import { themeModes, useTheme } from "@/hooks/use-theme";
 
 export const Route = createFileRoute("/dashboard/definicoes")({
   head: () => ({
@@ -38,6 +39,7 @@ const inputClass =
 
 function Definicoes() {
   const company = useCompany();
+  const { mode, setMode } = useTheme();
   const invoices = useInvoices();
   const [draft, setDraft] = useState<Company>(company);
   const [saved, setSaved] = useState(false);
@@ -297,6 +299,44 @@ function Definicoes() {
                       );
                     })}
         </>
+      ),
+    },
+    {
+      id: "aparencia",
+      label: "Aparência",
+      hint: "Claro, escuro, escuro suave",
+      title: "Aparência",
+      description: "O modo escolhido fica guardado neste dispositivo.",
+      content: (
+        <div role="radiogroup" aria-label="Modo de cor" className="grid gap-2 sm:grid-cols-2">
+          {themeModes.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              role="radio"
+              aria-checked={mode === m.id}
+              onClick={() => setMode(m.id)}
+              className={cn(
+                "flex items-center gap-3 rounded-lg border p-3 text-left transition",
+                mode === m.id ? "border-primary bg-primary/5" : "border-border/70 bg-surface hover:border-border",
+              )}
+            >
+              <span
+                aria-hidden
+                className="grid h-9 w-12 shrink-0 grid-cols-2 gap-0.5 overflow-hidden rounded-md border border-border/60 p-1"
+                style={{ background: m.id === "light" ? "#f5f6fb" : m.id === "dim" ? "#2b2c33" : m.id === "dark" ? "#141432" : "linear-gradient(90deg,#f5f6fb 50%,#141432 50%)" }}
+              >
+                <span className="rounded-sm" style={{ background: m.id === "light" ? "#fff" : m.id === "dim" ? "#3a3b44" : m.id === "dark" ? "#1a1a3a" : "#fff" }} />
+                <span className="rounded-sm bg-primary/70" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[13px] font-medium">{m.label}</span>
+                <span className="block text-[11.5px] text-muted-foreground">{m.hint}</span>
+              </span>
+              {mode === m.id && <Check className="ml-auto h-4 w-4 shrink-0 text-primary" />}
+            </button>
+          ))}
+        </div>
       ),
     },
     {
