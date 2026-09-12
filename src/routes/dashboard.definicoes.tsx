@@ -14,6 +14,8 @@ import {
   type WalletProvider,
 } from "@/lib/payment-details";
 
+import { BankPicker } from "@/components/app/BankPicker";
+
 export const Route = createFileRoute("/dashboard/definicoes")({
   head: () => ({
     meta: [
@@ -162,34 +164,27 @@ function Definicoes() {
                       Mostrar o bloco de dados de pagamento nos documentos
                     </label>
 
+                    <div className="grid gap-1.5">
+                      <span className="text-[13px] font-medium">Banco</span>
+                      <BankPicker
+                        value={draft.bank?.bankId}
+                        onChange={(id) =>
+                          setDraft({
+                            ...draft,
+                            bank: id
+                              ? {
+                                  accountName: draft.bank?.accountName ?? draft.name,
+                                  account: draft.bank?.account ?? "",
+                                  nib: draft.bank?.nib,
+                                  bankId: id,
+                                }
+                              : undefined,
+                          })
+                        }
+                      />
+                    </div>
+
                     <FieldRow>
-                      <Field label="Banco" htmlFor="co-bank">
-                        <select
-                          id="co-bank"
-                          className={inputClass}
-                          value={draft.bank?.bankId ?? ""}
-                          onChange={(e) =>
-                            setDraft({
-                              ...draft,
-                              bank: e.target.value
-                                ? {
-                                    accountName: draft.bank?.accountName ?? draft.name,
-                                    account: draft.bank?.account ?? "",
-                                    nib: draft.bank?.nib,
-                                    bankId: e.target.value as BankId,
-                                  }
-                                : undefined,
-                            })
-                          }
-                        >
-                          <option value="">Sem conta bancária</option>
-                          {banks.map((b) => (
-                            <option key={b.id} value={b.id}>
-                              {b.name}
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
                       <Field label="Titular da conta" htmlFor="co-bank-name">
                         <input
                           id="co-bank-name"

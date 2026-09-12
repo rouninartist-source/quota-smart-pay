@@ -1,20 +1,31 @@
+import { useState } from "react";
 import { getBank, walletMeta, type BankId, type WalletProvider } from "@/lib/payment-details";
 
 /**
- * Marcas em SVG simples (wordmark) para os bancos e carteiras móveis.
- * Cores fixas de propósito: o documento é papel/PDF.
+ * Logótipos dos bancos e carteiras. Vêm de /public/banks/<id>.svg — basta
+ * substituir o ficheiro pelo oficial. Se faltar, cai numa marca em texto com
+ * a cor do banco. Cores fixas de propósito: o documento é papel/PDF.
  */
-export function BankMark({ id }: { id: BankId }) {
+export function BankMark({ id, size = "sm" }: { id: BankId; size?: "sm" | "md" }) {
   const bank = getBank(id);
+  const [broken, setBroken] = useState(false);
   if (!bank) return null;
+  const h = size === "md" ? "h-9" : "h-6";
+  if (!broken) {
+    return (
+      <img
+        src={`/banks/${bank.id}.svg`}
+        alt={bank.name}
+        className={`${h} w-auto rounded-sm`}
+        onError={() => setBroken(true)}
+      />
+    );
+  }
   return (
     <span
-      className="inline-flex h-6 items-center gap-1.5 rounded-sm px-2 text-[10px] font-bold uppercase tracking-[0.06em] text-white"
+      className={`inline-flex ${h} items-center gap-1.5 rounded-sm px-2 text-[10px] font-bold uppercase tracking-[0.06em] text-white`}
       style={{ backgroundColor: bank.color }}
     >
-      <svg viewBox="0 0 24 24" className="h-3 w-3" aria-hidden="true" fill="currentColor">
-        <path d="M12 2 2 7v2h20V7L12 2Zm-7 9v8H3v2h18v-2h-2v-8h-2v8h-3v-8h-2v8H9v-8H5Z" />
-      </svg>
       {bank.short}
     </span>
   );
@@ -22,14 +33,15 @@ export function BankMark({ id }: { id: BankId }) {
 
 export function WalletMark({ provider }: { provider: WalletProvider }) {
   const meta = walletMeta[provider];
+  const [broken, setBroken] = useState(false);
+  if (!broken) {
+    return <img src={`/banks/${provider}.svg`} alt={meta.name} className="h-6 w-auto rounded-sm" onError={() => setBroken(true)} />;
+  }
   return (
     <span
       className="inline-flex h-6 items-center gap-1.5 rounded-sm px-2 text-[10px] font-bold tracking-[0.04em] text-white"
       style={{ backgroundColor: meta.color }}
     >
-      <svg viewBox="0 0 24 24" className="h-3 w-3" aria-hidden="true" fill="currentColor">
-        <path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm0 3v11h10V5H7Zm5 13.2a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2Z" />
-      </svg>
       {meta.name}
     </span>
   );

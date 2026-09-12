@@ -134,7 +134,7 @@ function DesignPage() {
         {/* ─── Galeria ─── */}
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2.5">
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 gap-2.5">
               {docTemplates.map((t) => {
                 const on = focused === t.id && mode === "preview";
                 return (
