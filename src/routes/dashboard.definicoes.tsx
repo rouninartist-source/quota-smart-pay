@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings, Upload, Trash2, Check } from "lucide-react";
+import { Settings, Upload, Trash2, Check, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Field, FieldRow } from "@/components/app/FormSection";
 import { SettingsShell, type SettingsSection } from "@/components/app/SettingsShell";
@@ -7,14 +7,14 @@ import { InvoiceDocument } from "@/components/invoices/InvoiceDocument";
 import { defaultCompany, resetCompany, saveCompany, useCompany, type Company } from "@/lib/company-store";
 import { useInvoices } from "@/lib/invoices-store";
 import {
-  banks,
   walletMeta,
-  type BankId,
+  type BankAccount,
   type WalletAccount,
   type WalletProvider,
 } from "@/lib/payment-details";
 
 import { BankPicker } from "@/components/app/BankPicker";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/definicoes")({
   head: () => ({
@@ -165,60 +165,88 @@ function Definicoes() {
                     </label>
 
                     <div className="grid gap-1.5">
-                      <span className="text-[13px] font-medium">Banco</span>
-                      <BankPicker
-                        value={draft.bank?.bankId}
-                        onChange={(id) =>
-                          setDraft({
-                            ...draft,
-                            bank: id
-                              ? {
-                                  accountName: draft.bank?.accountName ?? draft.name,
-                                  account: draft.bank?.account ?? "",
-                                  nib: draft.bank?.nib,
-                                  bankId: id,
-                                }
-                              : undefined,
-                          })
-                        }
-                      />
+                      <span className="text-[13px] font-medium">Meios de pagamento nos documentos</span>
+                      <div role="radiogroup" className="grid grid-cols-3 gap-2">
+                        {(
+                          [
+                            ["both", "Bancos e carteiras"],
+                            ["bank", "Só contas bancárias"],
+                            ["wallet", "Só carteiras digitais"],
+                          ] as const
+                        ).map(([mode, label]) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            role="radio"
+                            aria-checked={draft.paymentMode === mode}
+                            onClick={() => setDraft({ ...draft, paymentMode: mode })}
+                            className={cn(
+                              "rounded-lg border px-3 py-2.5 text-[12px] font-medium transition",
+                              draft.paymentMode === mode ? "border-primary bg-primary/5" : "border-border/70 bg-surface hover:border-border",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
-                    <FieldRow>
-                      <Field label="Titular da conta" htmlFor="co-bank-name">
-                        <input
-                          id="co-bank-name"
-                          className={inputClass}
-                          disabled={!draft.bank}
-                          value={draft.bank?.accountName ?? ""}
-                          onChange={(e) =>
-                            setDraft({ ...draft, bank: { ...draft.bank!, accountName: e.target.value } })
-                          }
-                        />
-                      </Field>
-                    </FieldRow>
-                    <FieldRow>
-                      <Field label="Número de conta" htmlFor="co-bank-acc">
-                        <input
-                          id="co-bank-acc"
-                          className={inputClass}
-                          disabled={!draft.bank}
-                          value={draft.bank?.account ?? ""}
-                          onChange={(e) => setDraft({ ...draft, bank: { ...draft.bank!, account: e.target.value } })}
-                        />
-                      </Field>
-                      <Field label="NIB (opcional)" htmlFor="co-bank-nib">
-                        <input
-                          id="co-bank-nib"
-                          className={inputClass}
-                          disabled={!draft.bank}
-                          value={draft.bank?.nib ?? ""}
-                          onChange={(e) => setDraft({ ...draft, bank: { ...draft.bank!, nib: e.target.value } })}
-                        />
-                      </Field>
-                    </FieldRow>
+                    {draft.paymentMode !== "wallet" && (
+                      <div className="grid gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[13px] font-medium">Contas bancárias</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDraft({
+                                ...draft,
+                                banks: [...(draft.banks ?? []), { bankId: "bci", accountName: draft.name, account: "", nib: "" }],
+                              })
+                            }
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted"
+                          >
+                            <Plus className="h-3 w-3" /> Adicionar conta
+                          </button>
+                        </div>
+                        {(draft.banks ?? []).length === 0 && (
+                          <p className="text-[12px] text-muted-foreground">Sem contas bancárias. Adicione pelo menos uma para aparecer nos documentos.</p>
+                        )}
+                        {(draft.banks ?? []).map((bank, i) => {
+                          const update = (patch: Partial<BankAccount>) =>
+                            setDraft({ ...draft, banks: draft.banks.map((b, j) => (j === i ? { ...b, ...patch } : b)) });
+                          return (
+                            <div key={i} className="grid gap-3 rounded-md border border-border/70 bg-card p-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Conta {i + 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setDraft({ ...draft, banks: draft.banks.filter((_, j) => j !== i) })}
+                                  className="inline-flex items-center gap-1 text-[11.5px] font-medium text-destructive hover:underline"
+                                >
+                                  <Trash2 className="h-3 w-3" /> Remover
+                                </button>
+                              </div>
+                              <BankPicker value={bank.bankId} onChange={(id) => id && update({ bankId: id })} hideNone />
+                              <FieldRow>
+                                <Field label="Titular da conta" htmlFor={`co-bank-name-${i}`}>
+                                  <input id={`co-bank-name-${i}`} className={inputClass} value={bank.accountName} onChange={(e) => update({ accountName: e.target.value })} />
+                                </Field>
+                              </FieldRow>
+                              <FieldRow>
+                                <Field label="Número de conta" htmlFor={`co-bank-acc-${i}`}>
+                                  <input id={`co-bank-acc-${i}`} className={inputClass} value={bank.account} onChange={(e) => update({ account: e.target.value })} />
+                                </Field>
+                                <Field label="NIB (opcional)" htmlFor={`co-bank-nib-${i}`}>
+                                  <input id={`co-bank-nib-${i}`} className={inputClass} value={bank.nib ?? ""} onChange={(e) => update({ nib: e.target.value })} />
+                                </Field>
+                              </FieldRow>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
-                    {(["mpesa", "emola"] as WalletProvider[]).map((provider) => {
+                    {draft.paymentMode !== "bank" && (["mpesa", "emola"] as WalletProvider[]).map((provider) => {
                       const wallet = (draft.wallets ?? []).find((w) => w.provider === provider);
                       const meta = walletMeta[provider];
                       const update = (patch: Partial<WalletAccount>) => {

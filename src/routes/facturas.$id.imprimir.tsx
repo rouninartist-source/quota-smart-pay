@@ -8,21 +8,44 @@ const searchSchema = z.object({
   tipo: z.enum(["factura", "recibo", "cotacao"]).optional(),
   /** Pré-visualização A4 sem abrir a caixa de impressão. */
   preview: z.coerce.boolean().optional(),
+  /**
+   * Dados públicos da pré-visualização (WhatsApp/e-mail lêem as meta tags sem
+   * sessão, por isso vêm no próprio URL): número, tipo e valor.
+   */
+  n: z.string().optional(),
+  k: z.string().optional(),
+  v: z.string().optional(),
 });
+
+const ogImage = (kind?: string, tipo?: string) => {
+  const k = (kind ?? "").toLowerCase();
+  const file = tipo === "recibo" || k === "recibo" ? "recibo" : k.includes("pró-forma") || k.includes("pro-forma") ? "proforma" : k.startsWith("vd") ? "vd" : tipo === "cotacao" || k.includes("cota") ? "cotacao" : k.includes("factura") ? "factura" : "documento";
+  // O WhatsApp exige URL absoluto na imagem.
+  const base = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, "") || "https://quota.milsonuix.com";
+  return `${base}/og/${file}.png`;
+};
 
 export const Route = createFileRoute("/facturas/$id/imprimir")({
   validateSearch: searchSchema,
-  head: () => ({
-    meta: [
-      { title: "Documento para impressão · Quota Studio" },
-      { name: "description", content: "Versão A4 para impressão e PDF do documento emitido no Quota Studio." },
-      { property: "og:title", content: "Documento para impressão · Quota Studio" },
-      { property: "og:description", content: "Pré-visualize em A4 e guarde o documento em PDF." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: ({ match }) => {
+    const { n, k, v, tipo } = match.search;
+    const title = n ? `${k ?? "Documento"} ${n}` : "Documento para impressão";
+    const description = v ? `Total ${v} MZN · abra para ver e guardar o PDF.` : "Pré-visualize em A4 e guarde o documento em PDF.";
+    return {
+      meta: [
+        { title: `${title} · Quota` },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: ogImage(k, tipo) },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "robots", content: "noindex" },
+      ],
+    };
+  },
   component: PrintInvoice,
 });
 

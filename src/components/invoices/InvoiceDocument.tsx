@@ -1,14 +1,15 @@
 import { formatDate, formatMZN } from "@/lib/format";
-import { useCompany } from "@/lib/company-store";
+import { companyBanks, companyWallets, useCompany } from "@/lib/company-store";
 import { useDocTemplate, type DocTemplateId } from "@/lib/doc-templates";
 import { BankMark, WalletMark } from "@/components/invoices/PaymentLogos";
 import { QuotaSeal } from "@/components/invoices/QuotaSeal";
 import { BasicDocument } from "@/components/invoices/BasicDocument";
 import { cn } from "@/lib/utils";
 import {
-  invoiceBalance,
+  documentKinds,
   invoicePaid,
   invoiceTotals,
+  isQuoteKind,
   lineNet,
   paymentMethodLabels,
   type Invoice,
@@ -34,15 +35,15 @@ export function InvoiceDocument({
   /** Tipo de documento a imprimir (factura, recibo ou cotação). */
   docKind?: DocKind;
 }) {
-  const { net, vat, total } = invoiceTotals(invoice);
+  const { sub, discount, vat, total } = invoiceTotals(invoice);
   const company = useCompany();
   const active = useDocTemplate();
   const template = templateOverride ?? active;
   const paid = invoicePaid(invoice);
-  const balance = invoiceBalance(invoice);
   const payments = invoice.payments ?? [];
-  const bank = company.bank;
-  const wallets = company.wallets ?? [];
+  const banks = companyBanks(company);
+  const wallets = companyWallets(company);
+  const visual = invoice.kind === "cotv";
 
   if (template === "basic-claro" || template === "basic-escuro") {
     return <BasicDocument invoice={invoice} docKind={docKind} dark={template === "basic-escuro"} />;
@@ -55,6 +56,8 @@ export function InvoiceDocument({
 
   const isReceipt = docKind === "recibo";
   const reference = isReceipt ? (invoice.receiptNumber ?? invoice.number) : invoice.number;
+  // O rótulo impresso vem do tipo real (Pró-forma, VD…), não só de factura/cotação.
+  const title = isReceipt ? kindLabel.recibo : documentKinds[invoice.kind]?.label ?? kindLabel[docKind];
 
   return (
     <div
@@ -66,6 +69,15 @@ export function InvoiceDocument({
     >
       {modern && <div className="h-2.5 w-full bg-slate-900" />}
       <div className={cn("p-8 md:p-12", minimal && "md:p-14")}>
+        {company.logo && (
+          <div className={cn("mb-5 flex", elegant && "justify-center")}>
+            <img
+              src={company.logo}
+              alt={`Logotipo de ${company.name}`}
+              className="h-16 max-w-[220px] object-contain object-left"
+            />
+          </div>
+        )}
         <header
           className={cn(
             "gap-6 pb-6",
@@ -75,27 +87,17 @@ export function InvoiceDocument({
             !elegant && (minimal ? "border-b border-slate-100" : "border-b border-slate-200"),
           )}
         >
-          <div className={cn("flex items-start gap-4", elegant && "flex-col items-center")}>
-            {company.logo && (
-              <img
-                src={company.logo}
-                alt={`Logotipo de ${company.name}`}
-                className="h-14 w-14 shrink-0 rounded-lg object-contain"
-              />
-            )}
-            <div>
-              <p className="font-display text-2xl font-semibold tracking-tight text-slate-900">{company.name}</p>
-              <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-                {company.address}
-                <br />
-                NUIT {company.nuit} · {company.email} · {company.phone}
-              </p>
-            </div>
+          <div className={cn(elegant && "text-center")}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Emitido por</p>
+            <p className="mt-1 font-display text-2xl font-semibold tracking-tight text-slate-900">{company.name}</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+              {company.address}
+              <br />
+              NUIT {company.nuit} · {company.email} · {company.phone}
+            </p>
           </div>
           <div className={cn(elegant ? "text-center" : "text-right")}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              {kindLabel[docKind]}
-            </p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{title}</p>
             <p className="font-display text-xl font-semibold tabular-nums">{reference}</p>
             <p className="mt-2 text-[12px] text-slate-500">
               Emissão:{" "}
@@ -105,7 +107,7 @@ export function InvoiceDocument({
               {!isReceipt && (
                 <>
                   <br />
-                  Vencimento:{" "}
+                  {isQuoteKind(invoice.kind) ? "Válida até" : "Vencimento"}:{" "}
                   <span className="tabular-nums font-medium text-slate-700">{formatDate(invoice.due)}</span>
                 </>
               )}
@@ -119,28 +121,19 @@ export function InvoiceDocument({
           </div>
         </header>
 
-        <section className="mt-6 grid gap-6 sm:grid-cols-2">
+        <section className={cn("mt-6 flex", elegant ? "justify-center text-center" : "justify-end text-right")}>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Cliente</p>
             <p className="mt-1.5 font-semibold">{invoice.client.name}</p>
             <p className="text-[12px] leading-relaxed text-slate-500">
-              NUIT {invoice.client.nuit}
-              <br />
-              {invoice.client.address}
-              <br />
-              {invoice.client.email} · {invoice.client.phone}
+              {invoice.client.nuit && <>NUIT {invoice.client.nuit}<br /></>}
+              {invoice.client.address && <>{invoice.client.address}<br /></>}
+              {[invoice.client.email, invoice.client.phone].filter(Boolean).join(" · ")}
             </p>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              {isReceipt ? "Valor recebido" : balance > 0 ? "Valor em dívida" : "Total pago"}
-            </p>
-            <p className="mt-1.5 font-display text-2xl font-semibold tabular-nums">
-              {formatMZN(isReceipt ? paid || total : balance > 0 ? balance : total)}{" "}
-              <span className="text-sm font-normal text-slate-500">MZN</span>
-            </p>
-            {(isReceipt || balance <= 0) && (
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">Pago</p>
+            {isReceipt && (
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
+                Pago · {formatMZN(paid || total)} MZN
+              </p>
             )}
           </div>
         </section>
@@ -161,6 +154,7 @@ export function InvoiceDocument({
                         : "border-y border-slate-200 text-slate-500",
               )}
             >
+              {visual && <th className="w-16 py-2.5 font-medium">Imagem</th>}
               <th className="py-2.5 font-medium">Descrição</th>
               <th className="py-2.5 text-right font-medium">Qtd</th>
               <th className="py-2.5 text-right font-medium">Preço</th>
@@ -171,7 +165,19 @@ export function InvoiceDocument({
           <tbody className={cn(corporate && "[&>tr:nth-child(even)]:bg-slate-50")}>
             {invoice.lines.map((l, i) => (
               <tr key={i} className="border-b border-slate-100">
-                <td className={cn("py-2.5 pr-4", corporate && "px-2")}>{l.description}</td>
+                {visual && (
+                  <td className="py-2 pr-3">
+                    {l.img ? (
+                      <img src={l.img} alt="" className="h-12 w-12 rounded-md object-cover" />
+                    ) : (
+                      <span className="block h-12 w-12 rounded-md bg-slate-100" />
+                    )}
+                  </td>
+                )}
+                <td className={cn("py-2.5 pr-4", corporate && "px-2")}>
+                  {l.description}
+                  {l.note && <span className="block text-[11px] text-slate-500">{l.note}</span>}
+                </td>
                 <td className="py-2.5 text-right tabular-nums">{l.qty}</td>
                 <td className="py-2.5 text-right tabular-nums">{formatMZN(l.price)}</td>
                 <td className="py-2.5 text-right tabular-nums">{l.vat}%</td>
@@ -193,7 +199,7 @@ export function InvoiceDocument({
           >
             <div className="flex justify-between">
               <dt className="text-slate-500">Subtotal</dt>
-              <dd className="tabular-nums">{formatMZN(net)}</dd>
+              <dd className="tabular-nums">{formatMZN(sub)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-500">IVA</dt>
@@ -203,17 +209,17 @@ export function InvoiceDocument({
               <dt>Total</dt>
               <dd className="tabular-nums">{formatMZN(total)} MZN</dd>
             </div>
-            {paid > 0 && (
-              <>
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Pago</dt>
-                  <dd className="tabular-nums">− {formatMZN(paid)}</dd>
-                </div>
-                <div className="flex justify-between border-t border-slate-200 pt-2 font-semibold">
-                  <dt>Saldo</dt>
-                  <dd className="tabular-nums">{formatMZN(balance)} MZN</dd>
-                </div>
-              </>
+            {invoice.discount > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-slate-500">Desconto {invoice.discount}%</dt>
+                <dd className="tabular-nums">− {formatMZN(discount)}</dd>
+              </div>
+            )}
+            {paid > 0 && !isReceipt && (
+              <div className="flex justify-between text-emerald-700">
+                <dt>Pago</dt>
+                <dd className="tabular-nums">{formatMZN(paid)} MZN</dd>
+              </div>
             )}
           </dl>
         </div>
@@ -240,7 +246,7 @@ export function InvoiceDocument({
           </section>
         )}
 
-        {company.showPaymentDetails && !isReceipt && (bank || wallets.length > 0) && (
+        {company.showPaymentDetails && !isReceipt && (banks.length > 0 || wallets.length > 0) && (
           <section
             className={cn(
               "mt-8 rounded-sm p-4",
@@ -253,19 +259,23 @@ export function InvoiceDocument({
           >
             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Dados de pagamento</p>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              {bank && (
-                <div className="space-y-1.5">
-                  <BankMark id={bank.bankId} />
-                  <p className={cn("text-[12px] font-semibold", modern && "text-white")}>{bank.accountName}</p>
-                  <p className={cn("text-[11px] tabular-nums", modern ? "text-slate-300" : "text-slate-500")}>
-                    Conta {bank.account}
-                    {bank.nib ? (
-                      <>
-                        <br />
-                        NIB {bank.nib}
-                      </>
-                    ) : null}
-                  </p>
+              {banks.length > 0 && (
+                <div className="space-y-3">
+                  {banks.map((bank, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <BankMark id={bank.bankId} />
+                      <p className={cn("text-[12px] font-semibold", modern && "text-white")}>{bank.accountName}</p>
+                      <p className={cn("text-[11px] tabular-nums", modern ? "text-slate-300" : "text-slate-500")}>
+                        Conta {bank.account}
+                        {bank.nib ? (
+                          <>
+                            <br />
+                            NIB {bank.nib}
+                          </>
+                        ) : null}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
               {wallets.length > 0 && (

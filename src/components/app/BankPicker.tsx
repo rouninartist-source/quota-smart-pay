@@ -4,10 +4,10 @@ import { BankMark } from "@/components/invoices/PaymentLogos";
 import { cn } from "@/lib/utils";
 
 /** Escolha do banco pelo logótipo — em vez de um select de texto. */
-export function BankPicker({ value, onChange }: { value?: BankId; onChange: (id?: BankId) => void }) {
+export function BankPicker({ value, onChange, hideNone }: { value?: BankId; onChange: (id?: BankId) => void; hideNone?: boolean }) {
   return (
     <div role="radiogroup" aria-label="Banco" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      <button
+      {!hideNone && <button
         type="button"
         role="radio"
         aria-checked={!value}
@@ -18,7 +18,7 @@ export function BankPicker({ value, onChange }: { value?: BankId; onChange: (id?
         )}
       >
         Sem conta bancária
-      </button>
+      </button>}
       {banks.map((b) => {
         const on = value === b.id;
         return (

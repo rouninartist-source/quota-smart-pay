@@ -267,3 +267,16 @@
   html, body { background: #fff !important; }
   .invoice-sheet { box-shadow: none !important; max-width: none !important; padding: 0 !important; }
 }
+
+/* Valores escrevem-se à mão: sem setas nos campos numéricos (pedido do QA). */
+@layer base {
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

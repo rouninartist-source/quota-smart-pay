@@ -3,7 +3,7 @@ import { signOut, useSession } from "@/lib/auth";
 import { displayName, initialsOf, useProfile } from "@/lib/profile-store";
 import { Bell, Check, ChevronDown, Menu, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
-import { notifications } from "@/lib/mock-data";
+import { markRead, useNotifications } from "@/lib/notifications-store";
 import { quickCreate } from "./nav-items";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
   const { session } = useSession();
   const { profile } = useProfile();
   const { theme, toggle } = useTheme();
+  const notifications = useNotifications();
   const unread = notifications.filter((n) => !n.read).length;
   const { org, orgs } = useOrg();
   const plan = getPlan(org?.plan);
@@ -151,10 +152,15 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             </div>
             <DropdownMenuSeparator className="m-0" />
             <ul className="max-h-80 overflow-y-auto">
-              {notifications.slice(0, 5).map((n) => (
+              {notifications.length === 0 && (
+                <li className="px-3 py-6 text-center text-xs text-muted-foreground">Está tudo em dia.</li>
+              )}
+              {notifications.slice(0, 6).map((n) => (
                 <li key={n.id}>
                   <Link
-                    to="/dashboard/notificacoes"
+                    to="/dashboard/documentos/$id"
+                    params={{ id: n.invoiceId }}
+                    onClick={() => markRead([n.id])}
                     className="flex gap-2.5 px-3 py-2.5 transition-colors hover:bg-muted/60"
                   >
                     <span

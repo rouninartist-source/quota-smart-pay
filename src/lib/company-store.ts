@@ -20,10 +20,30 @@ export type Company = {
   paymentNote: string;
   /** Mostrar bloco "Dados de pagamento" no documento. */
   showPaymentDetails: boolean;
+  /** @deprecated substituído por `banks`; mantido para ler definições antigas. */
   bank?: BankAccount;
+  /** Contas bancárias impressas nos documentos (pode haver várias). */
+  banks: BankAccount[];
   /** Carteiras móveis (M-Pesa / e-Mola) com número e nome de confirmação. */
   wallets: WalletAccount[];
+  /** Que meios de pagamento aparecem nos documentos. */
+  paymentMode: "both" | "bank" | "wallet";
+  /** Número WhatsApp Business da empresa e modelo da mensagem de cobrança. */
+  whatsapp?: { number: string; template: string; connectedAt: string };
 };
+
+/** Contas a imprimir, já filtradas pelo modo escolhido. */
+export function companyBanks(c: Company): BankAccount[] {
+  if (c.paymentMode === "wallet") return [];
+  const list = c.banks?.length ? c.banks : c.bank ? [c.bank] : [];
+  return list;
+}
+export function companyWallets(c: Company): WalletAccount[] {
+  return c.paymentMode === "bank" ? [] : (c.wallets ?? []);
+}
+
+export const DEFAULT_WHATSAPP_TEMPLATE =
+  "Olá {cliente}, lembramos o documento {numero} no valor de {valor} MZN, com vencimento a {vencimento}. Obrigado!";
 
 export const defaultCompany: Company = {
   name: "Quota Studio",
@@ -33,12 +53,15 @@ export const defaultCompany: Company = {
   phone: "+258 84 000 0000",
   paymentNote: "Indique o número do documento na referência do pagamento.",
   showPaymentDetails: true,
-  bank: {
-    bankId: "bci",
-    accountName: "Quota Studio, Lda",
-    account: "1234567890001",
-    nib: "0008 0000 1234567890 157",
-  },
+  banks: [
+    {
+      bankId: "bci",
+      accountName: "Quota Studio, Lda",
+      account: "1234567890001",
+      nib: "0008 0000 1234567890 157",
+    },
+  ],
+  paymentMode: "both",
   wallets: [
     { provider: "mpesa", number: "84 000 0000", name: "QUOTA STUDIO LDA" },
     { provider: "emola", number: "86 000 0000", name: "QUOTA STUDIO LDA" },
@@ -74,7 +97,12 @@ async function ensureRow() {
   if (data) {
     rowId = data.id as string;
     const settings = (data.settings ?? {}) as Partial<Company>;
-    if (Object.keys(settings).length) company = { ...defaultCompany, ...settings };
+    if (Object.keys(settings).length) {
+      company = { ...defaultCompany, ...settings };
+      // Definições antigas só tinham uma conta (`bank`): passa a fazer parte da lista.
+      if (!settings.banks && settings.bank) company.banks = [settings.bank];
+      if (!settings.paymentMode) company.paymentMode = "both";
+    }
     return rowId;
   }
 

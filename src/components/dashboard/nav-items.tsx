@@ -48,6 +48,8 @@ export const navGroups: NavGroup[] = [
       { label: "Documentos", to: "/dashboard/documentos", icon: FolderOpen, exact: true },
       { label: "Cotações", to: "/dashboard/documentos", icon: FileSpreadsheet, search: { tipo: "cotacao" } },
       { label: "Facturas", to: "/dashboard/documentos", icon: FileText, search: { tipo: "factura" } },
+      { label: "Pró-formas", to: "/dashboard/documentos", icon: FileText, search: { tipo: "proforma" } },
+      { label: "VD / Facturas-recibo", to: "/dashboard/documentos", icon: ReceiptText, search: { tipo: "vd" } },
       { label: "Recibos", to: "/dashboard/documentos", icon: ReceiptText, search: { tipo: "recibo" } },
       { label: "Clientes", to: "/dashboard/clientes", icon: Users },
     ],

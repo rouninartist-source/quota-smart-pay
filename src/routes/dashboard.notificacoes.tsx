@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Bell, CheckCheck, CreditCard, FileText, Users, Settings2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Bell, CheckCheck, CreditCard, FileText, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
 import { EmptyState } from "@/components/app/States";
 import { Button } from "@/components/ui/button";
-import { notifications as seed } from "@/lib/mock-data";
+import { markRead, useNotifications } from "@/lib/notifications-store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/notificacoes")({
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/dashboard/notificacoes")({
   component: NotificacoesPage,
 });
 
-const kindIcon = { pagamento: CreditCard, documento: FileText, cliente: Users, sistema: Settings2 } as const;
+const kindIcon = { pagamento: CreditCard, documento: FileText } as const;
 const tabs = [
   { key: "todas", label: "Todas" },
   { key: "nao-lidas", label: "Por ler" },
@@ -30,7 +30,8 @@ const tabs = [
 ];
 
 function NotificacoesPage() {
-  const [items, setItems] = useState(seed);
+  const items = useNotifications();
+  const navigate = useNavigate();
   const [tab, setTab] = useState("todas");
 
   const filtered = items.filter((n) =>
@@ -51,7 +52,7 @@ function NotificacoesPage() {
             size="sm"
             className="h-9"
             disabled={unread === 0}
-            onClick={() => setItems((p) => p.map((n) => ({ ...n, read: true })))}
+            onClick={() => markRead(items.map((n) => n.id))}
           >
             <CheckCheck className="h-4 w-4" /> Marcar todas como lidas
           </Button>
@@ -88,7 +89,11 @@ function NotificacoesPage() {
             return (
               <li key={n.id}>
                 <button
-                  onClick={() => setItems((p) => p.map((x) => (x.id === n.id ? { ...x, read: true } : x)))}
+                  onClick={() => {
+                    markRead([n.id]);
+                    navigate({ to: "/dashboard/documentos/$id", params: { id: n.invoiceId } });
+                  }}
+                  title="Abrir o documento"
                   className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:bg-muted/40"
                 >
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
@@ -102,6 +107,7 @@ function NotificacoesPage() {
                     <span className="mt-0.5 block text-[13px] text-muted-foreground">{n.body}</span>
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">{n.time}</span>
+                  <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
                 </button>
               </li>
             );

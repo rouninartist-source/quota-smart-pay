@@ -10,6 +10,7 @@ import {
   Trash2,
   Send,
   Download,
+  Printer,
   Save,
   Sparkles,
   Package,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { shrinkImage } from "@/lib/images";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
 import { useCompany } from "@/lib/company-store";
@@ -194,8 +196,12 @@ function Documentos() {
   }, [clients, client]);
 
   const hasClient = client.trim().length > 0;
-  const validLines = lines.filter((l) => l.desc.trim() && l.qty > 0);
-  const isReady = hasClient && validLines.length > 0;
+  // Todas as linhas têm de estar completas: descrição, quantidade e valor.
+  const lineProblem = (l: Line) => (!l.desc.trim() ? "sem descrição" : l.qty <= 0 ? "sem quantidade" : l.price <= 0 ? "sem valor" : null);
+  const badLine = lines.find((l) => lineProblem(l));
+  const validLines = badLine ? [] : lines;
+  const isReady = hasClient && lines.length > 0 && !badLine;
+  const [flagged, setFlagged] = useState<number | null>(null);
   const reference = `${type.code} — atribuído ao emitir`;
 
   /** Grava e devolve a factura criada; toda a acção passa por aqui. */
@@ -204,8 +210,15 @@ function Documentos() {
       toast.error("Indique o cliente.");
       return undefined;
     }
-    if (!validLines.length) {
-      toast.error("Adicione ao menos uma linha com descrição e quantidade.");
+    if (lines.length === 0) {
+      toast.error("Adicione ao menos uma linha.");
+      return undefined;
+    }
+    if (badLine) {
+      setFlagged(badLine.id);
+      toast.error(`Linha ${lines.indexOf(badLine) + 1} ${lineProblem(badLine)}.`, {
+        description: "Só é possível emitir com descrição, quantidade e valor em todas as linhas.",
+      });
       return undefined;
     }
     const due = addDays(date, Number(validity) || 0);
@@ -235,40 +248,23 @@ function Documentos() {
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 
-  async function savePdf() {
+  async function savePdf(mode: "pdf" | "print") {
     setBusy("pdf");
     const created = await persist("rascunho");
     setBusy(null);
     if (!created) return;
-    window.open(`/facturas/${created.id}/imprimir`, "_blank", "noreferrer");
+    window.open(`/facturas/${created.id}/imprimir${mode === "pdf" ? "?preview=1" : ""}`, "_blank", "noreferrer");
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 
   async function issueAndSend() {
     setBusy("send");
-    const created = await persist("enviada");
+    const created = await persist("rascunho");
     setBusy(null);
     if (!created) return;
-    const link = `${window.location.origin}/facturas/${created.id}/imprimir`;
-    const msg = [
-      `Estimado(a) ${created.client.name},`,
-      "",
-      `Segue ${isQuote ? "a cotação" : type.id === "pf" ? "a factura pró-forma" : "a factura"} ${created.number} no valor de ${mzn(totals.total)} MZN` +
-        (isQuote ? `, válida até ${formatDate(created.due)}.` : `, com vencimento a ${formatDate(created.due)}.`),
-      "",
-      `Documento em PDF: ${link}`,
-      isQuote ? "" : company.paymentNote,
-      "",
-      "Com os melhores cumprimentos,",
-      company.name,
-    ].filter((l) => l !== "").join("\n");
-    const phone = contact.phone.replace(/\D/g, "");
-    if (phone) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, "_blank", "noreferrer");
-    else if (contact.email) window.location.href = `mailto:${contact.email}?subject=${encodeURIComponent(`${type.label} ${created.number} — ${company.name}`)}&body=${encodeURIComponent(msg)}`;
-    toast.success(`${type.label} emitida`, {
-      description: `${created.number} · ${mzn(totals.total)} MZN` + (phone || contact.email ? " · a abrir o envio" : " · cliente sem contacto — partilhe o PDF"),
-    });
-    navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
+    toast.success(`${type.label} emitida`, { description: `${created.number} · ${mzn(totals.total)} MZN` });
+    // A escolha do canal (WhatsApp, e-mail registado ou outro) faz-se na página do documento.
+    navigate({ to: "/dashboard/documentos/$id", params: { id: created.id }, search: { partilhar: true } });
   }
 
   return (
@@ -325,7 +321,14 @@ function Documentos() {
               <Save className="h-3.5 w-3.5" /> Guardar
             </button>
             <button
-              onClick={savePdf}
+              onClick={() => savePdf("print")}
+              disabled={busy !== null}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
+            >
+              <Printer className="h-3.5 w-3.5" /> Imprimir
+            </button>
+            <button
+              onClick={() => savePdf("pdf")}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
             >
@@ -411,22 +414,28 @@ function Documentos() {
               lines.map((l, idx) => (
                 <div
                   key={l.id}
-                  className="group grid grid-cols-[minmax(0,1fr)_44px_84px_28px] items-center gap-2 rounded-lg px-1.5 py-1 transition hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_56px_96px_96px_28px]"
+                  className={cn(
+                    "group grid grid-cols-[minmax(0,1fr)_44px_84px_28px] items-center gap-2 rounded-lg px-1.5 py-1 transition hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_56px_96px_96px_28px]",
+                    flagged === l.id && "ring-2 ring-destructive/50",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     {isVisual && (
-                      <button
-                        onClick={() =>
-                          update(l.id, {
-                            img: tileGradients[(tileGradients.indexOf(l.img) + 1) % tileGradients.length],
-                          })
-                        }
-                        aria-label={`Mudar imagem de ${l.desc || "linha"}`}
-                        className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-md border border-border/70 text-[11px] font-bold text-primary-foreground"
-                        style={{ background: l.img || tileGradients[idx % tileGradients.length] }}
+                      <label
+                        title="Fotografia do artigo"
+                        className="relative grid h-9 w-9 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-md border border-border/70 bg-muted text-muted-foreground hover:border-primary/60"
                       >
-                        {l.desc ? l.desc.charAt(0).toUpperCase() : <ImagePlus className="h-3.5 w-3.5" />}
-                      </button>
+                        {l.img ? <img src={l.img} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-3.5 w-3.5" />}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          onChange={async (e) => {
+                            const f = e.target.files?.[0];
+                            if (f) update(l.id, { img: await shrinkImage(f, 480) });
+                          }}
+                        />
+                      </label>
                     )}
                     <div className="grid min-w-0 flex-1 gap-1">
                       <Cell
@@ -554,12 +563,16 @@ function Documentos() {
               <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
                 {lines.map((l, idx) => (
                   <article key={l.id} className="overflow-hidden rounded-md border border-border/70 bg-surface">
-                    <div
-                      className="grid h-20 place-items-center text-2xl font-bold text-primary-foreground"
-                      style={{ background: l.img || tileGradients[idx % tileGradients.length] }}
-                    >
-                      {l.desc ? l.desc.charAt(0).toUpperCase() : "?"}
-                    </div>
+                    {l.img ? (
+                      <img src={l.img} alt="" className="h-24 w-full object-cover" />
+                    ) : (
+                      <div
+                        className="grid h-24 place-items-center text-2xl font-bold text-primary-foreground"
+                        style={{ background: tileGradients[idx % tileGradients.length] }}
+                      >
+                        {l.desc ? l.desc.charAt(0).toUpperCase() : "?"}
+                      </div>
+                    )}
                     <div className="p-2.5">
                       <p className="truncate text-[12px] font-semibold">{l.desc || "Sem descrição"}</p>
                       {l.note && <p className="truncate text-[11px] text-muted-foreground">{l.note}</p>}

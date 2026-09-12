@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Ban,
@@ -6,17 +6,17 @@ import {
   ChevronLeft,
   Copy,
   Download,
-  Mail,
-  MessageCircle,
+  Printer,
+  Send,
   Plus,
   Receipt,
   Trash2,
   X,
 } from "lucide-react";
+import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
 import { toast } from "sonner";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { formatDate, formatMZN } from "@/lib/format";
-import { useCompany } from "@/lib/company-store";
 import {
   addPayment,
   cancelInvoice,
@@ -39,6 +39,8 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/documentos/$id")({
+  validateSearch: (search: Record<string, unknown>): { partilhar?: boolean } =>
+    search.partilhar ? { partilhar: true } : {},
   head: () => ({
     meta: [
       { title: "Documento · Quota Studio" },
@@ -55,9 +57,14 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 function DocumentoPage() {
   const { id } = Route.useParams();
+  const { partilhar } = Route.useSearch();
   const ready = useInvoicesReady();
+  const [share, setShare] = useState(false);
+  // Vem da bancada com "Emitir e enviar": abre logo a escolha do canal.
+  useEffect(() => {
+    if (partilhar) setShare(true);
+  }, [partilhar]);
   const invoice = useInvoice(id);
-  const company = useCompany();
   const navigate = useNavigate();
   const [view, setView] = useState<DocKind>("factura");
   const [payOpen, setPayOpen] = useState(false);
@@ -92,41 +99,8 @@ function DocumentoPage() {
   const live = inv.status !== "cancelada";
   const docKind: DocKind = view === "recibo" && inv.receiptNumber ? "recibo" : quote ? "cotacao" : "factura";
   const printPath = `/facturas/${inv.id}/imprimir${docKind === "recibo" ? "?tipo=recibo" : docKind === "cotacao" ? "?tipo=cotacao" : ""}`;
-  const link = typeof window !== "undefined" ? `${window.location.origin}${printPath}` : printPath;
+  const link = shareLink(inv, docKind === "recibo" ? "recibo" : "documento");
 
-  const message = () =>
-    [
-      `Estimado(a) ${inv.client.name},`,
-      "",
-      docKind === "recibo"
-        ? `Segue o recibo ${inv.receiptNumber} referente a ${inv.number}, no valor de ${formatMZN(paid || total)} MZN.`
-        : `Segue ${quote ? "a cotação" : "a factura"} ${inv.number} no valor de ${formatMZN(total)} MZN` +
-          (quote ? `, válida até ${formatDate(inv.due)}.` : `, com vencimento a ${formatDate(inv.due)}.`),
-      !quote && docKind !== "recibo" && balance > 0 ? `Valor em dívida: ${formatMZN(balance)} MZN.` : "",
-      "",
-      `Documento em PDF: ${link}`,
-      quote || docKind === "recibo" ? "" : company.paymentNote,
-      "",
-      "Com os melhores cumprimentos,",
-      company.name,
-    ]
-      .filter((l) => l !== "")
-      .join("\n");
-
-  const markSent = () => inv.status === "rascunho" && void updateInvoiceStatus(inv.id, "enviada");
-
-  function sendWhatsApp() {
-    const phone = inv.client.phone.replace(/\D/g, "");
-    if (!phone) return toast.error("O cliente não tem telefone na ficha.");
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message())}`, "_blank", "noreferrer");
-    markSent();
-  }
-  function sendEmail() {
-    if (!inv.client.email) return toast.error("O cliente não tem email na ficha.");
-    const subject = `${docKind === "recibo" ? "Recibo " + inv.receiptNumber : kind.label + " " + inv.number} — ${company.name}`;
-    window.location.href = `mailto:${inv.client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message())}`;
-    markSent();
-  }
   async function copyLink() {
     await navigator.clipboard?.writeText(link);
     toast.success("Ligação copiada", { description: link });
@@ -194,10 +168,10 @@ function DocumentoPage() {
           )}
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
-            <Action Icon={Download} onClick={() => window.open(printPath, "_blank", "noreferrer")}>PDF</Action>
+            <Action Icon={Printer} onClick={() => window.open(printPath, "_blank", "noreferrer")}>Imprimir</Action>
+            <Action Icon={Download} onClick={() => window.open(`${printPath}${printPath.includes("?") ? "&" : "?"}preview=1`, "_blank", "noreferrer")}>PDF</Action>
             <Action Icon={Copy} onClick={copyLink}>Ligação</Action>
-            <Action Icon={Mail} onClick={sendEmail} disabled={!live}>Email</Action>
-            <Action Icon={MessageCircle} onClick={sendWhatsApp} disabled={!live} tone="success">WhatsApp</Action>
+            <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">Enviar</Action>
           </div>
         </div>
       </section>
@@ -310,6 +284,7 @@ function DocumentoPage() {
           </section>
         </aside>
       </div>
+      {share && <ShareDialog invoice={inv} kind={docKind === "recibo" ? "recibo" : "documento"} onClose={() => setShare(false)} />}
     </div>
   );
 }

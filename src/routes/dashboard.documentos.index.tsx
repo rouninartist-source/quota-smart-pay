@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Plus, FileText, Download, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
+import { Search, Plus, FileText, Download, Printer, Send, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
+import { ShareDialog } from "@/components/documents/ShareDialog";
 import { toast } from "sonner";
 import { formatDate, formatMZN } from "@/lib/format";
 import {
@@ -23,7 +24,7 @@ import { useCompany } from "@/lib/company-store";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 
-type Kind = "factura" | "recibo" | "cotacao";
+type Kind = "factura" | "proforma" | "vd" | "recibo" | "cotacao";
 type Filter = "todos" | Kind;
 
 export const Route = createFileRoute("/dashboard/documentos/")({
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/dashboard/documentos/")({
     ],
   }),
   validateSearch: (search: Record<string, unknown>): { tipo?: Filter; doc?: string } => {
-    const tipo = (["todos", "factura", "recibo", "cotacao"] as const).find((k) => k === search.tipo);
+    const tipo = (["todos", "factura", "proforma", "vd", "recibo", "cotacao"] as const).find((k) => k === search.tipo);
     return {
       ...(tipo ? { tipo } : {}),
       ...(typeof search.doc === "string" ? { doc: search.doc } : {}),
@@ -58,13 +59,28 @@ export const Route = createFileRoute("/dashboard/documentos/")({
 const filterLabels: Record<Filter, string> = {
   todos: "Todos",
   factura: "Facturas",
+  proforma: "Pró-formas",
+  vd: "VD",
   recibo: "Recibos",
   cotacao: "Cotações",
 };
 
+const kindNames: Record<Kind, string> = {
+  factura: "Factura",
+  proforma: "Pró-forma",
+  vd: "VD/Recibo",
+  recibo: "Recibo",
+  cotacao: "Cotação",
+};
+
+/** Tipo guardado → separador da lista. */
+const rowKind = (k: Invoice["kind"]): Kind => (isQuoteKind(k) ? "cotacao" : k === "pf" ? "proforma" : k === "fr" ? "vd" : "factura");
+
 /** Prefixo do número já identifica o tipo — a cor evita uma coluna inteira. */
 const kindBadge: Record<Kind, string> = {
   factura: "bg-primary/12 text-primary",
+  proforma: "bg-warning/15 text-warning-foreground dark:text-warning",
+  vd: "bg-success/15 text-success",
   recibo: "bg-success/15 text-success",
   cotacao: "bg-muted text-muted-foreground",
 };
@@ -111,6 +127,7 @@ function DocumentosList() {
     navigate({ to: "/dashboard/documentos", search: f === "todos" ? {} : { tipo: f }, replace: true });
   const [checked, setChecked] = useState<ReadonlySet<string>>(new Set());
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [shareRow, setShareRow] = useState<Row | null>(null);
   const bodyRef = useRef<HTMLTableSectionElement>(null);
 
   const rows = useMemo<Row[]>(() => {
@@ -121,7 +138,7 @@ function DocumentosList() {
         key: `factura-${inv.id}`,
         id: inv.id,
         ...splitNumber(inv.number),
-        kind: isQuoteKind(inv.kind) ? "cotacao" : "factura",
+        kind: rowKind(inv.kind),
         client: inv.client.name,
         date: inv.issued,
         total: invoiceTotal(inv),
@@ -165,6 +182,8 @@ function DocumentosList() {
     () => ({
       todos: rows.length,
       factura: rows.filter((r) => r.kind === "factura").length,
+      proforma: rows.filter((r) => r.kind === "proforma").length,
+      vd: rows.filter((r) => r.kind === "vd").length,
       recibo: rows.filter((r) => r.kind === "recibo").length,
       cotacao: rows.filter((r) => r.kind === "cotacao").length,
     }),
@@ -228,7 +247,7 @@ function DocumentosList() {
       ["Número", "Tipo", "Cliente", "NUIT", "Data", "Total (MZN)", "Estado", "Método"],
       rowsToExport.map((r) => [
         `${r.prefix} ${r.rest}`,
-        r.kind === "factura" ? "Factura" : r.kind === "recibo" ? "Recibo" : "Cotação",
+        kindNames[r.kind],
         r.client,
         r.invoice.client.nuit,
         formatDate(r.date),
@@ -609,7 +628,11 @@ function DocumentosList() {
             onOpen={() => openRow(current)}
             onPrint={() => printRow(current)}
             onChase={() => chaseRow(current)}
+            onShare={() => setShareRow(current)}
           />
+        )}
+        {shareRow && (
+          <ShareDialog invoice={shareRow.invoice} kind={shareRow.asReceipt ? "recibo" : "documento"} onClose={() => setShareRow(null)} />
         )}
       </div>
     </div>
@@ -662,12 +685,14 @@ function DocumentPanel({
   onOpen,
   onPrint,
   onChase,
+  onShare,
 }: {
   row: Row;
   company: ReturnType<typeof useCompany>;
   onOpen: () => void;
   onPrint: () => void;
   onChase: () => void;
+  onShare: () => void;
 }) {
   const inv = row.invoice;
   const kindLabel = row.asReceipt ? "Recibo" : documentKinds[inv.kind].label;
@@ -754,10 +779,19 @@ function DocumentPanel({
       <div className="flex shrink-0 gap-2 border-t border-border/70 bg-surface px-3 py-2.5">
         <button
           onClick={onPrint}
+          title="Imprimir / guardar em PDF"
           className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[11.5px] font-semibold transition hover:bg-muted"
         >
-          <Download className="h-3.5 w-3.5" /> PDF
+          <Printer className="h-3.5 w-3.5" /> Imprimir
         </button>
+        {inv.status !== "cancelada" && (
+          <button
+            onClick={onShare}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[11.5px] font-semibold transition hover:bg-muted"
+          >
+            <Send className="h-3.5 w-3.5" /> Enviar
+          </button>
+        )}
         {canChase && (
           <button
             onClick={onChase}
