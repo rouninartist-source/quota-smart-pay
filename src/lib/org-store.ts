@@ -1,16 +1,17 @@
 /**
- * Empresa (tenant) do utilizador com sessão iniciada.
+ * Empresas (tenants) do utilizador com sessão iniciada.
  *
- * Existe porque uma conta pode ter sessão e **não** pertencer a nenhuma empresa:
- * acontece a quem for criado pelo dashboard do Supabase em vez do `/registo`, ou
- * se o registo falhar a meio. Sem isto, essa pessoa via um painel vazio sem
- * explicação e qualquer emissão falhava com "sem empresa associada".
+ * Uma conta pode ter várias empresas (plano Multi-Empresas). A empresa activa
+ * é decidida pelo Postgres (`current_org_id()`), por isso trocar = pedir ao
+ * servidor e recarregar a app, para nenhum cache ficar com dados da anterior.
  */
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import type { PlanId } from "./plans";
 
-export type Org = { id: string; name: string; nuit: string };
+export type Org = { id: string; name: string; nuit: string; plan: PlanId };
 
+let orgs: Org[] = [];
 let org: Org | null = null;
 let checked = false;
 let inflight: Promise<void> | null = null;
@@ -23,8 +24,16 @@ function emit() {
 async function load() {
   const sb = supabase;
   if (!sb) return;
-  const { data, error } = await sb.from("orgs").select("id,name,nuit").limit(1).maybeSingle();
-  if (!error && data) org = data as Org;
+  const [full, { data: current }] = await Promise.all([
+    sb.from("orgs").select("id,name,nuit,plan").order("name"),
+    sb.rpc("current_org_id"),
+  ]);
+  // Base de dados ainda sem a migração dos planos: lê sem a coluna.
+  const list: Partial<Org>[] = full.error
+    ? ((await sb.from("orgs").select("id,name,nuit").order("name")).data ?? [])
+    : (full.data ?? []);
+  orgs = list.map((o) => ({ ...(o as Org), plan: (o.plan ?? "basic") as PlanId }));
+  org = orgs.find((o) => o.id === current) ?? orgs[0] ?? null;
   emit();
 }
 
@@ -38,23 +47,35 @@ export function getOrg() {
   return org;
 }
 
-export async function createOrg(input: {
-  name: string;
-  nuit?: string;
-  sector?: string;
-  ivaRegime?: string;
-}) {
+export async function createOrg(input: { name: string; nuit?: string; sector?: string; ivaRegime?: string }) {
   const sb = supabase;
   if (!sb) return { error: "Supabase não configurado." };
-
-  const { error } = await sb.rpc("create_org", {
+  const { data, error } = await sb.rpc("create_org", {
     p_name: input.name,
     p_nuit: input.nuit ?? "",
     p_sector: input.sector ?? "",
     p_iva_regime: input.ivaRegime ?? "normal",
   });
   if (error) return { error: error.message };
+  await refreshOrg();
+  return { id: data as string };
+}
 
+/** Troca de empresa: o servidor guarda a escolha e a app recarrega limpa. */
+export async function switchOrg(id: string) {
+  const sb = supabase;
+  if (!sb) return { error: "Supabase não configurado." };
+  const { error } = await sb.rpc("set_current_org", { p_org: id });
+  if (error) return { error: error.message };
+  window.location.assign("/dashboard");
+  return {};
+}
+
+export async function setOrgPlan(plan: PlanId) {
+  const sb = supabase;
+  if (!sb || !org) return { error: "Sem empresa activa." };
+  const { error } = await sb.from("orgs").update({ plan }).eq("id", org.id);
+  if (error) return { error: error.message };
   await refreshOrg();
   return {};
 }
@@ -65,11 +86,13 @@ export async function createOrg(input: {
  */
 export function useOrg() {
   const [value, setValue] = useState<Org | null>(org);
+  const [all, setAll] = useState<Org[]>(orgs);
   const [ready, setReady] = useState(checked);
 
   useEffect(() => {
     const sync = () => {
       setValue(getOrg());
+      setAll(orgs);
       setReady(true);
     };
     listeners.add(sync);
@@ -86,5 +109,5 @@ export function useOrg() {
     };
   }, []);
 
-  return { org: value, ready };
+  return { org: value, orgs: all, ready };
 }

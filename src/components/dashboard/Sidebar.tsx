@@ -4,6 +4,8 @@ import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react
 import { menuTree, generalItems } from "./nav-items";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useOrg } from "@/lib/org-store";
+import { getPlan } from "@/lib/plans";
 
 type Props = {
   collapsed: boolean;
@@ -18,6 +20,7 @@ export function useActiveMatcher() {
 }
 
 export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
+  const { org } = useOrg();
   const isActive = useActiveMatcher();
   const currentSearch = useRouterState({ select: (s) => s.location.search as Record<string, unknown> });
   const matches = (item: { to: string; exact?: boolean; search?: Record<string, string> }) => {
@@ -46,8 +49,8 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
           </Link>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold tracking-tight">Quota Studio</p>
-              <p className="truncate text-[11px] text-muted-foreground">Plano Negócio</p>
+              <p className="truncate text-[13px] font-semibold tracking-tight">{org?.name ?? "Quota"}</p>
+              <p className="truncate text-[11px] text-muted-foreground">Plano {getPlan(org?.plan).name}</p>
             </div>
           )}
         </div>

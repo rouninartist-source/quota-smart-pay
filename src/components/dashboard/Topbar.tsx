@@ -15,7 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { selectWorkspace, useActiveWorkspace, workspaces } from "@/lib/workspaces";
+import { switchOrg, useOrg } from "@/lib/org-store";
+import { getPlan } from "@/lib/plans";
 
 type Props = {
   onOpenMobileMenu: () => void;
@@ -27,7 +28,8 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
   const { profile } = useProfile();
   const { theme, toggle } = useTheme();
   const unread = notifications.filter((n) => !n.read).length;
-  const activeWorkspace = useActiveWorkspace();
+  const { org, orgs } = useOrg();
+  const plan = getPlan(org?.plan);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/60 bg-background/80 px-3 backdrop-blur-xl md:px-6">
@@ -58,25 +60,26 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             aria-label="Trocar de empresa"
           >
             <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-primary/10 text-[10px] font-semibold text-primary">
-              {(activeWorkspace?.name ?? workspaces[0].name).charAt(0)}
+              {(org?.name ?? "Q").charAt(0)}
             </span>
-            <span className="max-w-[160px] truncate font-medium">
-              {activeWorkspace?.name ?? workspaces[0].name}
+            <span className="max-w-[160px] truncate font-medium">{org?.name ?? "A carregar…"}</span>
+            <span className="hidden rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary lg:inline">
+              Plano actual: {plan.name}
             </span>
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-            Plano Multi-empresas · {workspaces.length} empresas
+            Plano {plan.name} · {orgs.length} de {plan.maxOrgs} empresa{plan.maxOrgs === 1 ? "" : "s"}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {workspaces.map((w) => {
-            const isActive = (activeWorkspace?.id ?? workspaces[0].id) === w.id;
+          {orgs.map((w) => {
+            const isActive = org?.id === w.id;
             return (
               <DropdownMenuItem
                 key={w.id}
-                onSelect={() => selectWorkspace(w.id)}
+                onSelect={() => !isActive && void switchOrg(w.id)}
                 className="gap-2.5"
               >
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-primary/10 text-[10px] font-semibold text-primary">
@@ -84,9 +87,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium">{w.name}</span>
-                  <span className="block truncate text-[11px] text-muted-foreground">
-                    NUIT {w.nuit} · {w.role}
-                  </span>
+                  <span className="block truncate text-[11px] text-muted-foreground">NUIT {w.nuit || "—"}</span>
                 </span>
                 {isActive && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
               </DropdownMenuItem>
@@ -95,7 +96,12 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link to="/empresas" className="text-[13px]">
-              Ver todas as empresas
+              {orgs.length < plan.maxOrgs ? "Gerir e adicionar empresas" : "Ver todas as empresas"}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/dashboard/planos" className="text-[13px] text-primary">
+              <Sparkles className="h-4 w-4" /> Upgrade do plano
             </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -206,6 +212,9 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/dashboard/definicoes">Definições</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/planos" className="text-primary">Plano actual: {plan.name} · Upgrade</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/dashboard/notificacoes">Notificações</Link>
