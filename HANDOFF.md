@@ -987,3 +987,30 @@ Moved from `Projects/pickup360/tools/quota/quota-smart-pay` → `Projects/quota-
 `pickup360` was not a git repo, so nothing tracked this as a subdirectory; git history
 and remote came through intact. The emptied `tools/quota/` was removed, the stale
 `node_modules/.vite` cache was cleared, and no source file referenced the old path.
+
+
+## 2026-09-12 — Correcções do QA (lista "LISTA DE CORREÇÕES E BUGS")
+
+Tudo em produção em https://quota.milsonuix.com (Hostinger Web App, auto-deploy de `main`). Migrações `20260912090000` e `20260912100000` aplicadas.
+
+| # | Item | Estado |
+|---|------|--------|
+| 1 | Navbar "Criar" → layout antigo | Corrigido — atalhos para `/dashboard/documentos/novo?tipo=` |
+| 2 | Novo documento: Emitir/PDF não funcionavam; filtro | Corrigido — grava a sério, PDF, envio WhatsApp/email; lista só com dados reais, filtro no URL |
+| 3 | Clientes "Facturar" → layout antigo | Corrigido — abre a bancada nova com o cliente |
+| 4 | Catálogo: importar / novo produto / novo serviço | Corrigido — criar, editar, remover, importar CSV |
+| 5 | Design: layouts 2 por linha | Corrigido — 1 por linha |
+| 6 | Chat: Coming soon | Feito |
+| 7 | Perfil "Guardar" | Corrigido — guarda nos user_metadata, confirmação, palavra-passe, sessões |
+| 8 | Logótipos dos bancos | Feito — `public/banks/<id>.svg` (substituir pelos oficiais) |
+| 9 | Desempenho | Pré-carregamento paralelo + estados de carregamento; ver nota abaixo |
+| 10 | Visão geral: atalhos antigos | Corrigido; rotas antigas reencaminham (307) |
+| 11 | Login | Mensagens PT, validação, `?next=`, recuperação de palavra-passe (`/recuperar`, `/nova-palavra-passe`) |
+| 12 | Cadastro | Confirmação de palavra-passe, e-mail duplicado, metadados, ecrã de confirmação |
+| 13 | Planos / multi-empresa | Plano na barra e menu, `/dashboard/planos`, `/empresas` real, troca de empresa |
+| 14 | Consistência | Sem ligações ao layout antigo; `workspaces.ts` e mocks de cotações/recibos removidos |
+
+Notas:
+- Desempenho no Hostinger: o Passenger adormece o processo Node quando não há tráfego; o primeiro pedido depois de uns minutos demora alguns segundos (arranque). É da plataforma, não da app.
+- Planos: sem cobrança automática — mudar de plano actualiza `orgs.plan`; a equipa confirma a facturação.
+- A conta de teste (tirson@93interactions.com) tem documentos criados pelos testes automáticos (FT/PF/REC de 12-09).
