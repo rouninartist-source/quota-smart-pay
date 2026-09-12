@@ -148,6 +148,20 @@ export function useServices(): Service[] {
   return list;
 }
 
+/** Pré-carrega produtos e serviços em paralelo (chamado uma vez pelo painel). */
+export function hydrateCatalog() {
+  const jobs: Promise<void>[] = [];
+  if (!productsHydrated) {
+    productsHydrated = true;
+    jobs.push(loadProducts());
+  }
+  if (!servicesHydrated) {
+    servicesHydrated = true;
+    jobs.push(loadServices());
+  }
+  return Promise.all(jobs);
+}
+
 /* ---------------- escrita ---------------- */
 
 export type ProductInput = {

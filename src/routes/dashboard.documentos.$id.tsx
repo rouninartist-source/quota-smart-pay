@@ -33,7 +33,7 @@ import {
   statusToneClass,
   updateInvoiceStatus,
   useInvoice,
-  useInvoices,
+  useInvoicesReady,
   type PaymentMethod,
 } from "@/lib/invoices-store";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 function DocumentoPage() {
   const { id } = Route.useParams();
-  const invoices = useInvoices();
+  const ready = useInvoicesReady();
   const invoice = useInvoice(id);
   const company = useCompany();
   const navigate = useNavigate();
@@ -71,7 +71,7 @@ function DocumentoPage() {
     return (
       <div className="grid place-items-center gap-3 rounded-lg border border-border/70 bg-card px-6 py-20 text-center">
         <p className="font-display text-lg font-semibold">
-          {invoices.length === 0 ? "A carregar…" : "Documento não encontrado"}
+          {!ready ? "A carregar…" : "Documento não encontrado"}
         </p>
         <Link to="/dashboard/documentos" className="mt-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
           Voltar aos documentos

@@ -4,6 +4,10 @@ import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { useOrg } from "@/lib/org-store";
 import { CompleteOrgSetup } from "@/components/app/CompleteOrgSetup";
+import { hydrateInvoices } from "@/lib/invoices-store";
+import { hydrateClients } from "@/lib/clients-store";
+import { hydrateCompany } from "@/lib/company-store";
+import { hydrateCatalog } from "@/lib/catalog-store";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -74,6 +78,15 @@ function DashboardLayout() {
     if (isSupabaseConfigured && !loading && !session)
       void navigate({ to: "/login", search: { next: window.location.pathname + window.location.search } });
   }, [loading, session, navigate]);
+
+  /**
+   * Pré-carrega tudo em paralelo assim que há empresa: as páginas abrem já com
+   * dados em vez de cada uma ir buscar os seus ao primeiro clique.
+   */
+  useEffect(() => {
+    if (!org) return;
+    void Promise.all([hydrateInvoices(), hydrateClients(), hydrateCompany(), hydrateCatalog()]);
+  }, [org]);
 
   if (isSupabaseConfigured && (loading || !session)) {
     return (

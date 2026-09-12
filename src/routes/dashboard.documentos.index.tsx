@@ -16,6 +16,7 @@ import {
   statusMeta,
   statusToneClass,
   useInvoices,
+  useInvoicesReady,
   type Invoice,
 } from "@/lib/invoices-store";
 import { useCompany } from "@/lib/company-store";
@@ -93,6 +94,7 @@ function splitNumber(n: string) {
 
 function DocumentosList() {
   const invoices = useInvoices();
+  const ready = useInvoicesReady();
   const navigate = useNavigate();
   const { tipo, doc } = Route.useSearch();
   const company = useCompany();
@@ -451,7 +453,12 @@ function DocumentosList() {
               </button>
             </div>
           )}
-          {visible.length === 0 ? (
+          {!ready && visible.length === 0 ? (
+            <div className="grid flex-1 place-items-center gap-2 px-5 py-16 text-center">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-primary" />
+              <p className="text-sm text-muted-foreground">A carregar documentos…</p>
+            </div>
+          ) : visible.length === 0 ? (
             <div className="grid flex-1 place-items-center gap-2 px-5 py-16 text-center">
               <FileText className="h-6 w-6 text-muted-foreground" />
               <p className="text-sm font-medium">Nenhum documento encontrado</p>

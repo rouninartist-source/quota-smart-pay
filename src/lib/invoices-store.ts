@@ -279,6 +279,7 @@ async function load() {
 
   const rows = (data ?? []) as unknown as InvoiceRow[];
   invoices = rows.map(toInvoice);
+  loadedOnce = true;
   emit();
 
   if (rows.length === 0) {
@@ -603,6 +604,22 @@ async function seedDemoInvoices() {
 }
 
 /* ---------------- hooks ---------------- */
+
+let loadedOnce = false;
+
+/** `false` enquanto a primeira leitura não chegou — as listas mostram "a carregar" em vez de "vazio". */
+export function useInvoicesReady() {
+  const [ready, setReady] = useState(loadedOnce);
+  useEffect(() => {
+    const sync = () => setReady(loadedOnce);
+    listeners.add(sync);
+    sync();
+    return () => {
+      listeners.delete(sync);
+    };
+  }, []);
+  return ready;
+}
 
 export function useInvoices() {
   const [list, setList] = useState<Invoice[]>(invoices);
