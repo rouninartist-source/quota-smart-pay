@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Entrar no Quota</title></head>
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f6fb;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border:1px solid #e5e9f2;border-radius:14px;overflow:hidden;">
+        <tr><td style="background:#0b1220;padding:20px 28px;">
+          <table role="presentation" cellspacing="0" cellpadding="0"><tr>
+            <td style="width:30px;height:30px;background:#2563eb;border-radius:8px;text-align:center;color:#fff;font-weight:800;font-size:15px;line-height:30px;">Q</td>
+            <td style="padding-left:10px;color:#fff;font-weight:700;font-size:15px;letter-spacing:-.01em;">Quota</td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:32px 28px 8px;">
+          <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;letter-spacing:-.01em;">Entrar no Quota</h1>
+          <p style="margin:0;font-size:14px;line-height:1.6;color:#475569;">Use a ligação abaixo para iniciar sessão como <strong>{{ .Email }}</strong> sem palavra-passe.</p>
+        </td></tr>
+        <tr><td style="padding:20px 28px 8px;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:8px;">Entrar</a>
+        </td></tr>
+        <tr><td style="padding:8px 28px 28px;">
+          <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#64748b;">A ligação é válida por uma hora e só pode ser usada uma vez.</p>
+          <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#94a3b8;word-break:break-all;">Se o botão não abrir, copie esta ligação para o navegador:<br><a href="{{ .ConfirmationURL }}" style="color:#2563eb;">{{ .ConfirmationURL }}</a></p>
+        </td></tr>
+        <tr><td style="background:#f8fafc;border-top:1px solid #e5e9f2;padding:14px 28px;font-size:11px;color:#94a3b8;">
+          Quota · Cotações, facturas e recibos em Moçambique · <a href="{{ .SiteURL }}" style="color:#94a3b8;">{{ .SiteURL }}</a>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
