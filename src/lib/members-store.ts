@@ -50,10 +50,22 @@ export function useMembers() {
   return state;
 }
 
-export async function createInvite(email: string, role: Invite["role"]) {
+/** Empresas onde o utilizador pode convidar (dono/admin) — no plano Multi-Empresas há várias. */
+export async function adminOrgs(): Promise<{ id: string; name: string }[]> {
+  const sb = supabase;
+  if (!sb) return [];
+  const { data } = await sb.rpc("my_admin_orgs");
+  return (data ?? []) as { id: string; name: string }[];
+}
+
+export async function createInvite(email: string, role: Invite["role"], orgId?: string) {
   const sb = supabase;
   if (!sb) return { error: "Supabase não configurado." };
-  const { data, error } = await sb.from("org_invites").insert({ email: email.trim().toLowerCase(), role }).select("token").single();
+  const { data, error } = await sb
+    .from("org_invites")
+    .insert({ email: email.trim().toLowerCase(), role, ...(orgId ? { org_id: orgId } : {}) })
+    .select("token")
+    .single();
   if (error) return { error: error.message };
   await loadMembers();
   return { token: data.token as string };

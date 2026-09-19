@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Download, Printer, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { useInvoice } from "@/lib/invoices-store";
@@ -15,6 +16,8 @@ const searchSchema = z.object({
   n: z.string().optional(),
   k: z.string().optional(),
   v: z.string().optional(),
+  /** Recibo de um pagamento concreto. */
+  pagamento: z.string().optional(),
 });
 
 const ogImage = (kind?: string, tipo?: string) => {
@@ -51,15 +54,47 @@ export const Route = createFileRoute("/facturas/$id/imprimir")({
 
 function PrintInvoice() {
   const { id } = Route.useParams();
-  const { tipo, preview } = Route.useSearch();
+  const { tipo, preview, pagamento } = Route.useSearch();
   const invoice = useInvoice(id);
   const docKind: DocKind = tipo ?? "factura";
+
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!invoice || preview) return;
     const t = setTimeout(() => window.print(), 400);
     return () => clearTimeout(t);
   }, [invoice, preview]);
+
+  /** Gera um ficheiro PDF a sério: a folha é rasterizada pelo próprio browser e colocada numa página A4. */
+  async function downloadPdf() {
+    if (!sheetRef.current || !invoice) return;
+    setSaving(true);
+    try {
+      const [{ toJpeg }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
+      const node = sheetRef.current;
+      const png = await toJpeg(node, { pixelRatio: 2, quality: 0.9, backgroundColor: "#ffffff", cacheBust: true });
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const ratio = node.offsetHeight / node.offsetWidth;
+      const imgW = pageW;
+      const imgH = pageW * ratio;
+      // documentos mais altos que uma página continuam nas seguintes
+      let y = 0;
+      pdf.addImage(png, "JPEG", 0, 0, imgW, imgH);
+      while (imgH - y > pageH) {
+        y += pageH;
+        pdf.addPage();
+        pdf.addImage(png, "JPEG", 0, -y, imgW, imgH);
+      }
+      const number = (docKind === "recibo" ? (pagamento ? invoice.payments?.find((p) => p.id === pagamento)?.receiptNumber : invoice.receiptNumber) : invoice.number) ?? invoice.number;
+      pdf.save(`${number.replace(/[\s/]+/g, "-")}.pdf`);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (!invoice) {
     return (
@@ -72,14 +107,27 @@ function PrintInvoice() {
   return (
     <main className="min-h-dvh bg-slate-100 p-4 md:p-10 print:bg-white print:p-0">
       <div className="mb-4 flex justify-center print:hidden">
-        <button
-          onClick={() => window.print()}
-          className="rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-        >
-          Descarregar PDF / Imprimir
-        </button>
+        {preview ? (
+          <button
+            onClick={downloadPdf}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {saving ? "A gerar o PDF…" : "Descarregar PDF"}
+          </button>
+        ) : (
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+          >
+            <Printer className="h-3.5 w-3.5" /> Imprimir
+          </button>
+        )}
       </div>
-      <InvoiceDocument invoice={invoice} docKind={docKind} />
+      <div ref={sheetRef}>
+        <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={pagamento} />
+      </div>
     </main>
   );
 }

@@ -187,13 +187,17 @@ function Produtos() {
                     onKeyDown={(e) => e.key === "Enter" && setEditing(p)}
                     className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-border/70 bg-surface transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elegant"
                   >
-                    <div
-                      aria-hidden
-                      className="grid h-[74px] place-items-center font-display text-xl font-bold text-primary-foreground"
-                      style={{ background: tileGradients[i % tileGradients.length] }}
-                    >
-                      {p.name.charAt(0).toUpperCase()}
-                    </div>
+                    {p.image ? (
+                      <img src={p.image} alt="" className="h-[74px] w-full object-cover" />
+                    ) : (
+                      <div
+                        aria-hidden
+                        className="grid h-[74px] place-items-center font-display text-xl font-bold text-primary-foreground"
+                        style={{ background: tileGradients[i % tileGradients.length] }}
+                      >
+                        {p.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="flex flex-1 flex-col gap-1 p-2.5">
                       <p className="line-clamp-2 text-[12px] font-semibold leading-tight">{p.name}</p>
                       <p className="truncate text-[10px] text-muted-foreground">

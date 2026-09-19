@@ -11,6 +11,7 @@ import { supabase } from "./supabase";
 
 export type InvoiceStatus =
   | "rascunho"
+  | "emitida"
   | "enviada"
   | "paga"
   | "vencida"
@@ -55,6 +56,9 @@ export type Payment = {
   amount: number;
   method: PaymentMethod;
   reference?: string;
+  /** Recibo emitido para este pagamento (total ou parcial). */
+  receiptNumber?: string;
+  receiptIssued?: string;
 };
 
 export type Invoice = {
@@ -83,13 +87,8 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
   cheque: "Cheque",
 };
 
-export const demoClient: InvoiceClient = {
-  name: "João Comercial, Lda",
-  nuit: "400123456",
-  email: "joao@comercial.co.mz",
-  phone: "+258 84 210 4477",
-  address: "Av. Julius Nyerere 812, Maputo",
-};
+/** Cliente vazio — usado quando uma linha antiga não tem snapshot. */
+export const emptyClient: InvoiceClient = { name: "", nuit: "", email: "", phone: "", address: "" };
 
 function iso(offsetDays: number) {
   const d = new Date();
@@ -137,7 +136,8 @@ export function derivedStatus(inv: Invoice): InvoiceStatus {
   if (paid >= total - 0.01) return "paga";
   if (paid > 0) return "parcial";
   const overdue = new Date(inv.due).getTime() < Date.now();
-  return overdue ? "vencida" : "enviada";
+  // "emitida" mantém-se até ser enviada; só o vencimento a muda
+  return overdue ? "vencida" : inv.status === "emitida" ? "emitida" : "enviada";
 }
 
 /* ---------------- mapeamento ---------------- */
@@ -158,6 +158,8 @@ type PaymentRow = {
   amount: number;
   method: PaymentMethod;
   reference: string | null;
+  receipt_number: string | null;
+  receipt_issued: string | null;
 };
 type InvoiceRow = {
   id: string;
@@ -179,7 +181,7 @@ type InvoiceRow = {
 const SELECT =
   "id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
   "invoice_lines(id,position,description,note,qty,price,vat,image_url)," +
-  "payments(id,paid_on,amount,method,reference)";
+  "payments(id,paid_on,amount,method,reference,receipt_number,receipt_issued)";
 
 function toInvoice(r: InvoiceRow): Invoice {
   return {
@@ -192,7 +194,7 @@ function toInvoice(r: InvoiceRow): Invoice {
     status: r.status,
     notes: r.notes ?? undefined,
     clientId: r.client_id ?? undefined,
-    client: r.client_snapshot ?? demoClient,
+    client: r.client_snapshot ?? emptyClient,
     lines: (r.invoice_lines ?? [])
       .slice()
       .sort((a, b) => a.position - b.position)
@@ -204,13 +206,18 @@ function toInvoice(r: InvoiceRow): Invoice {
         note: l.note ?? undefined,
         img: l.image_url ?? undefined,
       })),
-    payments: (r.payments ?? []).map((p) => ({
-      id: p.id,
-      date: p.paid_on,
-      amount: Number(p.amount),
-      method: p.method,
-      reference: p.reference ?? undefined,
-    })),
+    payments: (r.payments ?? [])
+      .slice()
+      .sort((a, b) => a.paid_on.localeCompare(b.paid_on))
+      .map((p) => ({
+        id: p.id,
+        date: p.paid_on,
+        amount: Number(p.amount),
+        method: p.method,
+        reference: p.reference ?? undefined,
+        receiptNumber: p.receipt_number ?? undefined,
+        receiptIssued: p.receipt_issued ?? undefined,
+      })),
     receiptNumber: r.receipt_number ?? undefined,
     receiptIssued: r.receipt_issued ?? undefined,
   };
@@ -282,10 +289,6 @@ async function load() {
   loadedOnce = true;
   emit();
 
-  if (rows.length === 0) {
-    await seedDemoInvoices();
-    await refreshList();
-  }
 }
 
 export function hydrateInvoices() {
@@ -403,22 +406,50 @@ export async function addPayment(id: string, input: Omit<Payment, "id">) {
   const sb = supabase;
   if (!sb) return;
 
-  const { error } = await sb.from("payments").insert({
-    invoice_id: id,
-    paid_on: input.date,
-    amount: input.amount,
-    method: input.method,
-    reference: input.reference ?? null,
-  });
-  if (error) return fail("registar o pagamento", error);
+  const { data, error } = await sb
+    .from("payments")
+    .insert({
+      invoice_id: id,
+      paid_on: input.date,
+      amount: input.amount,
+      method: input.method,
+      reference: input.reference ?? null,
+    })
+    .select("id")
+    .single();
+  if (error || !data) return fail("registar o pagamento", error ?? { message: "sem resposta" });
 
   await refresh(id);
 
   const inv = getInvoice(id);
   if (!inv) return;
-  const base: Invoice = { ...inv, status: inv.status === "rascunho" ? "enviada" : inv.status };
+  const base: Invoice = { ...inv, status: inv.status === "rascunho" ? "emitida" : inv.status };
   const next = derivedStatus(base);
   if (next !== inv.status) await updateInvoiceStatus(id, next);
+  return getInvoice(id)?.payments?.find((p) => p.id === (data.id as string));
+}
+
+/**
+ * Recibo de um pagamento — total ou parcial, conforme o que foi recebido.
+ * O número vem da sequência de recibos da empresa; repetir devolve o mesmo.
+ */
+export async function issuePaymentReceipt(invoiceId: string, paymentId: string) {
+  const sb = supabase;
+  if (!sb) return undefined;
+  const { data, error } = await sb.rpc("issue_payment_receipt", { p_payment: paymentId });
+  if (error) {
+    fail("emitir o recibo", error);
+    return undefined;
+  }
+  await refresh(invoiceId);
+  return data as string;
+}
+
+/** Regista um pagamento (total ou parcial) e emite logo o recibo dele. */
+export async function receivePaymentWithReceipt(invoiceId: string, input: Omit<Payment, "id">) {
+  const payment = await addPayment(invoiceId, input);
+  if (!payment) return undefined;
+  return issuePaymentReceipt(invoiceId, payment.id);
 }
 
 export async function removePayment(id: string, paymentId: string) {
@@ -518,90 +549,6 @@ export async function duplicateInvoice(id: string) {
   });
 }
 
-/* ---------------- seed de demonstração ---------------- */
-
-async function seedDemoInvoices() {
-  const sb = supabase;
-  if (!sb) return;
-
-  const { data: clientRows } = await sb.from("clients").select("id,name,nuit,email,phone,address");
-  const byName = new Map((clientRows ?? []).map((c) => [c.name as string, c]));
-
-  const demos: Array<{
-    issued: string;
-    due: string;
-    status: InvoiceStatus;
-    clientName: string;
-    notes?: string;
-    lines: InvoiceLine[];
-    payments: Omit<Payment, "id">[];
-  }> = [
-    {
-      issued: iso(-1),
-      due: iso(14),
-      status: "paga",
-      clientName: "João Comercial, Lda",
-      notes: "Obrigado pela preferência.",
-      lines: [
-        { description: "Papel A4 80g (resma)", qty: 40, price: 480, vat: 16 },
-        { description: "Toner HP 26A", qty: 6, price: 4200, vat: 16 },
-      ],
-      payments: [{ date: iso(-1), amount: 51504, method: "transferencia", reference: "BCI 88213" }],
-    },
-    {
-      issued: iso(-8),
-      due: iso(-1),
-      status: "vencida",
-      clientName: "Beira Logística, SA",
-      lines: [
-        { description: 'Monitor 27" QHD', qty: 4, price: 24500, vat: 16 },
-        { description: "Consultoria fiscal (horas)", qty: 8, price: 3500, vat: 16 },
-      ],
-      payments: [],
-    },
-    {
-      issued: iso(-15),
-      due: iso(9),
-      status: "enviada",
-      clientName: "João Comercial, Lda",
-      lines: [{ description: "Manutenção mensal TI", qty: 1, price: 18500, vat: 16 }],
-      payments: [],
-    },
-    {
-      issued: iso(-24),
-      due: iso(-4),
-      status: "parcial",
-      clientName: "Farmácia Nampula",
-      lines: [
-        { description: "Implementação de rede", qty: 1, price: 42000, vat: 16 },
-        { description: "Router Wi-Fi 6 AX3000", qty: 3, price: 7400, vat: 16 },
-      ],
-      payments: [{ date: iso(-10), amount: 25000, method: "mpesa", reference: "MP 774102" }],
-    },
-  ];
-
-  for (const d of demos) {
-    const c = byName.get(d.clientName);
-    await addInvoice({
-      issued: d.issued,
-      due: d.due,
-      status: d.status,
-      notes: d.notes,
-      clientId: (c?.id as string) ?? undefined,
-      client: c
-        ? {
-            name: c.name as string,
-            nuit: (c.nuit as string) ?? "",
-            email: (c.email as string) ?? "",
-            phone: (c.phone as string) ?? "",
-            address: (c.address as string) ?? "",
-          }
-        : demoClient,
-      lines: d.lines,
-      payments: d.payments.map((p, i) => ({ ...p, id: `seed-${i}` })),
-    });
-  }
-}
 
 /* ---------------- hooks ---------------- */
 
@@ -647,6 +594,7 @@ export const statusMeta: Record<
   { label: string; tone: "success" | "warning" | "destructive" | "info" | "muted" }
 > = {
   paga: { label: "Paga", tone: "success" },
+  emitida: { label: "Emitida", tone: "info" },
   enviada: { label: "Enviada", tone: "info" },
   parcial: { label: "Parcial", tone: "warning" },
   vencida: { label: "Vencida", tone: "destructive" },

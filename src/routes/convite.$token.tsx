@@ -61,13 +61,13 @@ function Convite() {
             </p>
             {!loading && !session ? (
               <div className="mt-6 grid gap-2">
-                <Link to="/registo" className="flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
+                <Link to="/registo" search={{ convite: token }} className="flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
                   Criar a minha conta
                 </Link>
                 <Link to="/login" search={{ next }} className="flex items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-sm font-medium hover:bg-muted">
                   Já tenho conta — iniciar sessão
                 </Link>
-                <p className="text-[11.5px] text-muted-foreground">Depois de entrar, volte a abrir esta ligação para aceitar.</p>
+                <p className="text-[11.5px] text-muted-foreground">Depois de confirmar o e-mail e entrar, o convite é aceite automaticamente.</p>
               </div>
             ) : (
               <div className="mt-6">

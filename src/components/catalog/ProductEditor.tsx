@@ -4,6 +4,11 @@ import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock-data";
 import { addProduct, deleteProduct, nextSku, updateProduct, useProducts, type ProductInput } from "@/lib/catalog-store";
+import { shrinkImage } from "@/lib/images";
+import { Camera } from "lucide-react";
+
+/** Categorias sugeridas mesmo num catálogo vazio. */
+const DEFAULT_CATEGORIES = ["Consumíveis", "Tecnologia", "Mobiliário", "Alimentar", "Vestuário", "Construção", "Serviços", "Outros"];
 import { Field, Modal, inputClass } from "./Modal";
 
 const num = (v: string) => Number(String(v).replace(",", ".")) || 0;
@@ -20,13 +25,14 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
     unit: product?.unit ?? "un",
     vat: product?.vat ?? 16,
     active: product ? product.status !== "descontinuado" : true,
+    image: product?.image ?? null,
   });
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [newCategory, setNewCategory] = useState(false);
   const navigate = useNavigate();
   const all = useProducts();
-  const categories = Array.from(new Set(all.map((p) => p.category).filter(Boolean))).sort();
+  const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...all.map((p) => p.category).filter(Boolean)])).sort((a, b) => a.localeCompare(b, "pt"));
   const set = <K extends keyof ProductInput>(k: K, v: ProductInput[K]) => setD((x) => ({ ...x, [k]: v }));
   const createDoc = (tipo: "cot" | "ft") => {
     onClose();
@@ -58,13 +64,30 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
   return (
     <Modal title={product ? "Editar produto" : "Novo produto"} onClose={onClose}>
       <form onSubmit={submit} className="grid gap-3">
-        <div className="grid grid-cols-[110px_1fr] gap-3">
-          <Field label="SKU"><input className={inputClass} value={d.sku} onChange={(e) => set("sku", e.target.value)} /></Field>
-          <Field label="Nome"><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
+        <div className="flex gap-3">
+          <label className="relative grid h-[76px] w-[76px] shrink-0 cursor-pointer place-items-center overflow-hidden rounded-md border border-dashed border-border bg-surface text-muted-foreground hover:border-primary/60" title="Fotografia do produto">
+            {d.image ? <img src={d.image} alt="" className="h-full w-full object-cover" /> : <Camera className="h-4 w-4" />}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (f) set("image", await shrinkImage(f, 480));
+              }}
+            />
+          </label>
+          <div className="grid flex-1 grid-cols-[110px_1fr] gap-3">
+            <Field label="SKU"><input className={inputClass} value={d.sku} onChange={(e) => set("sku", e.target.value)} /></Field>
+            <Field label="Nome"><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
+          </div>
         </div>
+        {d.image && (
+          <button type="button" onClick={() => set("image", null)} className="justify-self-start text-[11px] text-muted-foreground hover:text-destructive">Remover fotografia</button>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <Field label="Categoria">
-            {newCategory || categories.length === 0 ? (
+            {newCategory ? (
               <input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Nova categoria" autoFocus={newCategory} />
             ) : (
               <select

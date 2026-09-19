@@ -51,26 +51,17 @@ export const DEFAULT_WHATSAPP_TEMPLATE =
   "Olá {cliente}, lembramos o documento {numero} no valor de {valor} MZN, com vencimento a {vencimento}. Obrigado!";
 
 export const defaultCompany: Company = {
-  name: "Quota Studio",
-  nuit: "400987654",
-  address: "Av. 24 de Julho 1234, Maputo · Moçambique",
-  email: "facturacao@quota.co.mz",
-  phone: "+258 84 000 0000",
+  // Uma empresa nova começa sem dados de demonstração: o nome e o NUIT vêm do registo.
+  name: "",
+  nuit: "",
+  address: "",
+  email: "",
+  phone: "",
   paymentNote: "Indique o número do documento na referência do pagamento.",
   showPaymentDetails: true,
-  banks: [
-    {
-      bankId: "bci",
-      accountName: "Quota Studio, Lda",
-      account: "1234567890001",
-      nib: "0008 0000 1234567890 157",
-    },
-  ],
+  banks: [],
   paymentMode: "both",
-  wallets: [
-    { provider: "mpesa", number: "84 000 0000", name: "QUOTA STUDIO LDA" },
-    { provider: "emola", number: "86 000 0000", name: "QUOTA STUDIO LDA" },
-  ],
+  wallets: [],
 };
 
 let company: Company = { ...defaultCompany };

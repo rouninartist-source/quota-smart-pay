@@ -26,7 +26,8 @@ import {
   invoicePaid,
   invoiceTotal,
   isQuoteKind,
-  issueReceipt,
+  issuePaymentReceipt,
+  receivePaymentWithReceipt,
   paymentMethodLabels,
   removePayment,
   statusMeta,
@@ -37,6 +38,7 @@ import {
   type PaymentMethod,
 } from "@/lib/invoices-store";
 import { cn } from "@/lib/utils";
+import { getInvoice as useInvoiceSnapshot } from "@/lib/invoices-store";
 
 export const Route = createFileRoute("/dashboard/documentos/$id")({
   validateSearch: (search: Record<string, unknown>): { partilhar?: boolean } =>
@@ -66,7 +68,9 @@ function DocumentoPage() {
   }, [partilhar]);
   const invoice = useInvoice(id);
   const navigate = useNavigate();
-  const [view, setView] = useState<DocKind>("factura");
+  /** Pagamento cujo recibo está a ser visto; null = a factura/cotação. */
+  const [viewPayment, setViewPayment] = useState<string | null>(null);
+  const [withReceipt, setWithReceipt] = useState(true);
   const [payOpen, setPayOpen] = useState(false);
   const [payDate, setPayDate] = useState(today());
   const [payAmount, setPayAmount] = useState("");
@@ -97,9 +101,11 @@ function DocumentoPage() {
   const balance = invoiceBalance(invoice);
   const payments = inv.payments ?? [];
   const live = inv.status !== "cancelada";
-  const docKind: DocKind = view === "recibo" && inv.receiptNumber ? "recibo" : quote ? "cotacao" : "factura";
-  const printPath = `/facturas/${inv.id}/imprimir${docKind === "recibo" ? "?tipo=recibo" : docKind === "cotacao" ? "?tipo=cotacao" : ""}`;
-  const link = shareLink(inv, docKind === "recibo" ? "recibo" : "documento");
+  const viewed = viewPayment ? payments.find((p) => p.id === viewPayment && p.receiptNumber) : undefined;
+  const docKind: DocKind = viewed ? "recibo" : quote ? "cotacao" : "factura";
+  const printPath = `/facturas/${inv.id}/imprimir${viewed ? `?tipo=recibo&pagamento=${viewed.id}` : docKind === "cotacao" ? "?tipo=cotacao" : ""}`;
+  const receiptPath = (pid: string) => `/facturas/${inv.id}/imprimir?tipo=recibo&pagamento=${pid}`;
+  const link = shareLink(inv, docKind === "recibo" ? "recibo" : "documento", viewed?.id);
 
   async function copyLink() {
     await navigator.clipboard?.writeText(link);
@@ -109,18 +115,37 @@ function DocumentoPage() {
     e.preventDefault();
     const amount = Number(payAmount);
     if (!Number.isFinite(amount) || amount <= 0) return toast.error("Indique um valor válido.");
-    await addPayment(inv.id, { date: payDate, amount, method: payMethod, reference: payRef.trim() || undefined });
-    toast.success("Pagamento registado", { description: `${formatMZN(amount)} MZN · ${paymentMethodLabels[payMethod]}` });
+    if (amount > balance + 0.01) return toast.error(`O valor excede o saldo em aberto (${formatMZN(balance)} MZN).`);
+    const input = { date: payDate, amount, method: payMethod, reference: payRef.trim() || undefined };
+    if (withReceipt) {
+      const ref = await receivePaymentWithReceipt(inv.id, input);
+      if (ref) {
+        toast.success(`Recibo ${ref} emitido`, { description: `${formatMZN(amount)} MZN · ${amount >= balance - 0.01 ? "liquidação total" : "pagamento parcial"}` });
+        const p = getInvoiceForView()?.payments?.find((x) => x.receiptNumber === ref);
+        if (p) setViewPayment(p.id);
+      }
+    } else {
+      await addPayment(inv.id, input);
+      toast.success("Pagamento registado", { description: `${formatMZN(amount)} MZN · ${paymentMethodLabels[payMethod]}` });
+    }
     setPayAmount("");
     setPayRef("");
     setPayOpen(false);
   }
-  async function receipt() {
-    const ref = await issueReceipt(inv.id, payMethod);
+  function getInvoiceForView() {
+    return useInvoiceSnapshot(inv.id);
+  }
+  async function receiptFor(pid: string) {
+    const ref = await issuePaymentReceipt(inv.id, pid);
     if (ref) {
-      toast.success(`Recibo ${ref} emitido`, { description: "A factura ficou liquidada." });
-      setView("recibo");
+      toast.success(`Recibo ${ref} emitido`);
+      setViewPayment(pid);
     }
+  }
+  async function issue() {
+    await updateInvoiceStatus(inv.id, "emitida");
+    toast.success(`${kind.label} ${inv.number} emitida`, { description: "Agora pode enviá-la ao cliente." });
+    setShare(true);
   }
   async function duplicate() {
     const copy = await duplicateInvoice(inv.id);
@@ -153,25 +178,29 @@ function DocumentoPage() {
           <span className={cn("rounded-md px-2 py-0.5 text-[10.5px] font-semibold", statusToneClass[meta.tone])}>
             {meta.label}
           </span>
-          {inv.receiptNumber && (
-            <div role="group" className="flex gap-0.5 rounded-lg border border-border/60 bg-surface p-0.5 text-[11px] font-semibold">
-              {(["factura", "recibo"] as DocKind[]).map((k) => (
-                <button
-                  key={k}
-                  onClick={() => setView(k)}
-                  className={cn("rounded-md px-2.5 py-1", (view === "recibo") === (k === "recibo") ? "bg-card shadow-sm" : "text-muted-foreground")}
-                >
-                  {k === "recibo" ? `Recibo ${inv.receiptNumber}` : kind.short}
+          {payments.some((p) => p.receiptNumber) && (
+            <div role="group" className="flex flex-wrap gap-0.5 rounded-lg border border-border/60 bg-surface p-0.5 text-[11px] font-semibold">
+              <button onClick={() => setViewPayment(null)} className={cn("rounded-md px-2.5 py-1", !viewed ? "bg-card shadow-sm" : "text-muted-foreground")}>
+                {kind.short}
+              </button>
+              {payments.filter((p) => p.receiptNumber).map((p) => (
+                <button key={p.id} onClick={() => setViewPayment(p.id)} className={cn("rounded-md px-2.5 py-1", viewed?.id === p.id ? "bg-card shadow-sm" : "text-muted-foreground")}>
+                  {p.receiptNumber}
                 </button>
               ))}
             </div>
           )}
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {inv.status === "rascunho" && (
+              <Action Icon={Send} onClick={issue} tone="success">Emitir</Action>
+            )}
             <Action Icon={Printer} onClick={() => window.open(printPath, "_blank", "noreferrer")}>Imprimir</Action>
             <Action Icon={Download} onClick={() => window.open(`${printPath}${printPath.includes("?") ? "&" : "?"}preview=1`, "_blank", "noreferrer")}>PDF</Action>
             <Action Icon={Copy} onClick={copyLink}>Ligação</Action>
-            <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">Enviar</Action>
+            {inv.status !== "rascunho" && (
+              <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">Enviar</Action>
+            )}
           </div>
         </div>
       </section>
@@ -180,7 +209,7 @@ function DocumentoPage() {
         {/* Documento */}
         <section className="min-h-0 overflow-y-auto overscroll-contain rounded-lg border border-border/70 bg-muted/30 p-3 md:p-5">
           <div className="mx-auto max-w-[820px]">
-            <InvoiceDocument invoice={inv} docKind={docKind} />
+            <InvoiceDocument invoice={inv} docKind={docKind} paymentId={viewed?.id} />
           </div>
         </section>
 
@@ -228,6 +257,10 @@ function DocumentoPage() {
                     </select>
                   </label>
                   <Input label="Referência" value={payRef} onChange={setPayRef} placeholder="Opcional" />
+                  <label className="inline-flex items-center gap-2 text-[11.5px]">
+                    <input type="checkbox" checked={withReceipt} onChange={(e) => setWithReceipt(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--primary)]" />
+                    Emitir recibo deste pagamento {Number(payAmount) > 0 && Number(payAmount) < balance - 0.01 ? "(parcial)" : "(total)"}
+                  </label>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setPayAmount(String(balance))} className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-semibold hover:bg-muted">
                       Saldo total
@@ -246,7 +279,16 @@ function DocumentoPage() {
                     <span className="tabular-nums text-muted-foreground">{formatDate(p.date)}</span>
                     <span className="min-w-0 flex-1 truncate">{paymentMethodLabels[p.method]}{p.reference ? ` · ${p.reference}` : ""}</span>
                     <span className="font-semibold tabular-nums">{formatMZN(p.amount)}</span>
-                    {live && !inv.receiptNumber && (
+                    {p.receiptNumber ? (
+                      <button onClick={() => window.open(receiptPath(p.id), "_blank", "noreferrer")} title="Imprimir recibo" className="inline-flex items-center gap-1 rounded bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/15">
+                        <CheckCheck className="h-3 w-3" /> {p.receiptNumber}
+                      </button>
+                    ) : live ? (
+                      <button onClick={() => receiptFor(p.id)} title="Emitir recibo deste pagamento" className="inline-flex items-center gap-1 rounded border border-success/30 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/10">
+                        <Receipt className="h-3 w-3" /> Recibo
+                      </button>
+                    ) : null}
+                    {live && !p.receiptNumber && (
                       <button onClick={() => removePayment(inv.id, p.id)} aria-label="Remover pagamento" className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -254,14 +296,10 @@ function DocumentoPage() {
                   </li>
                 ))}
               </ul>
-
-              {live && !inv.receiptNumber && (
-                <button onClick={receipt} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-[11.5px] font-semibold text-success hover:bg-success/15">
-                  <Receipt className="h-3.5 w-3.5" /> {balance > 0.01 ? "Liquidar e emitir recibo" : "Emitir recibo"}
+              {live && balance > 0.01 && !payOpen && (
+                <button onClick={() => { setPayAmount(String(balance)); setWithReceipt(true); setPayOpen(true); }} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-[11.5px] font-semibold text-success hover:bg-success/15">
+                  <Receipt className="h-3.5 w-3.5" /> Receber e emitir recibo (total ou parcial)
                 </button>
-              )}
-              {inv.receiptNumber && (
-                <p className="mt-3 inline-flex items-center gap-1.5 text-[11.5px] text-success"><CheckCheck className="h-3.5 w-3.5" /> Recibo {inv.receiptNumber} · {formatDate(inv.receiptIssued ?? inv.issued)}</p>
               )}
             </section>
           )}
@@ -284,7 +322,7 @@ function DocumentoPage() {
           </section>
         </aside>
       </div>
-      {share && <ShareDialog invoice={inv} kind={docKind === "recibo" ? "recibo" : "documento"} onClose={() => setShare(false)} />}
+      {share && <ShareDialog invoice={inv} kind={docKind === "recibo" ? "recibo" : "documento"} paymentId={viewed?.id} onClose={() => setShare(false)} />}
     </div>
   );
 }

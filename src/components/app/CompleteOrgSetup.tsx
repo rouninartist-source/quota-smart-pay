@@ -7,11 +7,11 @@ import { signOut } from "@/lib/auth";
  * Ecrã para quem tem sessão mas ainda não tem empresa. Sem isto essa pessoa
  * ficava com um painel vazio e sem forma de sair do impasse.
  */
-export function CompleteOrgSetup({ email }: { email?: string }) {
+export function CompleteOrgSetup({ email, initialError }: { email?: string; initialError?: string }) {
   const [name, setName] = useState("");
   const [nuit, setNuit] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<string | undefined>(initialError);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

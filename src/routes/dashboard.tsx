@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth";
 import { rootOf, trialState, useOrg } from "@/lib/org-store";
-import { CompleteOrgSetup } from "@/components/app/CompleteOrgSetup";
+import { FirstLogin } from "@/components/app/FirstLogin";
 import { hydrateInvoices } from "@/lib/invoices-store";
 import { hydrateClients } from "@/lib/clients-store";
 import { hydrateCompany } from "@/lib/company-store";
@@ -109,7 +109,7 @@ function DashboardLayout() {
     );
   }
   if (isSupabaseConfigured && session && orgReady && !org) {
-    return <CompleteOrgSetup email={session.user.email} />;
+    return <FirstLogin session={session} />;
   }
 
   return (

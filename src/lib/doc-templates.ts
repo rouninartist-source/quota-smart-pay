@@ -11,7 +11,6 @@ export type DocTemplateId =
   | "moderno"
   | "minimal"
   | "corporativo"
-  | "elegante"
   | "basic-claro"
   | "basic-escuro";
 
@@ -71,14 +70,6 @@ export const docTemplates: DocTemplate[] = [
     description:
       "Mesma estrutura do Basic Claro, mas com o bloco de topo escuro e o nome da empresa em destaque. Ideal para marcas com identidade forte.",
     bullets: ["Cabeçalho escuro de marca", "Cliente e datas no topo", "Rodapé com dados bancários e carteiras"],
-  },
-  {
-    id: "elegante",
-    name: "Elegante",
-    tagline: "Serifado premium",
-    description:
-      "Cabeçalho centrado, tipografia serifada e linhas duplas. Indicado para consultoria, arquitectura e serviços premium.",
-    bullets: ["Cabeçalho centrado", "Linhas duplas discretas", "Totais em caixa suave"],
   },
 ];
 

@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/lib/supabase";
 import { Check, Sparkles, Building2, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { rootOf, setOrgPlan, trialState, useOrg } from "@/lib/org-store";
@@ -22,23 +23,26 @@ const CONTACT = "https://wa.me/258840000000?text=" + encodeURIComponent("Olá, g
 function PlanosPage() {
   const { org, orgs } = useOrg();
   const root = rootOf(org, orgs);
+  const navigate = useNavigate();
   const [busy, setBusy] = useState<PlanId | null>(null);
+  const [pending, setPending] = useState<{ plan: string; amount: number; method: string; created_at: string }[]>([]);
+  useEffect(() => {
+    supabase?.from("plan_payments").select("plan,amount,method,created_at").eq("status", "pendente").order("created_at", { ascending: false }).then(({ data }) => setPending(data ?? []));
+  }, [org?.id]);
   const current = root?.plan ?? "basic";
   const trial = trialState(root);
   const children = orgs.filter((o) => o.parentOrg === root?.id);
   const isChild = !!org?.parentOrg;
   const rank = (id: PlanId) => plans.findIndex((p) => p.id === id);
 
-  async function choose(id: PlanId) {
+  /** Mudar de plano passa sempre pela área de pagamento (M-Pesa / e-Mola). */
+  function choose(id: PlanId) {
     if (busy) return;
-    setBusy(id);
-    const { error } = await setOrgPlan(id);
-    setBusy(null);
-    if (error) return toast.error("Não foi possível alterar o plano", { description: error });
-    toast.success(`Plano ${plans.find((p) => p.id === id)?.name} activado`, {
-      description: "O período experimental terminou. A facturação do plano é confirmada pela equipa Quota.",
-    });
+    navigate({ to: "/dashboard/planos/pagar", search: { plano: id } });
   }
+  void setBusy;
+  void setOrgPlan;
+  void toast;
 
   return (
     <div className="flex flex-col gap-3 md:h-full md:min-h-0">
@@ -72,15 +76,20 @@ function PlanosPage() {
       )}
       {trial.expired && (
         <p className="shrink-0 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12px]">
-          O período experimental terminou. Escolha um plano para continuar a emitir documentos.
+          O período experimental terminou. Escolha um plano e efectue o pagamento para continuar a emitir documentos.
         </p>
       )}
+      {pending.map((p, i) => (
+        <p key={i} className="shrink-0 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[12px]">
+          Pagamento do plano <b>{plans.find((x) => x.id === p.plan)?.name}</b> ({fmt(Number(p.amount))} MT via {p.method === "mpesa" ? "M-Pesa" : "e-Mola"}) registado — aguarda confirmação da equipa Quota.
+        </p>
+      ))}
 
       <section className="grid min-h-0 flex-1 gap-3 overflow-y-auto md:grid-cols-2 xl:grid-cols-4">
         {plans.map((p) => {
           const active = p.id === current && !trial.active;
           const downgradeBlocked = children.length > 0 && p.id !== "multi";
-          const label = active ? "Plano actual" : busy === p.id ? "A activar…" : trial.active || trial.expired ? "Escolher este plano" : rank(p.id) > rank(current) ? "Fazer upgrade" : "Mudar para este plano";
+          const label = active ? "Plano actual" : trial.active || trial.expired ? "Escolher e pagar" : rank(p.id) > rank(current) ? "Fazer upgrade" : "Mudar para este plano";
           return (
             <article
               key={p.id}
@@ -144,7 +153,7 @@ function PlanosPage() {
         </article>
       </section>
       <p className="shrink-0 text-[11px] text-muted-foreground">
-        Sem cobrança automática nesta fase: a escolha fica registada e a equipa Quota confirma a facturação consigo.
+        Pagamentos por M-Pesa ou e-Mola; o plano activa-se após confirmação da equipa Quota. O período experimental de 14 dias aplica-se apenas ao Basic.
       </p>
     </div>
   );

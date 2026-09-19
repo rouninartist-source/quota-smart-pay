@@ -2,6 +2,7 @@ import { formatDate, formatMZN } from "@/lib/format";
 import { companyBanks, companyWallets, useCompany } from "@/lib/company-store";
 import { BankMark, WalletMark } from "@/components/invoices/PaymentLogos";
 import { QuotaSeal } from "@/components/invoices/QuotaSeal";
+import { CancelledBand } from "@/components/invoices/CancelledBand";
 import { cn } from "@/lib/utils";
 import {
   documentKinds,
@@ -28,26 +29,32 @@ export function BasicDocument({
   invoice,
   docKind = "factura",
   dark = false,
+  paymentId,
 }: {
   invoice: Invoice;
   docKind?: DocKind;
   dark?: boolean;
+  paymentId?: string;
 }) {
   const { sub, discount, vat, total } = invoiceTotals(invoice);
   const company = useCompany();
   const paid = invoicePaid(invoice);
-  const payments = invoice.payments ?? [];
+  const allPayments = invoice.payments ?? [];
+  const receiptPayment = paymentId ? allPayments.find((p) => p.id === paymentId) : undefined;
+  const payments = receiptPayment ? [receiptPayment] : allPayments;
+  const received = receiptPayment ? receiptPayment.amount : paid;
   const banks = companyBanks(company);
   const wallets = companyWallets(company);
   const visual = invoice.kind === "cotv";
 
   const isReceipt = docKind === "recibo";
-  const reference = isReceipt ? (invoice.receiptNumber ?? invoice.number) : invoice.number;
-  const issued = isReceipt ? (invoice.receiptIssued ?? invoice.issued) : invoice.issued;
+  const reference = isReceipt ? (receiptPayment?.receiptNumber ?? invoice.receiptNumber ?? invoice.number) : invoice.number;
+  const issued = isReceipt ? (receiptPayment?.receiptIssued ?? invoice.receiptIssued ?? invoice.issued) : invoice.issued;
   const title = isReceipt ? kindLabel.recibo : (documentKinds[invoice.kind]?.label ?? kindLabel[docKind]);
 
   return (
-    <div className="invoice-sheet mx-auto w-full max-w-[820px] bg-white p-6 text-[13px] text-slate-900 shadow-card md:p-10">
+    <div className={cn("invoice-sheet relative mx-auto w-full max-w-[820px] bg-white p-6 text-[13px] text-slate-900 shadow-card md:p-10", invoice.status === "cancelada" && "pl-12 md:pl-16")}>
+      {invoice.status === "cancelada" && <CancelledBand />}
       {/* Cabeçalho: logótipo no topo, empresa à esquerda, cliente à direita */}
       {company.logo && (
         <img src={company.logo} alt={`Logotipo de ${company.name}`} className="mb-4 h-14 max-w-[200px] object-contain object-left" />
@@ -154,7 +161,7 @@ export function BasicDocument({
             {paid > 0 && (
               <div className="flex justify-between border-t border-slate-200 pt-2 text-emerald-700">
                 <dt>{isReceipt ? "Recebido" : "Pago"}</dt>
-                <dd className="font-semibold tabular-nums">{formatMZN(paid)}</dd>
+                <dd className="font-semibold tabular-nums">{formatMZN(isReceipt ? received : paid)}</dd>
               </div>
             )}
           </dl>
@@ -243,7 +250,9 @@ export function BasicDocument({
           <p className="mt-2 text-[11.5px] leading-relaxed text-slate-500">
             {invoice.notes ||
               (isReceipt
-                ? `Recibo de quitação referente à factura ${invoice.number}.`
+                ? receiptPayment && receiptPayment.amount < total - 0.01
+                  ? `Recibo de pagamento parcial de ${formatMZN(received)} MZN referente a ${invoice.number}; saldo em aberto ${formatMZN(Math.max(0, total - paid))} MZN.`
+                  : `Recibo de quitação referente a ${invoice.number}.`
                 : company.paymentNote)}
           </p>
           <div className="mt-3">

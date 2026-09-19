@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { useSession } from "@/lib/auth";
 import { rootOf, useOrg } from "@/lib/org-store";
 import { planUserLimit, getPlan } from "@/lib/plans";
-import { createInvite, inviteLink, removeMember, revokeInvite, roleLabel, setMemberRole, useMembers, type Invite } from "@/lib/members-store";
+import { adminOrgs, createInvite, inviteLink, removeMember, revokeInvite, roleLabel, setMemberRole, useMembers, type Invite } from "@/lib/members-store";
+import { useEffect } from "react";
 import { Field, inputClass } from "@/components/catalog/Modal";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,16 @@ function UtilizadoresPage() {
   const [role, setRole] = useState<Invite["role"]>("membro");
   const [busy, setBusy] = useState(false);
   const [last, setLast] = useState<Invite | null>(null);
+  // Plano Multi-Empresas: escolher para que empresa é o convite.
+  const [targets, setTargets] = useState<{ id: string; name: string }[]>([]);
+  const [targetOrg, setTargetOrg] = useState<string>("");
+  useEffect(() => {
+    adminOrgs().then((list) => {
+      setTargets(list);
+      setTargetOrg((cur) => cur || org?.id || list[0]?.id || "");
+    });
+  }, [org?.id]);
+  const targetName = targets.find((t) => t.id === targetOrg)?.name ?? org?.name;
   const pending = invites.filter((i) => !i.acceptedAt);
   const full = members.length >= limit;
 
@@ -40,7 +51,7 @@ function UtilizadoresPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return toast.error("Indique um e-mail válido.");
     if (full) return toast.error(`O plano ${getPlan(root?.plan).name} permite ${limit} utilizadores por empresa.`);
     setBusy(true);
-    const res = await createInvite(email, role);
+    const res = await createInvite(email, role, targetOrg || undefined);
     setBusy(false);
     if (res.error) return toast.error("Não foi possível criar o convite", { description: res.error });
     const inv: Invite = { id: "", email: email.trim(), role, token: res.token!, createdAt: new Date().toISOString(), acceptedAt: null };
@@ -50,7 +61,7 @@ function UtilizadoresPage() {
   }
 
   const inviteMessage = (inv: Invite) =>
-    `Olá! Foi convidado(a) para a empresa ${org?.name} no Quota como ${roleLabel[inv.role].toLowerCase()}. Abra a ligação, crie a sua conta (ou inicie sessão) e fica logo com acesso:\n${inviteLink(inv.token)}`;
+    `Olá! Foi convidado(a) para a empresa ${targetName} no Quota como ${roleLabel[inv.role].toLowerCase()}. Abra a ligação, crie a sua conta (ou inicie sessão) e fica logo com acesso:\n${inviteLink(inv.token)}`;
   const copy = async (inv: Invite) => {
     await navigator.clipboard?.writeText(inviteLink(inv.token));
     toast.success("Ligação copiada");
@@ -164,6 +175,13 @@ function UtilizadoresPage() {
             </p>
             {canManage ? (
               <form onSubmit={invite} className="mt-3 grid gap-3">
+                {targets.length > 1 && (
+                  <Field label="Empresa">
+                    <select className={inputClass} value={targetOrg} onChange={(e) => setTargetOrg(e.target.value)}>
+                      {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </Field>
+                )}
                 <Field label="E-mail"><input className={inputClass} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="colega@empresa.co.mz" /></Field>
                 <Field label="Papel">
                   <select className={inputClass} value={role} onChange={(e) => setRole(e.target.value as Invite["role"])}>

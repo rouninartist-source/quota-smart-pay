@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { signUp, signIn } from "@/lib/auth";
 import { plans, TRIAL_AI_LIMIT, type PlanId } from "@/lib/plans";
-import { supabase } from "@/lib/supabase";
 import { useRef, useState } from "react";
 import {
   ArrowRight,
@@ -16,9 +15,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import loginVisual from "@/assets/login-visual.jpg";
-import { saveCompany } from "@/lib/company-store";
 
 export const Route = createFileRoute("/registo")({
+  validateSearch: (search: Record<string, unknown>): { convite?: string } =>
+    typeof search.convite === "string" ? { convite: search.convite } : {},
   head: () => ({
     meta: [
       { title: "Criar conta · Quota" },
@@ -69,6 +69,7 @@ const inputCls =
 
 function Registo() {
   const navigate = useNavigate();
+  const { convite } = Route.useSearch();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
@@ -117,6 +118,8 @@ function Registo() {
       return;
     }
     setError(null);
+    // Convidado: não cria empresa — só a conta.
+    if (convite) return void finish();
     setStep((s) => Math.min(3, s + 1));
   };
 
@@ -131,7 +134,19 @@ function Registo() {
     setBusy(true);
     setError(null);
 
-    const created = await signUp(email.trim(), password, { full_name: fullName.trim(), phone: phone.trim() });
+    // Tudo o que o primeiro início de sessão precisa vai na conta: empresa ou convite.
+    const meta = convite
+      ? { full_name: fullName.trim(), phone: phone.trim(), invite: convite }
+      : {
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+          company: { name: companyName.trim(), nuit: nuit.trim(), sector, iva, plan },
+        };
+    // O logótipo é grande demais para os metadados — fica neste dispositivo até à primeira entrada.
+    try {
+      if (logo) localStorage.setItem("quota-pending-logo", logo);
+    } catch {}
+    const created = await signUp(email.trim(), password, meta);
     if (created.error) {
       setBusy(false);
       setError(created.error);
@@ -149,32 +164,9 @@ function Registo() {
       }
     }
 
-    const sb = supabase;
-    if (sb) {
-      const { error: orgError } = await sb.rpc("create_org", {
-        p_name: companyName.trim(),
-        p_nuit: nuit.trim(),
-        p_sector: sector,
-        p_iva_regime: iva,
-        p_plan: plan,
-      });
-      if (orgError && !orgError.message.includes("já pertence")) {
-        setBusy(false);
-        setError(orgError.message);
-        return;
-      }
-    }
-
-    await saveCompany({
-      name: companyName.trim(),
-      nuit: nuit.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      ...(logo ? { logo } : {}),
-    });
-
+    // Com sessão imediata, o painel trata do resto (empresa ou convite) ao entrar.
     setBusy(false);
-    navigate({ to: "/dashboard" });
+    navigate({ to: convite ? "/convite/$token" : "/dashboard", params: convite ? { token: convite } : undefined } as never);
   };
 
   const onLogo = (file?: File | null) => {
@@ -198,11 +190,12 @@ function Registo() {
           <h1 className="mt-4 font-display text-[24px] font-semibold tracking-tight">Confirme o seu e-mail</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Enviámos uma ligação para <span className="font-medium text-foreground">{email.trim()}</span>. Abra-a
-            para activar a conta; depois inicie sessão e a empresa <span className="font-medium text-foreground">{companyName.trim()}</span> fica
-            configurada no primeiro acesso.
+            para activar a conta; depois inicie sessão e{" "}
+            {convite ? "entra directamente na empresa que o convidou" : <>a empresa <span className="font-medium text-foreground">{companyName.trim()}</span> fica configurada no primeiro acesso</>}.
           </p>
           <Link
             to="/login"
+            search={convite ? { next: `/convite/${convite}` } : {}}
             className="mt-6 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
             Ir para o início de sessão
@@ -212,7 +205,7 @@ function Registo() {
     );
   }
 
-  if (!plan) {
+  if (!plan && !convite) {
     return (
       <main className="min-h-screen bg-background px-6 py-8 md:px-14">
         <Link to="/" className="inline-flex items-center gap-2">
@@ -224,7 +217,7 @@ function Registo() {
         <div className="mx-auto mt-10 max-w-4xl animate-fade-up">
           <h1 className="font-display text-[28px] font-semibold tracking-tight">Escolha o pacote</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Todos começam com <b className="text-foreground">14 dias grátis no plano Basic</b> (inclui {TRIAL_AI_LIMIT} operações de Quota AI). O pacote que escolher fica registado e activa-se quando confirmar.
+            O <b className="text-foreground">Basic tem 14 dias grátis</b> (inclui {TRIAL_AI_LIMIT} operações de Quota AI). Smart e Multi-Empresas não têm período experimental: activam-se após o pagamento por M-Pesa ou e-Mola — até lá usa o Basic.
           </p>
           <div className="mt-8 grid gap-3 md:grid-cols-3">
             {plans.map((p) => (
@@ -245,7 +238,7 @@ function Registo() {
                   ))}
                 </ul>
                 <span className="mt-5 inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2.5 text-[12px] font-semibold text-primary-foreground">
-                  Começar com {p.name} <ArrowRight className="h-3.5 w-3.5" />
+                  {p.id === "basic" ? "Começar 14 dias grátis" : `Começar com ${p.name}`} <ArrowRight className="h-3.5 w-3.5" />
                 </span>
               </button>
             ))}
@@ -297,7 +290,7 @@ function Registo() {
             </ol>
 
             <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-              Passo {step} de 3
+              {convite ? "Convite · crie a sua conta" : `Passo ${step} de 3`}
             </p>
             <h1 className="mt-1.5 font-display text-[26px] font-semibold tracking-tight">
               {step === 1 && "Criar a sua conta"}
@@ -485,7 +478,7 @@ function Registo() {
                   type="submit"
                   className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
                 >
-                  {step === 3 ? "Começar a facturar" : "Continuar"} <ArrowRight className="h-4 w-4" />
+                  {convite ? "Criar conta e aceitar convite" : step === 3 ? "Começar a facturar" : "Continuar"} <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
             </form>

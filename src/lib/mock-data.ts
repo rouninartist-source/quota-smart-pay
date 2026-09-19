@@ -31,6 +31,8 @@ export type Product = {
   unit: string;
   vat: number;
   status: "activo" | "esgotado" | "descontinuado";
+  /** Fotografia (data URL pequena) — vai para a cotação visual. */
+  image?: string;
 };
 
 export type Service = {

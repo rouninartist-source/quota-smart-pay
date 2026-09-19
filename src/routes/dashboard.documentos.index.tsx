@@ -101,6 +101,8 @@ type Row = {
   invoice: Invoice;
   /** Uma factura com recibo aparece duas vezes: como factura e como recibo. */
   asReceipt?: boolean;
+  /** Pagamento a que o recibo diz respeito. */
+  paymentId?: string;
 };
 
 function splitNumber(n: string) {
@@ -146,16 +148,33 @@ function DocumentosList() {
         statusClass: statusToneClass[meta.tone],
         invoice: inv,
       });
-      // O recibo é, por definição, dinheiro recebido — o estado é sempre Pago.
-      if (inv.receiptNumber) {
-        const last = (inv.payments ?? []).at(-1);
+      // Um recibo por pagamento (total ou parcial) — dinheiro recebido, estado sempre Pago.
+      for (const p of inv.payments ?? []) {
+        if (!p.receiptNumber) continue;
+        out.push({
+          key: `recibo-${p.id}`,
+          id: inv.id,
+          ...splitNumber(p.receiptNumber),
+          kind: "recibo",
+          client: inv.client.name,
+          method: paymentMethodLabels[p.method],
+          date: p.receiptIssued ?? p.date,
+          total: p.amount,
+          statusLabel: p.amount >= invoiceTotal(inv) - 0.01 ? "Pago" : "Parcial",
+          statusClass: statusToneClass.success,
+          invoice: inv,
+          asReceipt: true,
+          paymentId: p.id,
+        });
+      }
+      // recibos antigos (antes dos recibos por pagamento)
+      if (inv.receiptNumber && !(inv.payments ?? []).some((p) => p.receiptNumber)) {
         out.push({
           key: `recibo-${inv.id}`,
           id: inv.id,
           ...splitNumber(inv.receiptNumber),
           kind: "recibo",
           client: inv.client.name,
-          method: last ? paymentMethodLabels[last.method] : undefined,
           date: inv.receiptIssued ?? inv.issued,
           total: invoicePaid(inv),
           statusLabel: "Pago",
@@ -324,7 +343,7 @@ function DocumentosList() {
   const openRow = (r: Row) => navigate({ to: "/dashboard/documentos/$id", params: { id: r.id } });
   const printRow = (r: Row) =>
     window.open(
-      `/facturas/${r.id}/imprimir${r.asReceipt ? "?tipo=recibo" : r.kind === "cotacao" ? "?tipo=cotacao" : ""}`,
+      `/facturas/${r.id}/imprimir${r.asReceipt ? `?tipo=recibo${r.paymentId ? `&pagamento=${r.paymentId}` : ""}` : r.kind === "cotacao" ? "?tipo=cotacao" : ""}`,
       "_blank",
       "noreferrer",
     );
@@ -545,6 +564,8 @@ function DocumentosList() {
                           isSel
                             ? "bg-primary/8 shadow-[inset_2px_0_0_var(--color-primary)]"
                             : "hover:bg-muted/50",
+                          // anulado: barra vermelha na lateral
+                          r.invoice.status === "cancelada" && !r.asReceipt && "shadow-[inset_3px_0_0_var(--color-destructive)] text-muted-foreground",
                           "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                         )}
                       >
@@ -634,7 +655,7 @@ function DocumentosList() {
           />
         )}
         {shareRow && (
-          <ShareDialog invoice={shareRow.invoice} kind={shareRow.asReceipt ? "recibo" : "documento"} onClose={() => setShareRow(null)} />
+          <ShareDialog invoice={shareRow.invoice} kind={shareRow.asReceipt ? "recibo" : "documento"} paymentId={shareRow.paymentId} onClose={() => setShareRow(null)} />
         )}
       </div>
     </div>
@@ -701,7 +722,7 @@ function DocumentPanel({
 
   // Um recibo já é dinheiro recebido e um rascunho ainda não saiu — nada a cobrar.
   const canChase =
-    !row.asReceipt && !isQuoteKind(inv.kind) && ["enviada", "vencida", "parcial"].includes(inv.status);
+    !row.asReceipt && !isQuoteKind(inv.kind) && ["emitida", "enviada", "vencida", "parcial"].includes(inv.status);
 
   return (
     <section className="hidden min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-elegant xl:flex">
@@ -742,8 +763,9 @@ function DocumentPanel({
         {row.asReceipt ? (
           <dl className="mt-2.5 flex flex-col gap-2">
             <Meta label="Método" value={row.method ?? "—"} />
-            <Meta label="Liquida" value={inv.number} />
-            <Meta label="Estado" value="Pago" />
+            <Meta label="Referente a" value={inv.number} />
+            <Meta label="Valor recebido" value={`${formatMZN(row.total, { decimals: false })} MZN`} />
+            <Meta label="Estado" value={row.statusLabel} />
           </dl>
         ) : (
           <table className="mt-2.5 w-full border-collapse">

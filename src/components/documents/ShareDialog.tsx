@@ -17,20 +17,30 @@ import {
 export type ShareKind = "documento" | "recibo";
 
 /** Ligação pública para o PDF, com os dados que o WhatsApp mostra na pré-visualização. */
-export function shareLink(inv: Invoice, kind: ShareKind = "documento") {
-  const isReceipt = kind === "recibo" && inv.receiptNumber;
+/** O recibo de um pagamento concreto; sem `paymentId`, o último recibo emitido. */
+function receiptOf(inv: Invoice, paymentId?: string) {
+  const list = (inv.payments ?? []).filter((p) => p.receiptNumber);
+  return (paymentId ? list.find((p) => p.id === paymentId) : list.at(-1)) ?? undefined;
+}
+
+export function shareLink(inv: Invoice, kind: ShareKind = "documento", paymentId?: string) {
+  const receipt = kind === "recibo" ? receiptOf(inv, paymentId) : undefined;
+  const isReceipt = !!receipt;
   const params = new URLSearchParams();
-  if (isReceipt) params.set("tipo", "recibo");
-  else if (isQuoteKind(inv.kind)) params.set("tipo", "cotacao");
-  params.set("n", isReceipt ? inv.receiptNumber! : inv.number);
+  if (isReceipt) {
+    params.set("tipo", "recibo");
+    params.set("pagamento", receipt.id);
+  } else if (isQuoteKind(inv.kind)) params.set("tipo", "cotacao");
+  params.set("n", isReceipt ? receipt.receiptNumber! : inv.number);
   params.set("k", isReceipt ? "Recibo" : documentKinds[inv.kind].label);
-  params.set("v", formatMZN(isReceipt ? invoicePaid(inv) || invoiceTotal(inv) : invoiceTotal(inv)));
+  params.set("v", formatMZN(isReceipt ? receipt.amount : invoiceTotal(inv)));
   const path = `/facturas/${inv.id}/imprimir?${params.toString()}`;
   return typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
 }
 
-export function shareMessage(inv: Invoice, companyName: string, paymentNote: string, kind: ShareKind = "documento") {
-  const isReceipt = kind === "recibo" && !!inv.receiptNumber;
+export function shareMessage(inv: Invoice, companyName: string, paymentNote: string, kind: ShareKind = "documento", paymentId?: string) {
+  const receipt = kind === "recibo" ? receiptOf(inv, paymentId) : undefined;
+  const isReceipt = !!receipt;
   const quote = isQuoteKind(inv.kind);
   const total = invoiceTotal(inv);
   const balance = invoiceBalance(inv);
@@ -39,12 +49,13 @@ export function shareMessage(inv: Invoice, companyName: string, paymentNote: str
     `Estimado(a) ${inv.client.name},`,
     "",
     isReceipt
-      ? `Segue o recibo ${inv.receiptNumber} referente a ${inv.number}, no valor de ${formatMZN(invoicePaid(inv) || total)} MZN.`
+      ? `Segue o recibo ${receipt.receiptNumber} referente a ${inv.number}, no valor de ${formatMZN(receipt.amount)} MZN` +
+        (balance > 0.01 ? ` (saldo em aberto ${formatMZN(balance)} MZN).` : ".")
       : `Segue a ${label} ${inv.number} no valor de ${formatMZN(total)} MZN` +
         (quote ? `, válida até ${formatDate(inv.due)}.` : `, com vencimento a ${formatDate(inv.due)}.`),
     !isReceipt && !quote && balance > 0 && balance < total ? `Valor em dívida: ${formatMZN(balance)} MZN.` : "",
     "",
-    `Documento em PDF: ${shareLink(inv, kind)}`,
+    `Documento em PDF: ${shareLink(inv, kind, paymentId)}`,
     isReceipt || quote ? "" : paymentNote,
     "",
     "Com os melhores cumprimentos,",
@@ -58,17 +69,19 @@ export function shareMessage(inv: Invoice, companyName: string, paymentNote: str
  * Escolha do canal de envio: WhatsApp (telefone da ficha), e-mail registado
  * ou outro e-mail escrito na hora. Enviar marca o rascunho como enviado.
  */
-export function ShareDialog({ invoice, kind = "documento", onClose }: { invoice: Invoice; kind?: ShareKind; onClose: () => void }) {
+export function ShareDialog({ invoice, kind = "documento", paymentId, onClose }: { invoice: Invoice; kind?: ShareKind; paymentId?: string; onClose: () => void }) {
   const company = useCompany();
   const [other, setOther] = useState("");
   const [copied, setCopied] = useState(false);
   const phone = invoice.client.phone.replace(/\D/g, "");
   const email = invoice.client.email;
-  const message = shareMessage(invoice, company.name, company.paymentNote, kind);
-  const subject = `${kind === "recibo" && invoice.receiptNumber ? `Recibo ${invoice.receiptNumber}` : `${documentKinds[invoice.kind].label} ${invoice.number}`} — ${company.name}`;
+  const receipt = kind === "recibo" ? receiptOf(invoice, paymentId) : undefined;
+  const message = shareMessage(invoice, company.name, company.paymentNote, kind, paymentId);
+  const subject = `${receipt ? `Recibo ${receipt.receiptNumber}` : `${documentKinds[invoice.kind].label} ${invoice.number}`} — ${company.name}`;
 
+  // Enviar é o que passa "emitida" (ou um rascunho) a "enviada".
   const markSent = () => {
-    if (invoice.status === "rascunho") void updateInvoiceStatus(invoice.id, "enviada");
+    if (invoice.status === "rascunho" || invoice.status === "emitida") void updateInvoiceStatus(invoice.id, "enviada");
   };
   const viaWhatsApp = () => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noreferrer");
@@ -82,7 +95,7 @@ export function ShareDialog({ invoice, kind = "documento", onClose }: { invoice:
     onClose();
   };
   const copy = async () => {
-    await navigator.clipboard?.writeText(shareLink(invoice, kind));
+    await navigator.clipboard?.writeText(shareLink(invoice, kind, paymentId));
     setCopied(true);
     toast.success("Ligação copiada");
     setTimeout(() => setCopied(false), 1500);
@@ -92,7 +105,7 @@ export function ShareDialog({ invoice, kind = "documento", onClose }: { invoice:
     <Modal title="Enviar ao cliente" onClose={onClose}>
       <div className="grid gap-3">
         <p className="text-[12px] text-muted-foreground">
-          {invoice.client.name} · {documentKinds[invoice.kind].label} {invoice.number}
+          {invoice.client.name} · {receipt ? `Recibo ${receipt.receiptNumber}` : `${documentKinds[invoice.kind].label} ${invoice.number}`}
         </p>
 
         <button

@@ -43,6 +43,7 @@ import { Route as DashboardEquipaIndexRouteImport } from './routes/dashboard.equ
 import { Route as DashboardDocumentosIndexRouteImport } from './routes/dashboard.documentos.index'
 import { Route as DashboardAssistenteIndexRouteImport } from './routes/dashboard.assistente.index'
 import { Route as FacturasIdImprimirRouteImport } from './routes/facturas.$id.imprimir'
+import { Route as DashboardPlanosPagarRouteImport } from './routes/dashboard.planos_.pagar'
 import { Route as DashboardFacturasNovaRouteImport } from './routes/dashboard.facturas.nova'
 import { Route as DashboardFacturasIdRouteImport } from './routes/dashboard.facturas.$id'
 import { Route as DashboardEquipaChannelIdRouteImport } from './routes/dashboard.equipa.$channelId'
@@ -222,6 +223,11 @@ const FacturasIdImprimirRoute = FacturasIdImprimirRouteImport.update({
   path: '/facturas/$id/imprimir',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardPlanosPagarRoute = DashboardPlanosPagarRouteImport.update({
+  id: '/planos_/pagar',
+  path: '/planos/pagar',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFacturasNovaRoute = DashboardFacturasNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
+  '/dashboard/planos/pagar': typeof DashboardPlanosPagarRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
   '/dashboard/assistente/': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos/': typeof DashboardDocumentosIndexRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
+  '/dashboard/planos/pagar': typeof DashboardPlanosPagarRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
   '/dashboard/assistente': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos': typeof DashboardDocumentosIndexRoute
@@ -371,6 +379,7 @@ export interface FileRoutesById {
   '/dashboard/equipa/$channelId': typeof DashboardEquipaChannelIdRoute
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
+  '/dashboard/planos_/pagar': typeof DashboardPlanosPagarRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
   '/dashboard/assistente/': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos/': typeof DashboardDocumentosIndexRoute
@@ -415,6 +424,7 @@ export interface FileRouteTypes {
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
+    | '/dashboard/planos/pagar'
     | '/facturas/$id/imprimir'
     | '/dashboard/assistente/'
     | '/dashboard/documentos/'
@@ -452,6 +462,7 @@ export interface FileRouteTypes {
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
+    | '/dashboard/planos/pagar'
     | '/facturas/$id/imprimir'
     | '/dashboard/assistente'
     | '/dashboard/documentos'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/dashboard/equipa/$channelId'
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
+    | '/dashboard/planos_/pagar'
     | '/facturas/$id/imprimir'
     | '/dashboard/assistente/'
     | '/dashboard/documentos/'
@@ -756,6 +768,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FacturasIdImprimirRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/planos_/pagar': {
+      id: '/dashboard/planos_/pagar'
+      path: '/planos/pagar'
+      fullPath: '/dashboard/planos/pagar'
+      preLoaderRoute: typeof DashboardPlanosPagarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/facturas/nova': {
       id: '/dashboard/facturas/nova'
       path: '/nova'
@@ -877,6 +896,7 @@ interface DashboardRouteChildren {
   DashboardUtilizadoresRoute: typeof DashboardUtilizadoresRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardPlanosPagarRoute: typeof DashboardPlanosPagarRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -898,6 +918,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardUtilizadoresRoute: DashboardUtilizadoresRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardPlanosPagarRoute: DashboardPlanosPagarRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

@@ -152,7 +152,7 @@ function Documentos() {
     const sv = kind === "s" ? services.find((x) => x.id === id) : undefined;
     if (!p && !sv) return;
     prefilled.current = true;
-    setLines([{ id: Date.now(), desc: p ? p.name : sv!.name, note: "", qty: 1, price: p ? p.price : sv!.rate, vat: p ? p.vat : 16, img: "" }]);
+    setLines([{ id: Date.now(), desc: p ? p.name : sv!.name, note: "", qty: 1, price: p ? p.price : sv!.rate, vat: p ? p.vat : 16, img: p?.image ?? "" }]);
   }, [item, products, services]);
 
   useEffect(() => {
@@ -180,11 +180,11 @@ function Documentos() {
   const addLine = () =>
     setLines((ls) => [...ls, { id: Date.now(), desc: "", note: "", qty: 1, price: 0, vat: 16, img: "" }]);
 
-  const addFromCatalog = (desc: string, price: number, vat: number) => {
+  const addFromCatalog = (desc: string, price: number, vat: number, img = "") => {
     setLines((ls) => {
       // Substitui a linha vazia inicial em vez de a deixar para trás.
       const blank = ls.length === 1 && !ls[0].desc && ls[0].price === 0;
-      const next = { id: Date.now(), desc, note: "", qty: 1, price, vat, img: "" };
+      const next = { id: Date.now(), desc, note: "", qty: 1, price, vat, img };
       return blank ? [next] : [...ls, next];
     });
     setCatalogOpen(false);
@@ -221,7 +221,7 @@ function Documentos() {
   const reference = `${type.code} — atribuído ao emitir`;
 
   /** Grava e devolve a factura criada; toda a acção passa por aqui. */
-  async function persist(status: InvoiceStatus) {
+  async function persist(requested: InvoiceStatus) {
     if (trial.expired) {
       toast.error("O período experimental terminou.", {
         description: "Escolha um plano para continuar a emitir documentos.",
@@ -246,12 +246,14 @@ function Documentos() {
     }
     const due = addDays(date, Number(validity) || 0);
     const paidNow = type.id === "fr";
+    // Uma VD/factura-recibo emitida já está paga.
+    const status: InvoiceStatus = requested === "emitida" && paidNow ? "paga" : requested;
     const created = await addInvoice({
       kind: type.id,
       discount,
       issued: date,
       due,
-      status: paidNow ? "paga" : status,
+      status,
       notes,
       clientId: clientId || undefined,
       client: { name: client.trim(), nuit: nuit.trim(), ...contact },
@@ -280,12 +282,12 @@ function Documentos() {
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 
-  async function issueAndSend() {
+  async function issue() {
     setBusy("send");
-    const created = await persist("rascunho");
+    const created = await persist("emitida");
     setBusy(null);
     if (!created) return;
-    toast.success(`${type.label} emitida`, { description: `${created.number} · ${mzn(totals.total)} MZN` });
+    toast.success(`${type.label} ${created.number} emitida com sucesso`, { description: `${mzn(totals.total)} MZN · escolha como enviar ao cliente.` });
     // A escolha do canal (WhatsApp, e-mail registado ou outro) faz-se na página do documento.
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id }, search: { partilhar: true } });
   }
@@ -358,11 +360,11 @@ function Documentos() {
               <Download className="h-3.5 w-3.5" /> PDF
             </button>
             <button
-              onClick={issueAndSend}
+              onClick={issue}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              <Send className="h-3.5 w-3.5" /> {busy === "send" ? "A emitir…" : "Emitir e enviar"}
+              <Send className="h-3.5 w-3.5" /> {busy === "send" ? "A emitir…" : "Emitir"}
             </button>
           </div>
         </div>
@@ -720,7 +722,7 @@ function CatalogPicker({
 }: {
   products: ReturnType<typeof useProducts>;
   services: ReturnType<typeof useServices>;
-  onPick: (desc: string, price: number, vat: number) => void;
+  onPick: (desc: string, price: number, vat: number, img?: string) => void;
   onClose: () => void;
 }) {
   const [q, setQ] = useState("");
@@ -736,10 +738,10 @@ function CatalogPicker({
   const items = [
     ...products
       .filter((p) => p.status !== "descontinuado")
-      .map((p) => ({ key: `p-${p.id}`, code: p.sku, name: p.name, meta: `${p.category} · ${p.unit}`, price: p.price, vat: p.vat })),
+      .map((p) => ({ key: `p-${p.id}`, code: p.sku, name: p.name, meta: `${p.category} · ${p.unit}`, price: p.price, vat: p.vat, img: p.image })),
     ...services
       .filter((s) => s.status === "activo")
-      .map((s) => ({ key: `s-${s.id}`, code: s.code, name: s.name, meta: `${s.category} · ${s.billing}`, price: s.rate, vat: 16 })),
+      .map((s) => ({ key: `s-${s.id}`, code: s.code, name: s.name, meta: `${s.category} · ${s.billing}`, price: s.rate, vat: 16, img: undefined as string | undefined })),
   ].filter((i) => !needle || i.name.toLowerCase().includes(needle) || i.code.toLowerCase().includes(needle));
 
   return (
@@ -770,9 +772,10 @@ function CatalogPicker({
           {items.map((i) => (
             <li key={i.key}>
               <button
-                onClick={() => onPick(i.name, i.price, i.vat)}
+                onClick={() => onPick(i.name, i.price, i.vat, i.img)}
                 className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition hover:bg-muted"
               >
+                {i.img ? <img src={i.img} alt="" className="h-8 w-8 shrink-0 rounded object-cover" /> : <span className="h-8 w-8 shrink-0 rounded bg-muted" />}
                 <span className="w-16 shrink-0 text-[10.5px] font-semibold tabular-nums text-muted-foreground">{i.code}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[12.5px] font-medium">{i.name}</span>

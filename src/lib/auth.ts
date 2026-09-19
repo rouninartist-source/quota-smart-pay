@@ -64,7 +64,17 @@ export async function signIn(email: string, password: string) {
   return { error: translateAuthError(error?.message) };
 }
 
-export async function signUp(email: string, password: string, meta?: { full_name?: string; phone?: string }) {
+/** O que fica guardado na conta ao registar — a empresa é criada no primeiro início de sessão se o e-mail exigir confirmação. */
+export type SignupMeta = {
+  full_name?: string;
+  phone?: string;
+  /** Empresa preenchida no registo (criada depois, sem voltar a perguntar). */
+  company?: { name: string; nuit: string; sector: string; iva: string; plan: string | null };
+  /** Convite aceite ao primeiro início de sessão. */
+  invite?: string;
+};
+
+export async function signUp(email: string, password: string, meta?: SignupMeta) {
   const sb = supabase;
   if (!sb) return { error: "Supabase não configurado." };
   const { data, error } = await sb.auth.signUp({ email, password, options: { data: meta } });

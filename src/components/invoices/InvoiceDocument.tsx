@@ -3,6 +3,7 @@ import { companyBanks, companyWallets, useCompany } from "@/lib/company-store";
 import { useDocTemplate, type DocTemplateId } from "@/lib/doc-templates";
 import { BankMark, WalletMark } from "@/components/invoices/PaymentLogos";
 import { QuotaSeal } from "@/components/invoices/QuotaSeal";
+import { CancelledBand } from "@/components/invoices/CancelledBand";
 import { BasicDocument } from "@/components/invoices/BasicDocument";
 import { cn } from "@/lib/utils";
 import {
@@ -28,45 +29,54 @@ export function InvoiceDocument({
   invoice,
   templateOverride,
   docKind = "factura",
+  paymentId,
 }: {
   invoice: Invoice;
   /** Força um layout específico (usado na página de Design). */
   templateOverride?: DocTemplateId;
   /** Tipo de documento a imprimir (factura, recibo ou cotação). */
   docKind?: DocKind;
+  /** Recibo de um pagamento concreto (total ou parcial). Sem isto, recibo de quitação da factura. */
+  paymentId?: string;
 }) {
   const { sub, discount, vat, total } = invoiceTotals(invoice);
   const company = useCompany();
   const active = useDocTemplate();
   const template = templateOverride ?? active;
   const paid = invoicePaid(invoice);
-  const payments = invoice.payments ?? [];
+  const allPayments = invoice.payments ?? [];
+  const receiptPayment = paymentId ? allPayments.find((p) => p.id === paymentId) : undefined;
+  // Num recibo de pagamento só esse pagamento aparece; no de quitação, todos.
+  const payments = receiptPayment ? [receiptPayment] : allPayments;
+  const received = receiptPayment ? receiptPayment.amount : paid || total;
   const banks = companyBanks(company);
   const wallets = companyWallets(company);
   const visual = invoice.kind === "cotv";
 
   if (template === "basic-claro" || template === "basic-escuro") {
-    return <BasicDocument invoice={invoice} docKind={docKind} dark={template === "basic-escuro"} />;
+    return <BasicDocument invoice={invoice} docKind={docKind} dark={template === "basic-escuro"} paymentId={paymentId} />;
   }
 
   const modern = template === "moderno";
   const minimal = template === "minimal";
   const corporate = template === "corporativo";
-  const elegant = template === "elegante";
+  const elegant = false; // o layout serifado foi retirado (QA)
 
   const isReceipt = docKind === "recibo";
-  const reference = isReceipt ? (invoice.receiptNumber ?? invoice.number) : invoice.number;
+  const reference = isReceipt ? (receiptPayment?.receiptNumber ?? invoice.receiptNumber ?? invoice.number) : invoice.number;
   // O rótulo impresso vem do tipo real (Pró-forma, VD…), não só de factura/cotação.
   const title = isReceipt ? kindLabel.recibo : documentKinds[invoice.kind]?.label ?? kindLabel[docKind];
 
   return (
     <div
       className={cn(
-        "invoice-sheet mx-auto w-full max-w-[820px] overflow-hidden bg-white text-[13px] text-slate-900 shadow-card",
+        "invoice-sheet relative mx-auto w-full max-w-[820px] overflow-hidden bg-white text-[13px] text-slate-900 shadow-card",
+        invoice.status === "cancelada" && "pl-8",
         corporate && "border-l-[10px] border-slate-900",
         elegant && "font-serif",
       )}
     >
+      {invoice.status === "cancelada" && <CancelledBand />}
       {modern && <div className="h-2.5 w-full bg-slate-900" />}
       <div className={cn("p-8 md:p-12", minimal && "md:p-14")}>
         {company.logo && (
@@ -102,7 +112,7 @@ export function InvoiceDocument({
             <p className="mt-2 text-[12px] text-slate-500">
               Emissão:{" "}
               <span className="tabular-nums">
-                {formatDate(isReceipt ? (invoice.receiptIssued ?? invoice.issued) : invoice.issued)}
+                {formatDate(isReceipt ? (receiptPayment?.receiptIssued ?? invoice.receiptIssued ?? invoice.issued) : invoice.issued)}
               </span>
               {!isReceipt && (
                 <>
@@ -111,10 +121,10 @@ export function InvoiceDocument({
                   <span className="tabular-nums font-medium text-slate-700">{formatDate(invoice.due)}</span>
                 </>
               )}
-              {isReceipt && invoice.receiptNumber && (
+              {isReceipt && (
                 <>
                   <br />
-                  Ref. factura <span className="tabular-nums">{invoice.number}</span>
+                  Ref. {documentKinds[invoice.kind]?.label.toLowerCase() ?? "factura"} <span className="tabular-nums">{invoice.number}</span>
                 </>
               )}
             </p>
@@ -132,7 +142,7 @@ export function InvoiceDocument({
             </p>
             {isReceipt && (
               <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
-                Pago · {formatMZN(paid || total)} MZN
+                {receiptPayment && receiptPayment.amount < total - 0.01 ? "Pagamento parcial" : "Pago"} · {formatMZN(received)} MZN
               </p>
             )}
           </div>
@@ -309,7 +319,9 @@ export function InvoiceDocument({
             {invoice.notes && <p className="mb-2 text-slate-700">{invoice.notes}</p>}
             <p>
               {isReceipt
-                ? `Recibo de quitação referente à factura ${invoice.number}.`
+                ? receiptPayment && receiptPayment.amount < total - 0.01
+                  ? `Recibo de pagamento parcial de ${formatMZN(received)} MZN referente a ${invoice.number}; saldo em aberto ${formatMZN(Math.max(0, total - paid))} MZN.`
+                  : `Recibo de quitação referente a ${invoice.number}.`
                 : company.paymentNote}{" "}
               Documento processado por {company.name} — válido sem assinatura nem selo branco.
             </p>

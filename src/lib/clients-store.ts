@@ -40,32 +40,6 @@ const toClient = (r: Row): Client => ({
 });
 
 /** Clientes de demonstração, inseridos só se a tabela estiver vazia. */
-export function seedClients(): Omit<Client, "id">[] {
-  return [
-    {
-      name: "João Comercial, Lda",
-      nuit: "400123456",
-      email: "joao@comercial.co.mz",
-      phone: "+258 84 210 4477",
-      address: "Av. Julius Nyerere 812, Maputo",
-      notes: "Cliente recorrente — factura mensal de manutenção TI.",
-    },
-    {
-      name: "Beira Logística, SA",
-      nuit: "400556677",
-      email: "compras@beiralog.co.mz",
-      phone: "+258 82 330 1188",
-      address: "Rua do Porto 45, Beira",
-    },
-    {
-      name: "Farmácia Nampula",
-      nuit: "400889900",
-      email: "geral@farmacianampula.co.mz",
-      phone: "+258 86 774 2200",
-      address: "Av. Eduardo Mondlane 12, Nampula",
-    },
-  ];
-}
 
 let clients: Client[] = [];
 let hydrated = false;
@@ -99,17 +73,8 @@ async function load() {
     return;
   }
 
-  let rows = (data ?? []) as Row[];
-
-  if (rows.length === 0) {
-    const { data: seeded, error: seedError } = await sb
-      .from("clients")
-      .insert(seedClients())
-      .select("id,name,nuit,email,phone,address,notes");
-    if (seedError) fail("criar os clientes de demonstração", seedError);
-    else rows = (seeded ?? []) as Row[];
-  }
-
+  // Uma empresa nova começa vazia — os clientes são sempre dela.
+  const rows = (data ?? []) as Row[];
   clients = rows.map(toClient);
   emit();
 }

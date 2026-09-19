@@ -28,6 +28,7 @@ type ProductRow = {
   unit: string;
   vat: number;
   active: boolean;
+  image_url: string | null;
 };
 
 /** O estado deriva do stock, não de um campo à parte que possa divergir. */
@@ -48,6 +49,7 @@ const toProduct = (r: ProductRow): Product => ({
   unit: r.unit,
   vat: Number(r.vat),
   status: productStatus(r),
+  image: r.image_url ?? undefined,
 });
 
 let products: Product[] = [];
@@ -59,7 +61,7 @@ async function loadProducts() {
   if (!sb) return;
   const { data, error } = await sb
     .from("products")
-    .select("id,sku,name,category,price,cost,stock,min_stock,unit,vat,active")
+    .select("id,sku,name,category,price,cost,stock,min_stock,unit,vat,active,image_url")
     .order("sku");
   if (error) {
     productsHydrated = false;
@@ -175,6 +177,7 @@ export type ProductInput = {
   unit: string;
   vat: number;
   active: boolean;
+  image?: string | null;
 };
 
 const productRow = (p: Partial<ProductInput>) => ({
@@ -188,6 +191,7 @@ const productRow = (p: Partial<ProductInput>) => ({
   ...(p.unit !== undefined && { unit: p.unit.trim() || "un" }),
   ...(p.vat !== undefined && { vat: p.vat }),
   ...(p.active !== undefined && { active: p.active }),
+  ...(p.image !== undefined && { image_url: p.image }),
 });
 
 /** Próximo SKU livre no padrão QT-001 — quem importa pode trazer os seus. */
