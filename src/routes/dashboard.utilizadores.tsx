@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Users, UserPlus, Copy, MessageCircle, Mail, Trash2, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -76,10 +77,9 @@ function UtilizadoresPage() {
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="inline-flex items-center gap-1.5 pl-1 text-[12.5px] font-semibold">
-            <Users className="h-3.5 w-3.5 text-primary" /> Utilizadores
-          </span>
+            <Users className="h-3.5 w-3.5 text-primary" />{t("Utilizadores")}</span>
           <span className="border-l border-border/60 pl-3 text-[11px] text-muted-foreground">
-            {org?.name} · {members.length} de {limit} no plano {getPlan(root?.plan).name}
+            {org?.name} · {members.length} {t("de")} {limit} · {t("Plano")} {getPlan(root?.plan).name}
           </span>
           {full && (
             <Link to="/dashboard/planos" className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium text-primary hover:bg-muted">
@@ -94,14 +94,14 @@ function UtilizadoresPage() {
           <table className="w-full text-[12.5px]">
             <thead className="bg-surface text-[9.5px] uppercase tracking-[0.13em] text-muted-foreground">
               <tr>
-                <th className="px-4 py-2.5 text-left font-semibold">Utilizador</th>
-                <th className="px-4 py-2.5 text-left font-semibold">Papel</th>
-                <th className="px-4 py-2.5 text-left font-semibold">Desde</th>
+                <th className="px-4 py-2.5 text-left font-semibold">{t("Utilizador")}</th>
+                <th className="px-4 py-2.5 text-left font-semibold">{t("Papel")}</th>
+                <th className="px-4 py-2.5 text-left font-semibold">{t("Desde")}</th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {!loaded && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">A carregar…</td></tr>}
+              {!loaded && <tr><td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">{t("A carregar…")}</td></tr>}
               {members.map((m) => (
                 <tr key={m.userId}>
                   <td className="px-4 py-3">
@@ -118,11 +118,11 @@ function UtilizadoresPage() {
                         }}
                         className="h-8 rounded-md border border-border bg-background px-2 text-[12px]"
                       >
-                        <option value="admin">Administrador</option>
-                        <option value="membro">Membro</option>
+                        <option value="admin">{t("Administrador")}</option>
+                        <option value="membro">{t("Membro")}</option>
                       </select>
                     ) : (
-                      <span className={cn("rounded-md px-2 py-0.5 text-[11px] font-semibold", m.role === "owner" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>{roleLabel[m.role]}</span>
+                      <span className={cn("rounded-md px-2 py-0.5 text-[11px] font-semibold", m.role === "owner" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>{t(roleLabel[m.role])}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 tabular-nums text-muted-foreground">{formatDate(m.joinedAt.slice(0, 10))}</td>
@@ -135,8 +135,7 @@ function UtilizadoresPage() {
                         }}
                         className="inline-flex items-center gap-1 text-[11.5px] font-medium text-destructive hover:underline"
                       >
-                        <Trash2 className="h-3 w-3" /> Remover
-                      </button>
+                        <Trash2 className="h-3 w-3" />{t("Remover")}</button>
                     )}
                   </td>
                 </tr>
@@ -147,7 +146,7 @@ function UtilizadoresPage() {
                     <span className="block font-medium">{i.email}</span>
                     <span className="block text-[11px] text-warning-foreground dark:text-warning">Convite pendente · {formatDate(i.createdAt.slice(0, 10))}</span>
                   </td>
-                  <td className="px-4 py-3"><span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{roleLabel[i.role]}</span></td>
+                  <td className="px-4 py-3"><span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">{t(roleLabel[i.role])}</span></td>
                   <td className="px-4 py-3 text-muted-foreground">—</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
@@ -169,28 +168,28 @@ function UtilizadoresPage() {
 
         <aside className="grid content-start gap-3">
           <section className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-            <p className="text-[12.5px] font-semibold">Convidar utilizador</p>
+            <p className="text-[12.5px] font-semibold">{t("Convidar utilizador")}</p>
             <p className="mt-1 text-[11.5px] text-muted-foreground">
               A pessoa recebe uma ligação, cria a sua conta com a sua própria palavra-passe (ou inicia sessão) e entra na empresa com o papel escolhido.
             </p>
             {canManage ? (
               <form onSubmit={invite} className="mt-3 grid gap-3">
                 {targets.length > 1 && (
-                  <Field label="Empresa">
+                  <Field label={t("Empresa")}>
                     <select className={inputClass} value={targetOrg} onChange={(e) => setTargetOrg(e.target.value)}>
                       {targets.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                   </Field>
                 )}
-                <Field label="E-mail"><input className={inputClass} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="colega@empresa.co.mz" /></Field>
-                <Field label="Papel">
+                <Field label={t("E-mail")}><input className={inputClass} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="colega@empresa.co.mz" /></Field>
+                <Field label={t("Papel")}>
                   <select className={inputClass} value={role} onChange={(e) => setRole(e.target.value as Invite["role"])}>
                     <option value="membro">Membro — emite e consulta documentos</option>
                     <option value="admin">Administrador — também gere utilizadores e definições</option>
                   </select>
                 </Field>
                 <button type="submit" disabled={busy || full} className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
-                  <UserPlus className="h-3.5 w-3.5" /> {busy ? "A criar…" : "Criar convite"}
+                  <UserPlus className="h-3.5 w-3.5" /> {busy ? t("A criar…") : t("Criar convite")}
                 </button>
               </form>
             ) : (
@@ -204,8 +203,8 @@ function UtilizadoresPage() {
               <p className="mt-1 break-all text-[11px] text-muted-foreground">{inviteLink(last.token)}</p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <SmallBtn onClick={() => copy(last)}><Copy className="h-3 w-3" /> Copiar</SmallBtn>
-                <SmallBtn onClick={() => viaWhatsApp(last)}><MessageCircle className="h-3 w-3" /> WhatsApp</SmallBtn>
-                <SmallBtn onClick={() => viaEmail(last)}><Mail className="h-3 w-3" /> E-mail</SmallBtn>
+                <SmallBtn onClick={() => viaWhatsApp(last)}><MessageCircle className="h-3 w-3" />{t("WhatsApp")}</SmallBtn>
+                <SmallBtn onClick={() => viaEmail(last)}><Mail className="h-3 w-3" />{t("E-mail")}</SmallBtn>
               </div>
             </section>
           )}

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { Bell, CheckCheck, CreditCard, FileText, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { PageHeader } from "@/components/app/PageHeader";
@@ -42,7 +43,7 @@ function NotificacoesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Notificações"
+        title={t("Notificações")}
         description={unread ? `${unread} notificações por ler` : "Está tudo em dia."}
         Icon={Bell}
         crumbs={[{ label: "Espaço de trabalho" }, { label: "Notificações" }]}
@@ -60,20 +61,20 @@ function NotificacoesPage() {
       />
 
       <div role="tablist" aria-label="Filtrar notificações" className="flex flex-wrap gap-1 border-b border-border/60">
-        {tabs.map((t) => (
+        {tabs.map((tb) => (
           <button
-            key={t.key}
+            key={tb.key}
             role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => setTab(t.key)}
+            aria-selected={tab === tb.key}
+            onClick={() => setTab(tb.key)}
             className={cn(
               "-mb-px min-h-11 border-b-2 px-3 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              tab === t.key
+              tab === tb.key
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            {t.label}
+            {t(tb.label)}
           </button>
         ))}
       </div>
@@ -101,7 +102,7 @@ function NotificacoesPage() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
-                      <span className="truncate text-sm font-medium">{n.title}</span>
+                      <span className="truncate text-sm font-medium">{t(n.title)}</span>
                       {!n.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label="Por ler" />}
                     </span>
                     <span className="mt-0.5 block text-[13px] text-muted-foreground">{n.body}</span>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MessageCircle, Send, Bell, FileText, Link2, Check, Unplug } from "lucide-react";
 import { toast } from "sonner";
@@ -61,16 +62,14 @@ function WhatsAppPage() {
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="inline-flex items-center gap-1.5 pl-1 text-[12.5px] font-semibold">
-            <MessageCircle className="h-3.5 w-3.5 text-success" /> WhatsApp
-          </span>
+            <MessageCircle className="h-3.5 w-3.5 text-success" />{t("WhatsApp")}</span>
           <span className="inline-flex items-center gap-1.5 border-l border-border/60 pl-3 text-[11px] text-muted-foreground">
             <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-success" : "bg-warning"}`} />
             {connected ? `Ligado · ${company.whatsapp!.number}` : "Conta não ligada"}
           </span>
           {connected && (
             <button onClick={disconnect} className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium hover:bg-muted">
-              <Unplug className="h-3.5 w-3.5" /> Desligar
-            </button>
+              <Unplug className="h-3.5 w-3.5" />{t("Desligar")}</button>
           )}
         </div>
       </section>
@@ -81,7 +80,7 @@ function WhatsAppPage() {
             <div>
               <h1 className="font-display text-[19px] font-semibold tracking-tight">Ligar o WhatsApp Business</h1>
               <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                Registe o número da empresa e a mensagem de cobrança. Cada <b>Cobrar</b> em Documentos abre a conversa com o cliente já com a mensagem e a ligação ao PDF.
+                Registe o número da empresa e a mensagem de cobrança. Cada <b>{t("Cobrar")}</b> em Documentos abre a conversa com o cliente já com a mensagem e a ligação ao PDF.
               </p>
             </div>
             <Field label="Número WhatsApp Business da empresa" hint="Com indicativo. É o número que aparece ao cliente quando responde.">
@@ -99,7 +98,7 @@ function WhatsAppPage() {
               </button>
             </div>
             <div className="rounded-md border border-border/70 bg-surface p-3">
-              <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Pré-visualização</p>
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t("Pré-visualização")}</p>
               <p className="mt-1.5 whitespace-pre-wrap text-[12.5px] leading-relaxed">{preview}</p>
             </div>
             <p className="text-[11px] leading-relaxed text-muted-foreground">
@@ -126,7 +125,7 @@ function WhatsAppPage() {
           ))}
           <p className="px-1 text-[11px] text-muted-foreground">
             Ver os documentos em{" "}
-            <Link to="/dashboard/documentos" className="font-medium text-primary hover:underline">Documentos</Link>.
+            <Link to="/dashboard/documentos" className="font-medium text-primary hover:underline">{t("Documentos")}</Link>.
           </p>
         </aside>
       </div>

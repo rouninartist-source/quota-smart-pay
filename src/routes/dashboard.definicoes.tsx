@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { Settings, Upload, Trash2, Check, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Field, FieldRow } from "@/components/app/FormSection";
@@ -85,18 +86,18 @@ function Definicoes() {
                       <Field label="Nome da empresa" htmlFor="co-name">
                         <input id="co-name" className={inputClass} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                       </Field>
-                      <Field label="NUIT" htmlFor="co-nuit">
+                      <Field label={t("NUIT")} htmlFor="co-nuit">
                         <input id="co-nuit" className={inputClass} value={draft.nuit} onChange={(e) => setDraft({ ...draft, nuit: e.target.value })} />
                       </Field>
                     </FieldRow>
-                    <Field label="Morada" htmlFor="co-addr">
+                    <Field label={t("Morada")} htmlFor="co-addr">
                       <input id="co-addr" className={inputClass} value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} />
                     </Field>
                     <FieldRow>
                       <Field label="Email de facturação" htmlFor="co-email">
                         <input id="co-email" type="email" className={inputClass} value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
                       </Field>
-                      <Field label="Telefone" htmlFor="co-phone">
+                      <Field label={t("Telefone")} htmlFor="co-phone">
                         <input id="co-phone" className={inputClass} value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} />
                       </Field>
                     </FieldRow>
@@ -133,8 +134,7 @@ function Definicoes() {
                             onClick={() => setDraft({ ...draft, logo: undefined })}
                             className="inline-flex items-center gap-1.5 rounded-md border border-border px-3.5 py-2.5 text-xs font-semibold text-muted-foreground hover:text-destructive"
                           >
-                            <Trash2 className="h-3.5 w-3.5" /> Remover
-                          </button>
+                            <Trash2 className="h-3.5 w-3.5" />{t("Remover")}</button>
                         )}
                       </div>
                       <input
@@ -225,8 +225,7 @@ function Definicoes() {
                                   onClick={() => setDraft({ ...draft, banks: draft.banks.filter((_, j) => j !== i) })}
                                   className="inline-flex items-center gap-1 text-[11.5px] font-medium text-destructive hover:underline"
                                 >
-                                  <Trash2 className="h-3 w-3" /> Remover
-                                </button>
+                                  <Trash2 className="h-3 w-3" />{t("Remover")}</button>
                               </div>
                               <BankPicker value={bank.bankId} onChange={(id) => id && update({ bankId: id })} hideNone />
                               <FieldRow>
@@ -276,7 +275,7 @@ function Definicoes() {
                             <span className="text-xs text-muted-foreground">Prefixos {meta.hint}</span>
                           </div>
                           <FieldRow>
-                            <Field label="Número" htmlFor={`w-${provider}-num`}>
+                            <Field label={t("Número")} htmlFor={`w-${provider}-num`}>
                               <input
                                 id={`w-${provider}-num`}
                                 className={inputClass}
@@ -380,8 +379,7 @@ function Definicoes() {
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="inline-flex items-center gap-1.5 pl-1 text-[12.5px] font-semibold">
-            <Settings className="h-3.5 w-3.5 text-primary" /> Definições
-          </span>
+            <Settings className="h-3.5 w-3.5 text-primary" />{t("Definições")}</span>
           <span className="hidden border-l border-border/60 pl-3 text-[11px] text-muted-foreground sm:inline">
             Estes dados aparecem no cabeçalho e rodapé de todas as facturas e PDFs.
           </span>
@@ -398,15 +396,13 @@ function Definicoes() {
                 setDraft(defaultCompany);
               }}
               className="rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted"
-            >
-              Restaurar
-            </button>
+            >{t("Restaurar")}</button>
             <button
               type="submit"
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
             >
               {saved ? <Check className="h-3.5 w-3.5" /> : null}
-              {saved ? "Guardado" : "Guardar"}
+              {saved ? "Guardado" : t("Guardar")}
             </button>
           </div>
         </div>

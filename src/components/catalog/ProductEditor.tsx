@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,14 +80,14 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
           </label>
           <div className="grid flex-1 grid-cols-[110px_1fr] gap-3">
             <Field label="SKU"><input className={inputClass} value={d.sku} onChange={(e) => set("sku", e.target.value)} /></Field>
-            <Field label="Nome"><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
+            <Field label={t("Nome")}><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
           </div>
         </div>
         {d.image && (
-          <button type="button" onClick={() => set("image", null)} className="justify-self-start text-[11px] text-muted-foreground hover:text-destructive">Remover fotografia</button>
+          <button type="button" onClick={() => set("image", null)} className="justify-self-start text-[11px] text-muted-foreground hover:text-destructive">{t("Remover fotografia")}</button>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Categoria">
+          <Field label={t("Categoria")}>
             {newCategory ? (
               <input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Nova categoria" autoFocus={newCategory} />
             ) : (
@@ -95,53 +96,48 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
                 value={d.category}
                 onChange={(e) => (e.target.value === "__nova" ? (setNewCategory(true), set("category", "")) : set("category", e.target.value))}
               >
-                <option value="">Sem categoria</option>
+                <option value="">{t("Sem categoria")}</option>
                 {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                 <option value="__nova">+ Nova categoria…</option>
               </select>
             )}
           </Field>
-          <Field label="Unidade"><input className={inputClass} value={d.unit} onChange={(e) => set("unit", e.target.value)} placeholder="un, cx, kg" /></Field>
+          <Field label={t("Unidade")}><input className={inputClass} value={d.unit} onChange={(e) => set("unit", e.target.value)} placeholder="un, cx, kg" /></Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Preço (MZN)"><input className={inputClass} type="number" step="0.01" value={d.price} onChange={(e) => set("price", num(e.target.value))} /></Field>
-          <Field label="Custo (MZN)"><input className={inputClass} type="number" step="0.01" value={d.cost} onChange={(e) => set("cost", num(e.target.value))} /></Field>
+          <Field label={t("Preço (MZN)")}><input className={inputClass} type="number" step="0.01" value={d.price} onChange={(e) => set("price", num(e.target.value))} /></Field>
+          <Field label={t("Custo (MZN)")}><input className={inputClass} type="number" step="0.01" value={d.cost} onChange={(e) => set("cost", num(e.target.value))} /></Field>
           <Field label="IVA %">
             <select className={inputClass} value={d.vat} onChange={(e) => set("vat", num(e.target.value))}>
               <option value={16}>16</option><option value={5}>5</option><option value={0}>0</option>
             </select>
           </Field>
         </div>
-        <Field label="Estado">
+        <Field label={t("Estado")}>
           <select className={inputClass} value={d.active ? "1" : "0"} onChange={(e) => set("active", e.target.value === "1")}>
-            <option value="1">Activo</option><option value="0">Descontinuado</option>
+            <option value="1">{t("Activo")}</option><option value="0">{t("Descontinuado")}</option>
           </select>
         </Field>
         {product && (
           <div className="flex flex-wrap gap-2 rounded-md border border-border/70 bg-surface p-3">
-            <span className="w-full text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Usar este produto</span>
+            <span className="w-full text-[10.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t("Usar este produto")}</span>
             <button type="button" onClick={() => createDoc("cot")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
-              <FileText className="h-3 w-3" /> Criar cotação
-            </button>
+              <FileText className="h-3 w-3" />{t("Criar cotação")}</button>
             <button type="button" onClick={() => createDoc("ft")} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[11.5px] font-semibold hover:bg-muted">
-              <FileCheck2 className="h-3 w-3" /> Criar factura
-            </button>
+              <FileCheck2 className="h-3 w-3" />{t("Criar factura")}</button>
           </div>
         )}
         <div className="mt-1 flex items-center gap-2 border-t border-border/70 pt-3">
           {product && !confirm && (
             <button type="button" onClick={() => setConfirm(true)} className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 px-2.5 py-1.5 text-[11.5px] font-semibold text-destructive hover:bg-destructive/8">
-              <Trash2 className="h-3 w-3" /> Remover
-            </button>
+              <Trash2 className="h-3 w-3" />{t("Remover")}</button>
           )}
           {confirm && (
-            <button type="button" onClick={remove} disabled={busy} className="rounded-md bg-destructive px-2.5 py-1.5 text-[11.5px] font-semibold text-destructive-foreground">
-              Confirmar remoção
-            </button>
+            <button type="button" onClick={remove} disabled={busy} className="rounded-md bg-destructive px-2.5 py-1.5 text-[11.5px] font-semibold text-destructive-foreground">{t("Confirmar remoção")}</button>
           )}
-          <button type="button" onClick={onClose} className="ml-auto rounded-md border border-border px-3 py-2 text-[12px] font-medium hover:bg-muted">Cancelar</button>
+          <button type="button" onClick={onClose} className="ml-auto rounded-md border border-border px-3 py-2 text-[12px] font-medium hover:bg-muted">{t("Cancelar")}</button>
           <button type="submit" disabled={busy} className="rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">
-            {busy ? "A guardar…" : product ? "Guardar" : "Criar produto"}
+            {busy ? t("A guardar…") : product ? t("Guardar") : t("Criar produto")}
           </button>
         </div>
       </form>

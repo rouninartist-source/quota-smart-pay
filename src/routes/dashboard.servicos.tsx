@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -71,7 +72,7 @@ function ServicosPage() {
       {/* ─── Barra de contexto ─── */}
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="pl-1 text-[12px] font-semibold">Serviços</span>
+          <span className="pl-1 text-[12px] font-semibold">{t("Serviços")}</span>
           <span className="flex items-center gap-3 border-l border-border/60 pl-3 text-[11px] text-muted-foreground">
             <span>
               <b className="font-bold tabular-nums text-foreground">{services.length}</b> no catálogo
@@ -88,11 +89,9 @@ function ServicosPage() {
           </span>
           <div className="ml-auto flex shrink-0 items-center gap-2">
             <Button variant="outline" size="sm" className="h-8" onClick={exportCsv}>
-              <Download className="h-3.5 w-3.5" /> Exportar
-            </Button>
+              <Download className="h-3.5 w-3.5" />{t("Exportar")}</Button>
             <Button size="sm" className="h-8" onClick={() => setEditing("new")}>
-              <Plus className="h-3.5 w-3.5" /> Novo serviço
-            </Button>
+              <Plus className="h-3.5 w-3.5" />{t("Novo serviço")}</Button>
           </div>
         </div>
       </section>

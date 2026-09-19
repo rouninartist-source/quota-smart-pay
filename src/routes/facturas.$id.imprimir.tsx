@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { Download, Printer, Loader2 } from "lucide-react";
 import { z } from "zod";
@@ -114,7 +115,7 @@ function PrintInvoice() {
             className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
           >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-            {saving ? "A gerar o PDF…" : "Descarregar PDF"}
+            {saving ? "A gerar o PDF…" : t("Descarregar PDF")}
           </button>
         ) : (
           <button

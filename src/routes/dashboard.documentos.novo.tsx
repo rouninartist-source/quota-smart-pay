@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -218,7 +219,7 @@ function Documentos() {
   const validLines = badLine ? [] : lines;
   const isReady = hasClient && lines.length > 0 && !badLine;
   const [flagged, setFlagged] = useState<number | null>(null);
-  const reference = `${type.code} — atribuído ao emitir`;
+  const reference = `${type.code} — ${t("atribuído ao emitir")}`;
 
   /** Grava e devolve a factura criada; toda a acção passa por aqui. */
   async function persist(requested: InvoiceStatus) {
@@ -269,7 +270,7 @@ function Documentos() {
     const created = await persist("rascunho");
     setBusy(null);
     if (!created) return;
-    toast.success(`${type.label} guardada`, { description: created.number });
+    toast.success(`${t(type.label)} guardada`, { description: created.number });
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 
@@ -287,7 +288,7 @@ function Documentos() {
     const created = await persist("emitida");
     setBusy(null);
     if (!created) return;
-    toast.success(`${type.label} ${created.number} emitida com sucesso`, { description: `${mzn(totals.total)} MZN · escolha como enviar ao cliente.` });
+    toast.success(`${t(type.label)} ${created.number} emitida com sucesso`, { description: `${mzn(totals.total)} MZN · escolha como enviar ao cliente.` });
     // A escolha do canal (WhatsApp, e-mail registado ou outro) faz-se na página do documento.
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id }, search: { partilhar: true } });
   }
@@ -299,7 +300,7 @@ function Documentos() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/dashboard/documentos"
-            aria-label="Voltar a Documentos"
+            aria-label={t("Voltar a Documentos")}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -307,7 +308,7 @@ function Documentos() {
 
           <div
             role="group"
-            aria-label="Tipo de documento"
+            aria-label={t("Tipo de documento")}
             className="flex min-w-0 gap-0.5 overflow-x-auto rounded-lg border border-border/60 bg-surface p-0.5"
           >
             {docTypes.map((d) => {
@@ -325,7 +326,7 @@ function Documentos() {
                       : "border border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {d.short}
+                  {t(d.short)}
                 </button>
               );
             })}
@@ -334,7 +335,7 @@ function Documentos() {
           <span className="inline-flex shrink-0 items-center gap-1.5 border-l border-border/60 py-1 pl-3 text-[11px] font-semibold text-muted-foreground">
             <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", isReady ? "bg-success" : "bg-warning")} />
             <span className="tabular-nums">{reference}</span>
-            <span className="text-muted-foreground/70">· {isReady ? "Pronto" : "Rascunho"}</span>
+            <span className="text-muted-foreground/70">· {isReady ? t("Pronto") : t("Rascunho")}</span>
           </span>
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -343,28 +344,25 @@ function Documentos() {
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
             >
-              <Save className="h-3.5 w-3.5" /> Guardar
-            </button>
+              <Save className="h-3.5 w-3.5" />{t("Guardar")}</button>
             <button
               onClick={() => savePdf("print")}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
             >
-              <Printer className="h-3.5 w-3.5" /> Imprimir
-            </button>
+              <Printer className="h-3.5 w-3.5" />{t("Imprimir")}</button>
             <button
               onClick={() => savePdf("pdf")}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
             >
-              <Download className="h-3.5 w-3.5" /> PDF
-            </button>
+              <Download className="h-3.5 w-3.5" />{t("PDF")}</button>
             <button
               onClick={issue}
               disabled={busy !== null}
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
             >
-              <Send className="h-3.5 w-3.5" /> {busy === "send" ? "A emitir…" : "Emitir"}
+              <Send className="h-3.5 w-3.5" /> {busy === "send" ? t("A emitir…") : t("Emitir")}
             </button>
           </div>
         </div>
@@ -376,8 +374,7 @@ function Documentos() {
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm">
           <div className="grid shrink-0 gap-2 border-b border-border/70 bg-surface px-4 py-3 sm:grid-cols-[1.5fr_0.9fr_0.9fr_0.7fr]">
             <div className="relative flex min-w-0 flex-col gap-1">
-              <label className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                Cliente {clientId && <span className="normal-case tracking-normal text-success">· ficha</span>}
+              <label className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Cliente")} {clientId && <span className="normal-case tracking-normal text-success">· ficha</span>}
               </label>
               <span className="flex h-8 items-center rounded-md border border-border bg-card px-2 focus-within:border-primary/60 focus-within:ring-[3px] focus-within:ring-primary/12">
                 <input
@@ -385,7 +382,7 @@ function Documentos() {
                   onChange={(e) => typeClient(e.target.value)}
                   onFocus={() => setClientOpen(true)}
                   onBlur={() => setTimeout(() => setClientOpen(false), 150)}
-                  placeholder="Nome ou NUIT"
+                  placeholder={t("Nome ou NUIT")}
                   className="w-full min-w-0 bg-transparent text-[12.5px] font-medium outline-none"
                 />
                 <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
@@ -405,14 +402,12 @@ function Documentos() {
                       </button>
                     </li>
                   ))}
-                  <li className="border-t border-border/60 px-2 pt-1.5 pb-1 text-[10.5px] text-muted-foreground">
-                    Ou continue a escrever para um cliente pontual.
-                  </li>
+                  <li className="border-t border-border/60 px-2 pt-1.5 pb-1 text-[10.5px] text-muted-foreground">{t("Ou continue a escrever para um cliente pontual.")}</li>
                 </ul>
               )}
             </div>
-            <Field label="NUIT" value={nuit} onChange={setNuit} />
-            <Field label="Emissão" value={date} onChange={setDate} type="date" />
+            <Field label={t("NUIT")} value={nuit} onChange={setNuit} />
+            <Field label={t("Emissão")} value={date} onChange={setDate} type="date" />
             <Field
               label={isQuote ? "Validade" : "Prazo"}
               value={validity}
@@ -423,18 +418,16 @@ function Documentos() {
           </div>
 
           <div className="hidden shrink-0 grid-cols-[minmax(0,1fr)_56px_96px_96px_28px] gap-2 border-b border-border/70 px-4 py-2 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground sm:grid">
-            <span>Descrição</span>
-            <span className="text-right">Qtd</span>
-            <span className="text-right">Preço</span>
-            <span className="text-right">Total</span>
+            <span>{t("Descrição")}</span>
+            <span className="text-right">{t("Qtd")}</span>
+            <span className="text-right">{t("Preço")}</span>
+            <span className="text-right">{t("Total")}</span>
             <span />
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-1.5">
             {lines.length === 0 ? (
-              <p className="px-2 py-8 text-center text-[12.5px] text-muted-foreground">
-                Sem linhas. Adicione a primeira abaixo.
-              </p>
+              <p className="px-2 py-8 text-center text-[12.5px] text-muted-foreground">{t("Sem linhas. Adicione a primeira abaixo.")}</p>
             ) : (
               lines.map((l, idx) => (
                 <div
@@ -447,7 +440,7 @@ function Documentos() {
                   <div className="flex min-w-0 items-center gap-2">
                     {isVisual && (
                       <label
-                        title="Fotografia do artigo"
+                        title={t("Fotografia do artigo")}
                         className="relative grid h-9 w-9 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-md border border-border/70 bg-muted text-muted-foreground hover:border-primary/60"
                       >
                         {l.img ? <img src={l.img} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-3.5 w-3.5" />}
@@ -466,13 +459,13 @@ function Documentos() {
                       <Cell
                         value={l.desc}
                         onChange={(v) => update(l.id, { desc: v })}
-                        placeholder="Descrição do item"
+                        placeholder={t("Descrição do item")}
                       />
                       {isVisual && (
                         <Cell
                           value={l.note}
                           onChange={(v) => update(l.id, { note: v })}
-                          placeholder="Detalhe curto (cor, medida, prazo…)"
+                          placeholder={t("Detalhe curto (cor, medida, prazo…)")}
                           muted
                         />
                       )}
@@ -510,14 +503,12 @@ function Documentos() {
                 onClick={addLine}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:border-solid hover:border-primary/60 hover:bg-primary/5 hover:text-primary"
               >
-                <Plus className="h-3 w-3" /> Linha
-              </button>
+                <Plus className="h-3 w-3" />{t("Linha")}</button>
               <button
                 onClick={() => setCatalogOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-[11.5px] font-semibold text-muted-foreground transition hover:border-solid hover:border-primary/60 hover:bg-primary/5 hover:text-primary"
               >
-                <Package className="h-3 w-3" /> Do catálogo
-              </button>
+                <Package className="h-3 w-3" />{t("Do catálogo")}</button>
             </div>
           </div>
 
@@ -525,9 +516,7 @@ function Documentos() {
           <div className="flex shrink-0 items-center gap-3 border-t border-border/70 bg-surface px-4 py-2.5">
             <label className="flex items-center gap-2">
               <Percent className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
-                Desconto
-              </span>
+              <span className="text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">{t("Desconto")}</span>
               <span className="flex h-7 w-[68px] items-center rounded-md border border-border bg-card px-2 focus-within:border-primary/60">
                 <input
                   type="number"
@@ -550,13 +539,12 @@ function Documentos() {
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/70 bg-surface px-5 py-4">
             <div className="min-w-0">
               <p className="font-display text-[14px] font-semibold">{company.name}</p>
-              <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">
-                NUIT {company.nuit} · {company.address}
+              <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground">{t("NUIT")} {company.nuit} · {company.address}
               </p>
             </div>
             <div className="shrink-0 text-right">
               <p className="font-display text-[12.5px] font-bold uppercase tracking-[0.08em] text-primary">
-                {type.label}
+                {t(type.label)}
               </p>
               <p className="mt-0.5 text-[10.5px] tabular-nums text-muted-foreground">{reference}</p>
             </div>
@@ -565,22 +553,16 @@ function Documentos() {
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
             <div className="flex items-start justify-between gap-4 border-b border-border/70 pb-3">
               <div className="min-w-0">
-                <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Cliente
-                </p>
+                <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("Cliente")}</p>
                 <p className="mt-1 truncate text-[12.5px] font-semibold">{client || "—"}</p>
-                <p className="mt-0.5 whitespace-nowrap text-[11px] tabular-nums text-muted-foreground">
-                  NUIT {nuit || "—"}
+                <p className="mt-0.5 whitespace-nowrap text-[11px] tabular-nums text-muted-foreground">{t("NUIT")} {nuit || "—"}
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  Data
-                </p>
+                <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("Data")}</p>
                 <p className="mt-1 text-[12.5px] font-semibold tabular-nums">{formatDate(date)}</p>
                 <p className="mt-0.5 whitespace-nowrap text-[11px] text-muted-foreground">
-                  {isQuote ? "Validade" : "Prazo"} {validity} dias
-                </p>
+                  {isQuote ? "Validade" : "Prazo"} {validity} {t("dias")}</p>
               </div>
             </div>
 
@@ -617,9 +599,9 @@ function Documentos() {
               <table className="mt-3 w-full border-collapse">
                 <thead>
                   <tr className="border-b border-border/70 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
-                    <th className="pb-2 text-left font-semibold">Descrição</th>
-                    <th className="pb-2 text-right font-semibold">Qtd</th>
-                    <th className="pb-2 text-right font-semibold">Total</th>
+                    <th className="pb-2 text-left font-semibold">{t("Descrição")}</th>
+                    <th className="pb-2 text-right font-semibold">{t("Qtd")}</th>
+                    <th className="pb-2 text-right font-semibold">{t("Total")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -635,11 +617,11 @@ function Documentos() {
             )}
 
             <div className="ml-auto mt-3 flex w-[min(230px,65%)] flex-col gap-1.5">
-              <Sum label="Subtotal" value={mzn(totals.sub)} />
+              <Sum label={t("Subtotal")} value={mzn(totals.sub)} />
               {discount > 0 && <Sum label={`Desconto ${discount}%`} value={`− ${mzn(totals.disc)}`} />}
               <Sum label="IVA 16%" value={mzn(totals.vat)} />
               <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2.5">
-                <span className="text-[12px] font-semibold">Total</span>
+                <span className="text-[12px] font-semibold">{t("Total")}</span>
                 <span className="font-display text-[16px] font-semibold tabular-nums text-primary">
                   {mzn(totals.total)} MZN
                 </span>
@@ -663,7 +645,7 @@ function Documentos() {
           className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left"
         >
           <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="shrink-0 text-[11.5px] font-semibold">Notas e condições</span>
+          <span className="shrink-0 text-[11.5px] font-semibold">{t("Notas e condições")}</span>
           {!notesOpen && (
             <span className="min-w-0 flex-1 truncate text-[11.5px] text-muted-foreground">
               {notes || "Sem notas"}
@@ -683,7 +665,7 @@ function Documentos() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              aria-label="Notas e condições"
+              aria-label={t("Notas e condições")}
               className="w-full resize-none rounded-md border border-border bg-surface px-3 py-2 text-[12.5px] outline-none transition focus:border-primary/60"
             />
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -748,7 +730,7 @@ function CatalogPicker({
     <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4" onClick={onClose}>
       <div
         role="dialog"
-        aria-label="Catálogo"
+        aria-label={t("Catálogo")}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[70vh] w-full max-w-lg flex-col overflow-hidden rounded-lg border border-border bg-card shadow-elegant"
       >
@@ -758,16 +740,16 @@ function CatalogPicker({
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Procurar produto ou serviço"
+            placeholder={t("Procurar produto ou serviço")}
             className="h-8 flex-1 bg-transparent text-[12.5px] outline-none"
           />
-          <button onClick={onClose} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-md hover:bg-muted">
+          <button onClick={onClose} aria-label={t("Fechar")} className="grid h-7 w-7 place-items-center rounded-md hover:bg-muted">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
         <ul className="min-h-0 flex-1 overflow-y-auto p-1">
           {items.length === 0 && (
-            <li className="px-3 py-8 text-center text-[12px] text-muted-foreground">Nada encontrado.</li>
+            <li className="px-3 py-8 text-center text-[12px] text-muted-foreground">{t("Nada encontrado.")}</li>
           )}
           {items.map((i) => (
             <li key={i.key}>

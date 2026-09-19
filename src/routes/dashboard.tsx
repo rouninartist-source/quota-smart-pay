@@ -5,6 +5,7 @@ import { useSession } from "@/lib/auth";
 import { rootOf, trialState, useOrg } from "@/lib/org-store";
 import { FirstLogin } from "@/components/app/FirstLogin";
 import { hydrateInvoices } from "@/lib/invoices-store";
+import { useT } from "@/lib/i18n";
 import { hydrateClients } from "@/lib/clients-store";
 import { hydrateCompany } from "@/lib/company-store";
 import { hydrateCatalog } from "@/lib/catalog-store";
@@ -57,6 +58,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardLayout() {
   const navigate = useNavigate();
+  useT();
   const { session, loading } = useSession();
   const { org, orgs, ready: orgReady } = useOrg();
   const trial = trialState(rootOf(org, orgs));

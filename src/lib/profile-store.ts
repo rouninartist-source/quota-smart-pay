@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "./supabase";
+import { langFromLocale, setLang } from "./i18n";
 
 export type Profile = {
   firstName: string;
@@ -61,6 +62,8 @@ async function load() {
   if (data.user) {
     profile = fromMeta(data.user.user_metadata as Meta);
     email = data.user.email ?? "";
+    // a preferência de idioma da conta manda na interface
+    setLang(langFromLocale(profile.locale));
   }
   loaded = true;
   emit();
@@ -109,6 +112,7 @@ export async function saveProfile(next: Profile) {
     return false;
   }
   profile = next;
+  setLang(langFromLocale(next.locale));
   emit();
   return true;
 }

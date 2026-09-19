@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t, setLang, langFromLocale } from "@/lib/i18n";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Save, LogOut } from "lucide-react";
 import { toast } from "sonner";
@@ -100,7 +101,7 @@ function PerfilPage() {
             )}
             <div className="flex flex-wrap gap-2">
               <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium hover:bg-muted">
-                <Camera className="h-3.5 w-3.5" /> {draft.avatar ? "Trocar fotografia" : "Carregar fotografia"}
+                <Camera className="h-3.5 w-3.5" /> {draft.avatar ? t("Trocar fotografia") : t("Carregar fotografia")}
                 <input
                   type="file"
                   accept="image/*"
@@ -112,29 +113,27 @@ function PerfilPage() {
                 />
               </label>
               {draft.avatar && (
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => set("avatar", undefined)}>
-                  Remover
-                </Button>
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => set("avatar", undefined)}>{t("Remover")}</Button>
               )}
             </div>
           </div>
           <FieldRow>
-            <Field label="Nome" htmlFor="nome">
+            <Field label={t("Nome")} htmlFor="nome">
               <Input id="nome" value={draft.firstName} onChange={(e) => set("firstName", e.target.value)} />
             </Field>
-            <Field label="Apelido" htmlFor="apelido">
+            <Field label={t("Apelido")} htmlFor="apelido">
               <Input id="apelido" value={draft.lastName} onChange={(e) => set("lastName", e.target.value)} />
             </Field>
           </FieldRow>
           <FieldRow>
-            <Field label="E-mail" htmlFor="email" hint="Usado para iniciar sessão. Para o alterar, contacte o suporte.">
+            <Field label={t("E-mail")} htmlFor="email" hint="Usado para iniciar sessão. Para o alterar, contacte o suporte.">
               <Input id="email" type="email" value={email} readOnly className="text-muted-foreground" />
             </Field>
-            <Field label="Telefone" htmlFor="tel">
+            <Field label={t("Telefone")} htmlFor="tel">
               <Input id="tel" value={draft.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+258 84 000 0000" />
             </Field>
           </FieldRow>
-          <Field label="Cargo" htmlFor="cargo">
+          <Field label={t("Cargo")} htmlFor="cargo">
             <Input id="cargo" value={draft.role} onChange={(e) => set("role", e.target.value)} placeholder="Administrador, Contabilista…" />
           </Field>
           <Field label="Assinatura de e-mail" htmlFor="bio" hint="Anexada às mensagens enviadas aos clientes.">
@@ -152,14 +151,14 @@ function PerfilPage() {
       content: (
         <>
           <FieldRow>
-            <Field label="Idioma" htmlFor="idioma">
-              <select id="idioma" value={draft.locale} onChange={(e) => set("locale", e.target.value)} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-primary">
+            <Field label={t("Idioma")} htmlFor="idioma">
+              <select id="idioma" value={draft.locale} onChange={(e) => { set("locale", e.target.value); setLang(langFromLocale(e.target.value)); }} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-primary">
                 <option value="pt-MZ">Português (Moçambique)</option>
                 <option value="pt-PT">Português (Portugal)</option>
                 <option value="en">English</option>
               </select>
             </Field>
-            <Field label="Fuso horário" htmlFor="fuso">
+            <Field label={t("Fuso horário")} htmlFor="fuso">
               <select id="fuso" value={draft.timezone} onChange={(e) => set("timezone", e.target.value)} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-primary">
                 <option value="Africa/Maputo">África/Maputo (CAT)</option>
                 <option value="Europe/Lisbon">Europa/Lisboa</option>
@@ -192,16 +191,16 @@ function PerfilPage() {
         <>
           <form onSubmit={updatePassword} className="grid gap-3">
             <FieldRow>
-              <Field label="Nova palavra-passe" htmlFor="pw2" hint="Mínimo 8 caracteres.">
+              <Field label={t("Nova palavra-passe")} htmlFor="pw2" hint="Mínimo 8 caracteres.">
                 <Input id="pw2" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" />
               </Field>
-              <Field label="Confirmar" htmlFor="pw3">
+              <Field label={t("Confirmar")} htmlFor="pw3">
                 <Input id="pw3" type="password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} autoComplete="new-password" />
               </Field>
             </FieldRow>
             <div>
               <Button type="submit" size="sm" variant="outline" disabled={pwBusy || !pw.next}>
-                {pwBusy ? "A alterar…" : "Alterar palavra-passe"}
+                {pwBusy ? t("A alterar…") : t("Alterar palavra-passe")}
               </Button>
             </div>
           </form>
@@ -223,13 +222,13 @@ function PerfilPage() {
     <div className="flex flex-col gap-3 md:h-full md:min-h-0">
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="pl-1 text-[12.5px] font-semibold">Perfil</span>
+          <span className="pl-1 text-[12.5px] font-semibold">{t("Perfil")}</span>
           <span className="hidden border-l border-border/60 pl-3 text-[11px] text-muted-foreground sm:inline">
             {email || "Os seus dados pessoais e preferências de conta."}
           </span>
-          {dirty && <span className="text-[11px] text-warning-foreground dark:text-warning">Alterações por guardar</span>}
+          {dirty && <span className="text-[11px] text-warning-foreground dark:text-warning">{t("Alterações por guardar")}</span>}
           <Button size="sm" className="ml-auto h-8" onClick={save} disabled={busy || !dirty}>
-            <Save className="h-3.5 w-3.5" /> {busy ? "A guardar…" : "Guardar alterações"}
+            <Save className="h-3.5 w-3.5" /> {busy ? t("A guardar…") : t("Guardar alterações")}
           </Button>
         </div>
       </section>

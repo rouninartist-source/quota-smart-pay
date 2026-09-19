@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t, useT } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { requestPasswordReset } from "@/lib/auth";
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/recuperar")({
 });
 
 function Recuperar() {
+  useT();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,13 +60,13 @@ function Recuperar() {
           </div>
         ) : (
           <>
-            <h1 className="mt-10 font-display text-[28px] font-semibold tracking-tight">Recuperar acesso</h1>
+            <h1 className="mt-10 font-display text-[28px] font-semibold tracking-tight">{t("Recuperar acesso")}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Indique o e-mail da conta. Enviamos uma ligação para definir uma nova palavra-passe.
             </p>
             <form onSubmit={submit} className="mt-8 space-y-4">
               <div>
-                <label htmlFor="email" className="text-[13px] font-medium">E-mail</label>
+                <label htmlFor="email" className="text-[13px] font-medium">{t("E-mail")}</label>
                 <input
                   id="email"
                   type="email"
@@ -82,12 +84,11 @@ function Recuperar() {
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
               >
-                {busy ? "A enviar…" : "Enviar ligação"} <ArrowRight className="h-4 w-4" />
+                {busy ? "A enviar…" : t("Enviar ligação")} <ArrowRight className="h-4 w-4" />
               </button>
             </form>
-            <p className="mt-8 text-center text-[13px] text-muted-foreground">
-              Lembrou-se?{" "}
-              <Link to="/login" className="font-medium text-foreground hover:text-primary">Iniciar sessão</Link>
+            <p className="mt-8 text-center text-[13px] text-muted-foreground">{t("Lembrou-se?")}{" "}
+              <Link to="/login" className="font-medium text-foreground hover:text-primary">{t("Iniciar sessão")}</Link>
             </p>
           </>
         )}

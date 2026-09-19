@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "@/lib/i18n";
 import { Mail, MessageCircle, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Modal, Field, inputClass } from "@/components/catalog/Modal";
@@ -102,7 +103,7 @@ export function ShareDialog({ invoice, kind = "documento", paymentId, onClose }:
   };
 
   return (
-    <Modal title="Enviar ao cliente" onClose={onClose}>
+    <Modal title={t("Enviar ao cliente")} onClose={onClose}>
       <div className="grid gap-3">
         <p className="text-[12px] text-muted-foreground">
           {invoice.client.name} · {receipt ? `Recibo ${receipt.receiptNumber}` : `${documentKinds[invoice.kind].label} ${invoice.number}`}
@@ -116,7 +117,7 @@ export function ShareDialog({ invoice, kind = "documento", paymentId, onClose }:
         >
           <MessageCircle className="h-4 w-4 text-success" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[12.5px] font-semibold">WhatsApp</span>
+            <span className="block text-[12.5px] font-semibold">{t("WhatsApp")}</span>
             <span className="block truncate text-[11px] text-muted-foreground">{phone ? invoice.client.phone : "Cliente sem telefone na ficha"}</span>
           </span>
         </button>
@@ -129,7 +130,7 @@ export function ShareDialog({ invoice, kind = "documento", paymentId, onClose }:
         >
           <Mail className="h-4 w-4 text-primary" />
           <span className="min-w-0 flex-1">
-            <span className="block text-[12.5px] font-semibold">E-mail registado</span>
+            <span className="block text-[12.5px] font-semibold">{t("E-mail registado")}</span>
             <span className="block truncate text-[11px] text-muted-foreground">{email || "Cliente sem e-mail na ficha"}</span>
           </span>
         </button>
@@ -141,19 +142,16 @@ export function ShareDialog({ invoice, kind = "documento", paymentId, onClose }:
           }}
           className="grid gap-2 rounded-lg border border-border bg-card p-3"
         >
-          <Field label="Outro e-mail">
+          <Field label={t("Outro e-mail")}>
             <div className="flex gap-2">
               <input className={inputClass} type="email" value={other} onChange={(e) => setOther(e.target.value)} placeholder="nome@empresa.co.mz" />
-              <button type="submit" className="shrink-0 rounded-md bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:opacity-90">
-                Enviar
-              </button>
+              <button type="submit" className="shrink-0 rounded-md bg-primary px-3 text-[12px] font-semibold text-primary-foreground hover:opacity-90">{t("Enviar")}</button>
             </div>
           </Field>
         </form>
 
         <button type="button" onClick={copy} className="inline-flex items-center justify-center gap-1.5 text-[11.5px] font-medium text-muted-foreground hover:text-foreground">
-          {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />} Copiar ligação do PDF
-        </button>
+          {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />} {t("Copiar ligação do PDF")}</button>
       </div>
     </Modal>
   );

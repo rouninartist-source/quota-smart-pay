@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { Plus, X } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { navGroups, quickCreate } from "./nav-items";
@@ -27,15 +28,14 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
             onClick={onClose}
             className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground"
           >
-            <Plus className="h-4 w-4" /> Nova factura
-          </Link>
+            <Plus className="h-4 w-4" />{t("Nova factura")}</Link>
         </div>
 
         <nav aria-label="Navegação" className="space-y-5 px-3 pb-8">
           {navGroups.map((g) => (
-            <div key={g.label}>
+            <div key={t(g.label)}>
               <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground/70">
-                {g.label}
+                {t(g.label)}
               </p>
               <ul className="space-y-0.5">
                 {g.items.map((it) => {
@@ -56,7 +56,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                         )}
                       >
                         <Icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} aria-hidden />
-                        {it.label}
+                        {t(it.label)}
                       </Link>
                     </li>
                   );

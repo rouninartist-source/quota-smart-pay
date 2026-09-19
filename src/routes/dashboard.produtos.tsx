@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { Package, Plus, Search, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -136,7 +137,7 @@ function Produtos() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Procurar nome, SKU ou categoria"
+              placeholder={t("Procurar nome, SKU ou categoria")}
               aria-label="Procurar produtos"
               className="h-8 w-full truncate rounded-lg border border-border bg-surface pl-8 pr-3 text-[12px] outline-none transition focus:border-primary/60"
             />
@@ -148,20 +149,17 @@ function Produtos() {
               disabled={visible.length === 0}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-40"
             >
-              <Download className="h-3.5 w-3.5" /> Exportar
-            </button>
+              <Download className="h-3.5 w-3.5" />{t("Exportar")}</button>
             <button
               onClick={() => setImporting(true)}
               className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted"
             >
-              <Upload className="h-3.5 w-3.5" /> Importar
-            </button>
+              <Upload className="h-3.5 w-3.5" />{t("Importar")}</button>
             <button
               onClick={() => setEditing("new")}
               className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
             >
-              <Plus className="h-3.5 w-3.5" /> Novo produto
-            </button>
+              <Plus className="h-3.5 w-3.5" />{t("Novo produto")}</button>
           </div>
         </div>
       </section>

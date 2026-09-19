@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { signOut, useSession } from "@/lib/auth";
 import { displayName, initialsOf, useProfile } from "@/lib/profile-store";
 import { Bell, Check, ChevronDown, Menu, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
@@ -50,7 +51,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
         aria-label="Pesquisar em toda a aplicação"
       >
         <Search className="h-4 w-4 shrink-0" aria-hidden />
-        <span className="truncate">Procurar…</span>
+        <span className="truncate">{t("Procurar…")}</span>
         <kbd className="ml-auto hidden shrink-0 rounded border border-border/70 bg-background px-1.5 py-0.5 font-sans text-[10px] font-medium text-muted-foreground sm:inline-block">
           ⌘K
         </kbd>
@@ -60,14 +61,13 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
         <DropdownMenuTrigger asChild>
           <button
             className="hidden h-9 min-w-0 items-center gap-2 rounded-md border border-border/70 bg-surface px-3 text-sm transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
-            aria-label="Trocar de empresa"
+            aria-label={t("Trocar de empresa")}
           >
             <span className="grid h-5 w-5 shrink-0 place-items-center rounded bg-primary/10 text-[10px] font-semibold text-primary">
               {(org?.name ?? "Q").charAt(0)}
             </span>
             <span className="max-w-[160px] truncate font-medium">{org?.name ?? "A carregar…"}</span>
-            <span className="hidden rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary lg:inline">
-              Plano actual: {plan.name}
+            <span className="hidden rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary lg:inline">{t("Plano actual:")} {plan.name}
             </span>
             {trial.active && (
               <span className="hidden rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground dark:text-warning lg:inline">
@@ -75,16 +75,13 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
               </span>
             )}
             {trial.expired && (
-              <span className="hidden rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive lg:inline">
-                Trial terminado
-              </span>
+              <span className="hidden rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive lg:inline">{t("Trial terminado")}</span>
             )}
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-72">
-          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-            Plano {plan.name} · {orgs.length} de {plan.maxOrgs} empresa{plan.maxOrgs === 1 ? "" : "s"}
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">{t("Plano")} {plan.name} · {orgs.length} de {plan.maxOrgs} empresa{plan.maxOrgs === 1 ? "" : "s"}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {orgs.map((w) => {
@@ -100,7 +97,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13px] font-medium">{w.name}</span>
-                  <span className="block truncate text-[11px] text-muted-foreground">NUIT {w.nuit || "—"}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">{t("NUIT")} {w.nuit || "—"}</span>
                 </span>
                 {isActive && <Check className="h-3.5 w-3.5 shrink-0 text-primary" />}
               </DropdownMenuItem>
@@ -109,13 +106,12 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link to="/empresas" className="text-[13px]">
-              {orgs.length < plan.maxOrgs ? "Gerir e adicionar empresas" : "Ver todas as empresas"}
+              {orgs.length < plan.maxOrgs ? t("Gerir e adicionar empresas") : t("Ver todas as empresas")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/dashboard/planos" className="text-[13px] text-primary">
-              <Sparkles className="h-4 w-4" /> Upgrade do plano
-            </Link>
+              <Sparkles className="h-4 w-4" />{t("Upgrade do plano")}</Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -123,22 +119,20 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
       <div className="ml-auto flex items-center gap-1">
         <Button asChild variant="outline" size="sm" className="hidden h-9 rounded-lg border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:inline-flex">
           <Link to="/dashboard/assistente" title="Fale com o agente Quota AI — tem acesso a tudo no sistema">
-            <Sparkles className="h-4 w-4" /> Quota AI
-          </Link>
+            <Sparkles className="h-4 w-4" />{t("Quota AI")}</Link>
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" className="hidden h-9 rounded-lg sm:inline-flex">
-              <Plus className="h-4 w-4" /> Criar
-            </Button>
+              <Plus className="h-4 w-4" />{t("Criar")}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
             {quickCreate.map((a) => (
-              <DropdownMenuItem key={a.label} asChild>
+              <DropdownMenuItem key={t(a.label)} asChild>
                 <Link to={a.to} search={a.search} className="gap-2.5">
                   <a.icon className="h-4 w-4 text-muted-foreground" />
-                  {a.label}
+                  {t(a.label)}
                 </Link>
               </DropdownMenuItem>
             ))}
@@ -159,13 +153,13 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80 p-0">
             <div className="flex items-center justify-between px-3 py-2.5">
-              <p className="text-sm font-semibold">Notificações</p>
-              <span className="text-xs text-muted-foreground">{unread} por ler</span>
+              <p className="text-sm font-semibold">{t("Notificações")}</p>
+              <span className="text-xs text-muted-foreground">{unread} {t("por ler")}</span>
             </div>
             <DropdownMenuSeparator className="m-0" />
             <ul className="max-h-80 overflow-y-auto">
               {notifications.length === 0 && (
-                <li className="px-3 py-6 text-center text-xs text-muted-foreground">Está tudo em dia.</li>
+                <li className="px-3 py-6 text-center text-xs text-muted-foreground">{t("Está tudo em dia.")}</li>
               )}
               {notifications.slice(0, 6).map((n) => (
                 <li key={n.id}>
@@ -183,7 +177,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
                       )}
                     />
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-medium">{n.title}</span>
+                      <span className="block truncate text-[13px] font-medium">{t(n.title)}</span>
                       <span className="mt-0.5 block line-clamp-2 text-xs text-muted-foreground">
                         {n.body}
                       </span>
@@ -195,7 +189,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             </ul>
             <DropdownMenuSeparator className="m-0" />
             <DropdownMenuItem asChild className="justify-center text-sm">
-              <Link to="/dashboard/notificacoes">Ver todas</Link>
+              <Link to="/dashboard/notificacoes">{t("Ver todas")}</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -212,7 +206,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
           <DropdownMenuTrigger asChild>
             <button
               className="ml-1 grid h-8 w-8 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              aria-label="Menu da conta"
+              aria-label={t("Menu da conta")}
             >
               {profile.avatar ? (
                 <img src={profile.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
@@ -230,16 +224,16 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/dashboard/perfil">Perfil</Link>
+              <Link to="/dashboard/perfil">{t("Perfil")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/dashboard/definicoes">Definições</Link>
+              <Link to="/dashboard/definicoes">{t("Definições")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/dashboard/planos" className="text-primary">Plano actual: {plan.name} · Upgrade</Link>
+              <Link to="/dashboard/planos" className="text-primary">{t("Plano actual:")} {plan.name} · Upgrade</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to="/dashboard/notificacoes">Notificações</Link>
+              <Link to="/dashboard/notificacoes">{t("Notificações")}</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -247,9 +241,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
                 void signOut();
               }}
               className="text-destructive"
-            >
-              Terminar sessão
-            </DropdownMenuItem>
+            >{t("Terminar sessão")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

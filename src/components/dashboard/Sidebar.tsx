@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import { useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { menuTree, generalItems } from "./nav-items";
@@ -51,7 +52,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-[13px] font-semibold tracking-tight">{org?.name ?? "Quota"}</p>
-              <p className="truncate text-[11px] text-muted-foreground">Plano {getPlan(root?.plan).name}{root?.trialEndsAt ? " · trial" : ""}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{t("Plano")} {getPlan(root?.plan).name}{root?.trialEndsAt ? " · trial" : ""}</p>
             </div>
           )}
         </div>
@@ -68,7 +69,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
             <Search className="h-4 w-4 shrink-0" aria-hidden />
             {!collapsed && (
               <>
-                <span>Procurar…</span>
+                <span>{t("Procurar…")}</span>
                 <kbd className="ml-auto rounded border border-border/70 px-1.5 py-0.5 font-sans text-[10px]">
                   ⌘K
                 </kbd>
@@ -80,9 +81,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
 
         <nav aria-label="Navegação principal" className="flex-1 overflow-y-auto px-3 py-2">
           {!collapsed && (
-            <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">
-              Menu
-            </p>
+            <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">{t("Menu")}</p>
           )}
           <ul className="space-y-0.5">
             {menuTree.map((node) => {
@@ -93,7 +92,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
 
               if (node.children && !collapsed) {
                 return (
-                  <li key={node.label}>
+                  <li key={t(node.label)}>
                     <button
                       type="button"
                       onClick={() => setOpenGroups((prev) => ({ ...prev, [node.label]: !open }))}
@@ -109,7 +108,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
                         className={cn("h-4 w-4 shrink-0", childActive && "text-primary")}
                         aria-hidden
                       />
-                      <span className="truncate">{node.label}</span>
+                      <span className="truncate">{t(node.label)}</span>
                       <ChevronDown
                         aria-hidden
                         className={cn(
@@ -148,7 +147,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
                                   className={cn("h-4 w-4 shrink-0", cActive && "text-primary")}
                                   aria-hidden
                                 />
-                                <span className="truncate">{c.label}</span>
+                                <span className="truncate">{t(c.label)}</span>
                               </Link>
                             </li>
                           );
@@ -180,16 +179,16 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
                     )}
                     aria-hidden
                   />
-                  {!collapsed && <span className="truncate">{node.label}</span>}
+                  {!collapsed && <span className="truncate">{t(node.label)}</span>}
                 </Link>
               );
 
               return (
-                <li key={node.label}>
+                <li key={t(node.label)}>
                   {collapsed ? (
                     <Tooltip>
                       <TooltipTrigger asChild>{link}</TooltipTrigger>
-                      <TooltipContent side="right">{node.label}</TooltipContent>
+                      <TooltipContent side="right">{t(node.label)}</TooltipContent>
                     </Tooltip>
                   ) : (
                     link
@@ -202,9 +201,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
 
         <div className="px-3 py-3">
           {!collapsed && (
-            <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">
-              Geral
-            </p>
+            <p className="px-2 pb-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-muted-foreground/60">{t("Geral")}</p>
           )}
           <ul className="space-y-0.5">
             {generalItems.map((it) => {
@@ -224,7 +221,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
                     )}
                   >
                     <Icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} aria-hidden />
-                    {!collapsed && <span className="truncate">{it.label}</span>}
+                    {!collapsed && <span className="truncate">{t(it.label)}</span>}
                   </Link>
                 </li>
               );
@@ -247,7 +244,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
             ) : (
               <>
                 <PanelLeftClose className="h-4 w-4" aria-hidden />
-                <span>Reduzir</span>
+                <span>{t("Reduzir")}</span>
               </>
             )}
           </button>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "@/lib/i18n";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -60,9 +61,9 @@ export function SettingsShell({
                   : "border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
             >
-              <span className="text-[12px] font-semibold">{s.label}</span>
+              <span className="text-[12px] font-semibold">{t(s.label)}</span>
               {s.hint && (
-                <span className="text-[10px] font-normal text-muted-foreground">{s.hint}</span>
+                <span className="text-[10px] font-normal text-muted-foreground">{t(s.hint)}</span>
               )}
             </button>
           );
@@ -73,7 +74,7 @@ export function SettingsShell({
         <div className="shrink-0 border-b border-border/70 bg-surface px-4 py-3">
           <p className="font-display text-[13.5px] font-semibold">{active?.title}</p>
           {active?.description && (
-            <p className="mt-0.5 text-[11px] text-muted-foreground">{active.description}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{t(active.description)}</p>
           )}
         </div>
 

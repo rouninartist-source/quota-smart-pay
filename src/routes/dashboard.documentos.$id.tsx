@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Ban,
@@ -84,9 +85,7 @@ function DocumentoPage() {
         <p className="font-display text-lg font-semibold">
           {!ready ? "A carregar…" : "Documento não encontrado"}
         </p>
-        <Link to="/dashboard/documentos" className="mt-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
-          Voltar aos documentos
-        </Link>
+        <Link to="/dashboard/documentos" className="mt-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">{t("Voltar aos documentos")}</Link>
       </div>
     );
   }
@@ -144,7 +143,7 @@ function DocumentoPage() {
   }
   async function issue() {
     await updateInvoiceStatus(inv.id, "emitida");
-    toast.success(`${kind.label} ${inv.number} emitida`, { description: "Agora pode enviá-la ao cliente." });
+    toast.success(`${t(kind.label)} ${inv.number} emitida`, { description: "Agora pode enviá-la ao cliente." });
     setShare(true);
   }
   async function duplicate() {
@@ -167,21 +166,21 @@ function DocumentoPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to="/dashboard/documentos"
-            aria-label="Voltar a Documentos"
+            aria-label={t("Voltar a Documentos")}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
           >
             <ChevronLeft className="h-4 w-4" />
           </Link>
           <span className="text-[12.5px] font-semibold">
-            {kind.label} <span className="tabular-nums text-muted-foreground">{inv.number}</span>
+            {t(kind.label)} <span className="tabular-nums text-muted-foreground">{inv.number}</span>
           </span>
           <span className={cn("rounded-md px-2 py-0.5 text-[10.5px] font-semibold", statusToneClass[meta.tone])}>
-            {meta.label}
+            {t(meta.label)}
           </span>
           {payments.some((p) => p.receiptNumber) && (
             <div role="group" className="flex flex-wrap gap-0.5 rounded-lg border border-border/60 bg-surface p-0.5 text-[11px] font-semibold">
               <button onClick={() => setViewPayment(null)} className={cn("rounded-md px-2.5 py-1", !viewed ? "bg-card shadow-sm" : "text-muted-foreground")}>
-                {kind.short}
+                {t(kind.short)}
               </button>
               {payments.filter((p) => p.receiptNumber).map((p) => (
                 <button key={p.id} onClick={() => setViewPayment(p.id)} className={cn("rounded-md px-2.5 py-1", viewed?.id === p.id ? "bg-card shadow-sm" : "text-muted-foreground")}>
@@ -193,13 +192,13 @@ function DocumentoPage() {
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             {inv.status === "rascunho" && (
-              <Action Icon={Send} onClick={issue} tone="success">Emitir</Action>
+              <Action Icon={Send} onClick={issue} tone="success">{t("Emitir")}</Action>
             )}
-            <Action Icon={Printer} onClick={() => window.open(printPath, "_blank", "noreferrer")}>Imprimir</Action>
-            <Action Icon={Download} onClick={() => window.open(`${printPath}${printPath.includes("?") ? "&" : "?"}preview=1`, "_blank", "noreferrer")}>PDF</Action>
-            <Action Icon={Copy} onClick={copyLink}>Ligação</Action>
+            <Action Icon={Printer} onClick={() => window.open(printPath, "_blank", "noreferrer")}>{t("Imprimir")}</Action>
+            <Action Icon={Download} onClick={() => window.open(`${printPath}${printPath.includes("?") ? "&" : "?"}preview=1`, "_blank", "noreferrer")}>{t("PDF")}</Action>
+            <Action Icon={Copy} onClick={copyLink}>{t("Ligação")}</Action>
             {inv.status !== "rascunho" && (
-              <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">Enviar</Action>
+              <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">{t("Enviar")}</Action>
             )}
           </div>
         </div>
@@ -216,16 +215,16 @@ function DocumentoPage() {
         {/* Lateral: dinheiro e acções */}
         <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto overscroll-contain">
           <section className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Cliente</p>
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("Cliente")}</p>
             <p className="mt-1 text-[13px] font-semibold">{inv.client.name}</p>
             <p className="text-[11px] text-muted-foreground">
               {[inv.client.nuit && `NUIT ${inv.client.nuit}`, inv.client.phone, inv.client.email].filter(Boolean).join(" · ") || "Sem contactos"}
             </p>
             <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-[11.5px]">
-              <Meta label="Emissão" value={formatDate(inv.issued)} />
+              <Meta label={t("Emissão")} value={formatDate(inv.issued)} />
               <Meta label={quote ? "Validade" : "Vencimento"} value={formatDate(inv.due)} />
-              <Meta label="Total" value={`${formatMZN(total)} MZN`} strong />
-              {!quote && <Meta label="Em dívida" value={`${formatMZN(balance)} MZN`} strong tone={balance > 0.01 ? "warning" : "success"} />}
+              <Meta label={t("Total")} value={`${formatMZN(total)} MZN`} strong />
+              {!quote && <Meta label={t("Em dívida")} value={`${formatMZN(balance)} MZN`} strong tone={balance > 0.01 ? "warning" : "success"} />}
             </dl>
           </section>
 
@@ -237,7 +236,7 @@ function DocumentoPage() {
                 </p>
                 {live && balance > 0.01 && (
                   <button onClick={() => setPayOpen((v) => !v)} className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline">
-                    {payOpen ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />} {payOpen ? "Fechar" : "Registar"}
+                    {payOpen ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />} {payOpen ? t("Fechar") : t("Registar")}
                   </button>
                 )}
               </div>
@@ -245,35 +244,30 @@ function DocumentoPage() {
               {payOpen && (
                 <form onSubmit={submitPayment} className="mt-3 grid gap-2 rounded-md border border-border/70 bg-surface p-2.5">
                   <div className="grid grid-cols-2 gap-2">
-                    <Input label="Data" type="date" value={payDate} onChange={setPayDate} />
-                    <Input label="Valor (MZN)" type="number" value={payAmount} onChange={setPayAmount} placeholder={String(balance)} />
+                    <Input label={t("Data")} type="date" value={payDate} onChange={setPayDate} />
+                    <Input label={t("Valor (MZN)")} type="number" value={payAmount} onChange={setPayAmount} placeholder={String(balance)} />
                   </div>
                   <label className="grid gap-1">
-                    <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">Método</span>
+                    <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Método")}</span>
                     <select value={payMethod} onChange={(e) => setPayMethod(e.target.value as PaymentMethod)} className="h-8 rounded-md border border-border bg-card px-2 text-[12px] outline-none focus:border-primary/60">
                       {(Object.keys(paymentMethodLabels) as PaymentMethod[]).map((m) => (
                         <option key={m} value={m}>{paymentMethodLabels[m]}</option>
                       ))}
                     </select>
                   </label>
-                  <Input label="Referência" value={payRef} onChange={setPayRef} placeholder="Opcional" />
+                  <Input label={t("Referência")} value={payRef} onChange={setPayRef} placeholder={t("Opcional")} />
                   <label className="inline-flex items-center gap-2 text-[11.5px]">
-                    <input type="checkbox" checked={withReceipt} onChange={(e) => setWithReceipt(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--primary)]" />
-                    Emitir recibo deste pagamento {Number(payAmount) > 0 && Number(payAmount) < balance - 0.01 ? "(parcial)" : "(total)"}
+                    <input type="checkbox" checked={withReceipt} onChange={(e) => setWithReceipt(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--primary)]" />{t("Emitir recibo deste pagamento")} {Number(payAmount) > 0 && Number(payAmount) < balance - 0.01 ? "(parcial)" : "(total)"}
                   </label>
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setPayAmount(String(balance))} className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-semibold hover:bg-muted">
-                      Saldo total
-                    </button>
-                    <button type="submit" className="ml-auto rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:opacity-90">
-                      Guardar pagamento
-                    </button>
+                    <button type="button" onClick={() => setPayAmount(String(balance))} className="rounded-md border border-border bg-card px-2.5 py-1.5 text-[11px] font-semibold hover:bg-muted">{t("Saldo total")}</button>
+                    <button type="submit" className="ml-auto rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground hover:opacity-90">{t("Guardar pagamento")}</button>
                   </div>
                 </form>
               )}
 
               <ul className="mt-2 divide-y divide-border/60">
-                {payments.length === 0 && <li className="py-2 text-[11.5px] text-muted-foreground">Sem pagamentos.</li>}
+                {payments.length === 0 && <li className="py-2 text-[11.5px] text-muted-foreground">{t("Sem pagamentos.")}</li>}
                 {payments.map((p) => (
                   <li key={p.id} className="flex items-center gap-2 py-2 text-[11.5px]">
                     <span className="tabular-nums text-muted-foreground">{formatDate(p.date)}</span>
@@ -284,9 +278,8 @@ function DocumentoPage() {
                         <CheckCheck className="h-3 w-3" /> {p.receiptNumber}
                       </button>
                     ) : live ? (
-                      <button onClick={() => receiptFor(p.id)} title="Emitir recibo deste pagamento" className="inline-flex items-center gap-1 rounded border border-success/30 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/10">
-                        <Receipt className="h-3 w-3" /> Recibo
-                      </button>
+                      <button onClick={() => receiptFor(p.id)} title={t("Emitir recibo deste pagamento")} className="inline-flex items-center gap-1 rounded border border-success/30 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/10">
+                        <Receipt className="h-3 w-3" />{t("Recibo")}</button>
                     ) : null}
                     {live && !p.receiptNumber && (
                       <button onClick={() => removePayment(inv.id, p.id)} aria-label="Remover pagamento" className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
@@ -298,23 +291,22 @@ function DocumentoPage() {
               </ul>
               {live && balance > 0.01 && !payOpen && (
                 <button onClick={() => { setPayAmount(String(balance)); setWithReceipt(true); setPayOpen(true); }} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-[11.5px] font-semibold text-success hover:bg-success/15">
-                  <Receipt className="h-3.5 w-3.5" /> Receber e emitir recibo (total ou parcial)
-                </button>
+                  <Receipt className="h-3.5 w-3.5" />{t("Receber e emitir recibo (total ou parcial)")}</button>
               )}
             </section>
           )}
 
           <section className="rounded-lg border border-border/70 bg-card p-4 shadow-sm">
-            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mais acções</p>
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("Mais acções")}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              <Action Icon={Copy} onClick={duplicate}>Duplicar</Action>
+              <Action Icon={Copy} onClick={duplicate}>{t("Duplicar")}</Action>
               {live && !confirmCancel && (
-                <Action Icon={Ban} onClick={() => setConfirmCancel(true)} tone="destructive">Anular</Action>
+                <Action Icon={Ban} onClick={() => setConfirmCancel(true)} tone="destructive">{t("Anular")}</Action>
               )}
               {confirmCancel && (
                 <>
-                  <Action Icon={Ban} onClick={cancel} tone="destructive">Confirmar anulação</Action>
-                  <Action Icon={X} onClick={() => setConfirmCancel(false)}>Não</Action>
+                  <Action Icon={Ban} onClick={cancel} tone="destructive">{t("Confirmar anulação")}</Action>
+                  <Action Icon={X} onClick={() => setConfirmCancel(false)}>{t("Não")}</Action>
                 </>
               )}
             </div>

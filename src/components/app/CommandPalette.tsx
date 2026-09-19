@@ -1,4 +1,5 @@
 import * as React from "react";
+import { t } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CommandDialog,
@@ -54,13 +55,13 @@ export function CommandPalette({
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput placeholder="Procurar páginas, clientes, documentos…" />
       <CommandList>
-        <CommandEmpty>Nada encontrado.</CommandEmpty>
+        <CommandEmpty>{t("Nada encontrado.")}</CommandEmpty>
 
-        <CommandGroup heading="Criar">
+        <CommandGroup heading={t("Criar")}>
           {quickCreate.map((a) => (
-            <CommandItem key={a.label} value={`criar ${a.label}`} onSelect={() => go(a.to, a.search)}>
+            <CommandItem key={t(a.label)} value={`criar ${t(a.label)}`} onSelect={() => go(a.to, a.search)}>
               <a.icon className="h-4 w-4 text-muted-foreground" />
-              {a.label}
+              {t(a.label)}
               {a.shortcut && <CommandShortcut>{a.shortcut}</CommandShortcut>}
             </CommandItem>
           ))}
@@ -69,11 +70,11 @@ export function CommandPalette({
         <CommandSeparator />
 
         {navGroups.map((g) => (
-          <CommandGroup key={g.label} heading={g.label}>
+          <CommandGroup key={g.label} heading={t(g.label)}>
             {g.items.map((it) => (
-              <CommandItem key={`${it.to}-${it.label}`} value={`${g.label} ${it.label}`} onSelect={() => go(it.to, it.search)}>
+              <CommandItem key={`${it.to}-${t(it.label)}`} value={`${g.label} ${t(it.label)}`} onSelect={() => go(it.to, it.search)}>
                 <it.icon className="h-4 w-4 text-muted-foreground" />
-                {it.label}
+                {t(it.label)}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -81,19 +82,19 @@ export function CommandPalette({
 
         <CommandSeparator />
 
-        <CommandGroup heading="Clientes">
+        <CommandGroup heading={t("Clientes")}>
           {clients.slice(0, 8).map((c) => (
             <CommandItem key={c.id} value={`cliente ${c.name} ${c.nuit}`} onSelect={() => go("/dashboard/documentos/novo", { cliente: c.id })}>
               <span className="grid h-5 w-5 place-items-center rounded bg-muted text-[10px] font-semibold">
                 {c.name.slice(0, 1)}
               </span>
               {c.name}
-              <CommandShortcut>Facturar</CommandShortcut>
+              <CommandShortcut>{t("Facturar")}</CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>
 
-        <CommandGroup heading="Documentos recentes">
+        <CommandGroup heading={t("Documentos recentes")}>
           {invoices.slice(0, 8).map((d) => (
             <CommandItem key={d.id} value={`documento ${d.number} ${d.client.name}`} onSelect={() => go("/dashboard/documentos/$id", undefined, { id: d.id })}>
               <span className="font-mono text-xs">{d.number}</span>

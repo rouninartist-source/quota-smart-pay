@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { t } from "@/lib/i18n";
 import {
   ArrowUpRight,
   ChevronRight,
@@ -270,7 +271,7 @@ function DashboardOverview() {
       <section className="grid shrink-0 grid-cols-2 overflow-hidden rounded-lg border border-border/60 bg-card shadow-card md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <KpiCell
           wide
-          label="Saldo a receber"
+          label={t("Saldo a receber")}
           value={formatMZN(pending, { decimals: false })}
           hint={`Facturado ${formatMZN(total, { decimals: false })} · ${invoices.length} documentos`}
           badge={
@@ -283,19 +284,19 @@ function DashboardOverview() {
         </KpiCell>
 
         <KpiCell
-          label="Facturas emitidas"
+          label={t("Facturas emitidas")}
           value={String(invoices.length)}
           hint={`${paidCount} ${paidCount === 1 ? "paga" : "pagas"}`}
         />
 
         <KpiCell
-          label="Clientes activos"
+          label={t("Clientes activos")}
           value={String(clientNames.size)}
           hint={`${clientsWithBalance.size} com saldo em aberto`}
         />
 
         <KpiCell
-          label="Em atraso"
+          label={t("Em atraso")}
           value={formatMZN(overdueAmount, { decimals: false })}
           hint={
             overdue.length === 0
@@ -309,20 +310,16 @@ function DashboardOverview() {
       {/* ══ zona de trabalho ══ */}
       <div className="grid min-h-0 flex-1 gap-3.5 md:grid-cols-[1.62fr_1fr]">
         <Panel
-          title="Documentos recentes"
+          title={t("Documentos recentes")}
           action={
             <Link
               to="/dashboard/documentos"
               className="text-[11px] font-medium text-primary hover:underline"
-            >
-              Ver todos
-            </Link>
+            >{t("Ver todos")}</Link>
           }
         >
           {docs.length === 0 ? (
-            <p className="py-10 text-center text-[13px] text-muted-foreground">
-              Ainda sem documentos. Emita a primeira factura.
-            </p>
+            <p className="py-10 text-center text-[13px] text-muted-foreground">{t("Ainda sem documentos. Emita a primeira factura.")}</p>
           ) : (
             docs.map((d) => (
               <Link
@@ -359,16 +356,14 @@ function DashboardOverview() {
 
         <div className="flex min-h-0 flex-col gap-3.5">
           <Panel
-            title="Movimentos"
+            title={t("Movimentos")}
             className="flex-1"
             action={
               <Link
                 to="/dashboard/documentos"
                 search={{ tipo: "recibo" }}
                 className="text-[11px] font-medium text-primary hover:underline"
-              >
-                Ver
-              </Link>
+              >{t("Ver")}</Link>
             }
           >
             {feed.length === 0 ? (
@@ -403,8 +398,7 @@ function DashboardOverview() {
 
           <section className="shrink-0 rounded-lg border border-primary/20 bg-gradient-mesh p-3.5">
             <span className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              <Sparkles className="h-3 w-3" /> Quota AI
-            </span>
+              <Sparkles className="h-3 w-3" />{t("Quota AI")}</span>
             <p className="mt-2 text-[12.5px] font-semibold">Cobrança automática por WhatsApp</p>
             <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
               {overdue.length > 0
@@ -423,10 +417,10 @@ function DashboardOverview() {
 
       {/* ══ dock de acções ══ */}
       <div className="grid shrink-0 grid-cols-2 gap-2.5 lg:grid-cols-4">
-        <DockTile Icon={Plus} label="Nova factura" hint="Emitir com IVA" to="/dashboard/documentos/novo" search={{ tipo: "ft" }} />
-        <DockTile Icon={Users} label="Novo cliente" hint="CRM" to="/dashboard/clientes" search={{ novo: "1" }} />
-        <DockTile Icon={FileText} label="Cotação" hint="Orçamento" to="/dashboard/documentos/novo" search={{ tipo: "cot" }} />
-        <DockTile Icon={MessageCircle} label="Cobrar" hint="WhatsApp" to="/dashboard/whatsapp" />
+        <DockTile Icon={Plus} label={t("Nova factura")} hint={t("Emitir com IVA")} to="/dashboard/documentos/novo" search={{ tipo: "ft" }} />
+        <DockTile Icon={Users} label={t("Novo cliente")} hint={t("CRM")} to="/dashboard/clientes" search={{ novo: "1" }} />
+        <DockTile Icon={FileText} label={t("Cotação")} hint={t("Orçamento")} to="/dashboard/documentos/novo" search={{ tipo: "cot" }} />
+        <DockTile Icon={MessageCircle} label={t("Cobrar")} hint={t("WhatsApp")} to="/dashboard/whatsapp" />
       </div>
     </div>
   );

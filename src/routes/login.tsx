@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { t, useT } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import { signIn, useSession } from "@/lib/auth";
 import { useEffect, useState } from "react";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
+  useT();
   const navigate = useNavigate();
   const { next } = Route.useSearch();
   const { session, loading } = useSession();
@@ -66,19 +68,15 @@ function Login() {
 
         <div className="flex flex-1 items-center justify-center py-12">
           <div className="w-full max-w-sm animate-fade-up">
-            <h1 className="font-display text-[28px] font-semibold tracking-tight">
-              Bem-vindo de volta
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Entre para continuar a facturar.
-            </p>
+            <h1 className="font-display text-[28px] font-semibold tracking-tight">{t("Bem-vindo de volta")}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{t("Entre para continuar a facturar.")}</p>
 
             <form
               className="mt-9 space-y-4"
               onSubmit={submit}
             >
               <div>
-                <label htmlFor="email" className="text-[13px] font-medium">E-mail</label>
+                <label htmlFor="email" className="text-[13px] font-medium">{t("E-mail")}</label>
                 <input
                   id="email"
                   type="email"
@@ -92,10 +90,8 @@ function Login() {
 
               <div>
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-[13px] font-medium">Palavra-passe</label>
-                  <Link to="/recuperar" className="text-[12px] text-muted-foreground hover:text-foreground">
-                    Esqueceu-se?
-                  </Link>
+                  <label htmlFor="password" className="text-[13px] font-medium">{t("Palavra-passe")}</label>
+                  <Link to="/recuperar" className="text-[12px] text-muted-foreground hover:text-foreground">{t("Esqueceu-se?")}</Link>
                 </div>
                 <div className="relative mt-1.5">
                   <input
@@ -129,16 +125,13 @@ function Login() {
                 disabled={busy}
                 className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
               >
-                {busy ? "A entrar…" : "Iniciar sessão"} <ArrowRight className="h-4 w-4" />
+                {busy ? t("A entrar…") : t("Iniciar sessão")} <ArrowRight className="h-4 w-4" />
               </button>
             </form>
 
 
-            <p className="mt-8 text-center text-[13px] text-muted-foreground">
-              Não tem conta?{" "}
-              <Link to="/registo" className="font-medium text-foreground hover:text-primary">
-                Criar conta
-              </Link>
+            <p className="mt-8 text-center text-[13px] text-muted-foreground">{t("Não tem conta?")}{" "}
+              <Link to="/registo" className="font-medium text-foreground hover:text-primary">{t("Criar conta")}</Link>
             </p>
 
           </div>
