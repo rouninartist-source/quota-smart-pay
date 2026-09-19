@@ -727,7 +727,7 @@ function CatalogPicker({
   ].filter((i) => !needle || i.name.toLowerCase().includes(needle) || i.code.toLowerCase().includes(needle));
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 dark:bg-black/65 p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-label={t("Catálogo")}
