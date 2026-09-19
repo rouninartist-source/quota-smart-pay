@@ -1048,3 +1048,24 @@ Notas:
 
 Migrações novas: `20260912190000_trial_invites.sql`, `20260912193000_invites_org_default.sql` (aplicadas).
 Env nova (opcional): `VITE_SITE_URL` — base absoluta da imagem OG (por omissão `https://quota.milsonuix.com`).
+
+## 2026-09-19 — Terceira lista do QA ("Melhorias e Correções")
+
+| # | Item | Estado / notas |
+|---|------|----------------|
+| 1 | E-mails de autenticação com o design do sistema | Modelos prontos em `supabase/templates/*.html`. **O Supabase só aceita modelos personalizados com SMTP próprio (ou plano pago)** — quando houver SMTP, preencher `[auth.email.smtp]` e descomentar as secções `[auth.email.template.*]` no `supabase/config.toml`, depois `supabase config push`. Corrigido também o `site_url` do Supabase (as ligações dos e-mails iam para localhost) |
+| 2 | Empresa pedida duas vezes | Corrigido: os dados da empresa ficam na conta no registo e a empresa é criada no primeiro início de sessão sem perguntar |
+| 3 | Sem dados iniciais | Removidos todos os seeds (clientes, facturas, banco de demonstração); empresa nova começa vazia |
+| 4 | Convite não funcionava | Fluxo completo: `/registo?convite=` (só conta), aceite automático no primeiro início de sessão; ligação do convite leva o token |
+| 5 | Emitir | Estado "Emitida": Emitir → confirmação → escolha do envio; "Enviada" só depois de enviar |
+| 6 | Download / Impressão | `?preview=1` só Descarregar PDF (ficheiro A4 real via html-to-image + jsPDF, carregados só nessa página); página de impressão só Imprimir |
+| 7 | Categorias dropdown / foto do produto | Lista sempre (categorias por omissão + existentes + nova); fotografia no produto, usada automaticamente na cotação visual |
+| 8 | Template "Serafinado 7" | Removido (Elegante); quem o tinha volta ao Clássico |
+| 9 | Convite por empresa (Multi-Empresas) | Selector da empresa no convite (`my_admin_orgs`) |
+| 10 | Trial só Basic; upgrade → pagamento | Registo avisa; `/dashboard/planos/pagar` com M-Pesa/e-Mola, instruções, referência; pedido em `plan_payments` (pendente) — **a equipa confirma e activa o plano** (sem API M-Pesa). Números de recepção em `RECEIVERS` nessa página |
+| 11 | Idioma inglês | Camada `t()` (`src/lib/i18n.ts`, dicionário `i18n.en.ts`) ligada a Perfil → Idioma. Cobre navegação, barra, acções, documentos, clientes, catálogo, definições/perfil, autenticação, planos, utilizadores. Frases longas com variáveis podem ficar em PT — acrescentar chaves ao dicionário |
+| 12 | Temas / dark mode | Fundos de diálogo corrigidos; revisão visual das páginas novas |
+| 13 | Anulado com barra vermelha | Lista (barra à esquerda) e documento impresso (`CancelledBand`) |
+| 14 | Recibos total / parcial | Recibos por pagamento (`payments.receipt_number`, `issue_payment_receipt`): registar qualquer valor e emitir o recibo; lista de recibos por pagamento; recibo de quitação antigo continua a funcionar |
+
+Migração: `20260919090000_qa3.sql` (aplicada). Dependências novas: `html-to-image`, `jspdf`.
