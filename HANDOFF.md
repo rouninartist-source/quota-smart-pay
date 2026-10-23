@@ -1080,3 +1080,9 @@ O pagamento manual (transferir e escrever a referência; a equipa confirmava) pa
 - **Env no Hostinger:** `SUPABASE_SERVICE_ROLE_KEY`, `PAYZENO_API_KEY`, `PAYZENO_WEBHOOK_SECRET` (ver `.env.example`).
 - **Por confirmar:** unidade do `amount` (cêntimos por omissão) e cabeçalho/formato da assinatura do webhook — os mesmos pontos em aberto no Pickup360. O primeiro pagamento real deve ser conferido no painel da Payzeno. Se o webhook der 401, os registos do servidor listam os nomes dos cabeçalhos recebidos; ajustar `PAYZENO_SIGNATURE_HEADER`. Mesmo com o webhook a falhar, o plano activa-se pela consulta de estado quando o cliente regressa.
 - **Ainda não feito:** `paid_until` é gravado mas nada bloqueia quando o período pago termina (como o trial expirado faz). Falta decidir esse comportamento.
+
+### Deploy no Hostinger — duas armadilhas (2026-10-24)
+
+- **Lockfile obrigatório.** O Hostinger instala com `npm install`. Sem `package-lock.json`, cada build apanhava as versões mais recentes dos intervalos `^` — o `@tanstack/react-start` 1.169 (exige Vite 8) partiu o build com "Could not resolve entry module index.html". Agora todas as dependências estão fixas e o `package-lock.json` está no repo. Para actualizar uma dependência: mudar a versão, `npm install`, testar `npm run build`, e fazer commit dos dois ficheiros. O `bun.lock` só serve para o desenvolvimento local.
+- **Nunca `import process from "node:process"`.** No Hostinger isso falha com `open EEXIST` (o Node tenta abrir `process.stdin`) e todas as páginas dão 500. Usar o `process` global. Localmente não se reproduz.
+- O auto-deploy do GitHub nem sempre dispara; se não aparecer build para o último commit, usar Redeploy em Deployments.
