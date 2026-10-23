@@ -1069,3 +1069,14 @@ Env nova (opcional): `VITE_SITE_URL` — base absoluta da imagem OG (por omissã
 | 14 | Recibos total / parcial | Recibos por pagamento (`payments.receipt_number`, `issue_payment_receipt`): registar qualquer valor e emitir o recibo; lista de recibos por pagamento; recibo de quitação antigo continua a funcionar |
 
 Migração: `20260919090000_qa3.sql` (aplicada). Dependências novas: `html-to-image`, `jspdf`.
+
+## 2026-10-23 — Pagamento dos planos pela Payzeno
+
+O pagamento manual (transferir e escrever a referência; a equipa confirmava) passa a checkout alojado da Payzeno com activação automática.
+
+- **Fluxo:** `/dashboard/planos/pagar` → `POST /api/planos/checkout` (servidor grava `plan_payments`, calcula o valor a partir de `plans.ts`, cria a sessão Payzeno) → página da Payzeno → regresso a `/dashboard/planos/pagar?pagamento=<id>`, que consulta `GET /api/planos/estado` de 3 em 3 s.
+- **Confirmação:** `POST /webhooks/payzeno` (HMAC-SHA256 do corpo com `PAYZENO_WEBHOOK_SECRET`) **ou** a consulta de estado ao regressar — ambos chamam `settle_plan_payment`, que activa uma só vez, põe o plano na raiz e nas filhas, limpa o trial e soma os meses a `orgs.paid_until`.
+- **Segurança (migração `20261023090000_payzeno.sql`):** `plan_payments` passa a só leitura para o cliente; `set_org_plan` deixa de ser chamável pelo cliente; trigger `orgs_guard_billing` impede o cliente de mudar `plan`, `trial_ends_at`, `paid_until`, `parent_org`, `ai_uses`.
+- **Env no Hostinger:** `SUPABASE_SERVICE_ROLE_KEY`, `PAYZENO_API_KEY`, `PAYZENO_WEBHOOK_SECRET` (ver `.env.example`).
+- **Por confirmar:** unidade do `amount` (cêntimos por omissão) e cabeçalho/formato da assinatura do webhook — os mesmos pontos em aberto no Pickup360. O primeiro pagamento real deve ser conferido no painel da Payzeno. Se o webhook der 401, os registos do servidor listam os nomes dos cabeçalhos recebidos; ajustar `PAYZENO_SIGNATURE_HEADER`. Mesmo com o webhook a falhar, o plano activa-se pela consulta de estado quando o cliente regressa.
+- **Ainda não feito:** `paid_until` é gravado mas nada bloqueia quando o período pago termina (como o trial expirado faz). Falta decidir esse comportamento.

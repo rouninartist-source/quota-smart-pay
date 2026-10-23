@@ -26,9 +26,11 @@ function PlanosPage() {
   const root = rootOf(org, orgs);
   const navigate = useNavigate();
   const [busy, setBusy] = useState<PlanId | null>(null);
-  const [pending, setPending] = useState<{ plan: string; amount: number; method: string; created_at: string }[]>([]);
+  const [pending, setPending] = useState<{ id: string; plan: string; amount: number; method: string; created_at: string; checkout_id: string | null }[]>([]);
   useEffect(() => {
-    supabase?.from("plan_payments").select("plan,amount,method,created_at").eq("status", "pendente").order("created_at", { ascending: false }).then(({ data }) => setPending(data ?? []));
+    // Pedidos pendentes das últimas 24 h (a sessão da Payzeno expira nesse prazo).
+    const since = new Date(Date.now() - 86_400_000).toISOString();
+    supabase?.from("plan_payments").select("id,plan,amount,method,created_at,checkout_id").eq("status", "pendente").gte("created_at", since).order("created_at", { ascending: false }).then(({ data }) => setPending(data ?? []));
   }, [org?.id]);
   const current = root?.plan ?? "basic";
   const trial = trialState(root);
@@ -81,7 +83,10 @@ function PlanosPage() {
       )}
       {pending.map((p, i) => (
         <p key={i} className="shrink-0 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[12px]">
-          Pagamento do plano <b>{plans.find((x) => x.id === p.plan)?.name}</b> ({fmt(Number(p.amount))} MT via {p.method === "mpesa" ? "M-Pesa" : "e-Mola"}) registado — aguarda confirmação da equipa Quota.
+          Pagamento do plano <b>{plans.find((x) => x.id === p.plan)?.name}</b> ({fmt(Number(p.amount))} MT via {p.method === "mpesa" ? "M-Pesa" : "e-Mola"}) por confirmar.
+          {p.checkout_id
+            ? <> <Link to="/dashboard/planos/pagar" search={{ pagamento: p.id }} className="font-semibold text-primary hover:underline">Ver estado</Link></>
+            : " Aguarda confirmação da equipa Quota."}
         </p>
       ))}
 
@@ -152,7 +157,7 @@ function PlanosPage() {
         </article>
       </section>
       <p className="shrink-0 text-[11px] text-muted-foreground">
-        Pagamentos por M-Pesa ou e-Mola; o plano activa-se após confirmação da equipa Quota. O período experimental de 14 dias aplica-se apenas ao Basic.
+        Pagamentos por M-Pesa ou e-Mola através da Payzeno; o plano activa-se assim que o pagamento é confirmado. O período experimental de 14 dias aplica-se apenas ao Basic.
       </p>
     </div>
   );

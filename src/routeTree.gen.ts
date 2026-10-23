@@ -18,6 +18,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as WebhooksPayzenoRouteImport } from './routes/webhooks.payzeno'
 import { Route as VerificarCodeRouteImport } from './routes/verificar.$code'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardUtilizadoresRouteImport } from './routes/dashboard.utilizadores'
@@ -50,6 +51,8 @@ import { Route as DashboardEquipaChannelIdRouteImport } from './routes/dashboard
 import { Route as DashboardDocumentosNovoRouteImport } from './routes/dashboard.documentos.novo'
 import { Route as DashboardDocumentosIdRouteImport } from './routes/dashboard.documentos.$id'
 import { Route as DashboardAssistenteThreadIdRouteImport } from './routes/dashboard.assistente.$threadId'
+import { Route as ApiPlanosEstadoRouteImport } from './routes/api/planos.estado'
+import { Route as ApiPlanosCheckoutRouteImport } from './routes/api/planos.checkout'
 
 const RegistoRoute = RegistoRouteImport.update({
   id: '/registo',
@@ -95,6 +98,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const WebhooksPayzenoRoute = WebhooksPayzenoRouteImport.update({
+  id: '/webhooks/payzeno',
+  path: '/webhooks/payzeno',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const VerificarCodeRoute = VerificarCodeRouteImport.update({
   id: '/verificar/$code',
@@ -260,6 +268,16 @@ const DashboardAssistenteThreadIdRoute =
     path: '/$threadId',
     getParentRoute: () => DashboardAssistenteRoute,
   } as any)
+const ApiPlanosEstadoRoute = ApiPlanosEstadoRouteImport.update({
+  id: '/api/planos/estado',
+  path: '/api/planos/estado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPlanosCheckoutRoute = ApiPlanosCheckoutRouteImport.update({
+  id: '/api/planos/checkout',
+  path: '/api/planos/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -290,7 +308,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
+  '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
+  '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
   '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
@@ -328,7 +349,10 @@ export interface FileRoutesByTo {
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
+  '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
+  '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
   '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
@@ -372,7 +396,10 @@ export interface FileRoutesById {
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/verificar/$code': typeof VerificarCodeRoute
+  '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
+  '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
   '/dashboard/documentos/$id': typeof DashboardDocumentosIdRoute
   '/dashboard/documentos/novo': typeof DashboardDocumentosNovoRoute
@@ -417,7 +444,10 @@ export interface FileRouteTypes {
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
+    | '/webhooks/payzeno'
     | '/dashboard/'
+    | '/api/planos/checkout'
+    | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
     | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
@@ -455,7 +485,10 @@ export interface FileRouteTypes {
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
+    | '/webhooks/payzeno'
     | '/dashboard'
+    | '/api/planos/checkout'
+    | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
     | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
@@ -498,7 +531,10 @@ export interface FileRouteTypes {
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
     | '/verificar/$code'
+    | '/webhooks/payzeno'
     | '/dashboard/'
+    | '/api/planos/checkout'
+    | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
     | '/dashboard/documentos/$id'
     | '/dashboard/documentos/novo'
@@ -525,6 +561,9 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   VerificarCodeRoute: typeof VerificarCodeRoute
+  WebhooksPayzenoRoute: typeof WebhooksPayzenoRoute
+  ApiPlanosCheckoutRoute: typeof ApiPlanosCheckoutRoute
+  ApiPlanosEstadoRoute: typeof ApiPlanosEstadoRoute
   FacturasIdImprimirRoute: typeof FacturasIdImprimirRoute
 }
 
@@ -592,6 +631,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/webhooks/payzeno': {
+      id: '/webhooks/payzeno'
+      path: '/webhooks/payzeno'
+      fullPath: '/webhooks/payzeno'
+      preLoaderRoute: typeof WebhooksPayzenoRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/verificar/$code': {
       id: '/verificar/$code'
@@ -817,6 +863,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAssistenteThreadIdRouteImport
       parentRoute: typeof DashboardAssistenteRoute
     }
+    '/api/planos/estado': {
+      id: '/api/planos/estado'
+      path: '/api/planos/estado'
+      fullPath: '/api/planos/estado'
+      preLoaderRoute: typeof ApiPlanosEstadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/planos/checkout': {
+      id: '/api/planos/checkout'
+      path: '/api/planos/checkout'
+      fullPath: '/api/planos/checkout'
+      preLoaderRoute: typeof ApiPlanosCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -937,6 +997,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   VerificarCodeRoute: VerificarCodeRoute,
+  WebhooksPayzenoRoute: WebhooksPayzenoRoute,
+  ApiPlanosCheckoutRoute: ApiPlanosCheckoutRoute,
+  ApiPlanosEstadoRoute: ApiPlanosEstadoRoute,
   FacturasIdImprimirRoute: FacturasIdImprimirRoute,
 }
 export const routeTree = rootRouteImport
