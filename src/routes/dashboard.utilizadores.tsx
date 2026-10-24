@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useSession } from "@/lib/auth";
 import { rootOf, useOrg } from "@/lib/org-store";
 import { planUserLimit, getPlan } from "@/lib/plans";
-import { adminOrgs, createInvite, inviteLink, removeMember, revokeInvite, roleLabel, setMemberRole, useMembers, type Invite } from "@/lib/members-store";
+import { adminOrgs, createInvite, inviteLink, removeMember, revokeInvite, roleLabel, sendInviteEmail, setMemberRole, useMembers, type Invite } from "@/lib/members-store";
 import { useEffect } from "react";
 import { Field, inputClass } from "@/components/catalog/Modal";
 import { formatDate } from "@/lib/format";
@@ -58,7 +58,10 @@ function UtilizadoresPage() {
     const inv: Invite = { id: "", email: email.trim(), role, token: res.token!, createdAt: new Date().toISOString(), acceptedAt: null };
     setLast(inv);
     setEmail("");
-    toast.success("Convite criado", { description: "Partilhe a ligação — a pessoa cria a sua própria palavra-passe." });
+    // O convite segue logo por e-mail; a ligação continua disponível para WhatsApp ou para copiar.
+    const sent = await sendInviteEmail(inv.token);
+    if (sent.ok) toast.success("Convite enviado", { description: `${inv.email} recebeu o convite por e-mail.` });
+    else toast.warning("Convite criado, mas o e-mail não seguiu", { description: `${sent.error} Partilhe a ligação por WhatsApp ou copie-a.` });
   }
 
   const inviteMessage = (inv: Invite) =>
@@ -68,8 +71,11 @@ function UtilizadoresPage() {
     toast.success("Ligação copiada");
   };
   const viaWhatsApp = (inv: Invite) => window.open(`https://wa.me/?text=${encodeURIComponent(inviteMessage(inv))}`, "_blank", "noreferrer");
-  const viaEmail = (inv: Invite) => {
-    window.location.href = `mailto:${inv.email}?subject=${encodeURIComponent(`Convite para ${org?.name} no Quota`)}&body=${encodeURIComponent(inviteMessage(inv))}`;
+  /** Reenvia o convite por e-mail a partir do Quota (noreply), com resposta para quem convidou. */
+  const viaEmail = async (inv: Invite) => {
+    const sent = await sendInviteEmail(inv.token);
+    if (sent.ok) toast.success("Convite reenviado", { description: inv.email });
+    else toast.error("Não foi possível enviar o e-mail", { description: sent.error });
   };
 
   return (

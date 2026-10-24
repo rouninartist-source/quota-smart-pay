@@ -98,6 +98,32 @@ export async function setMemberRole(userId: string, role: "admin" | "membro") {
   return {};
 }
 
+/** Envia (ou reenvia) o convite por e-mail, pelo servidor (Resend). */
+export async function sendInviteEmail(token: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const sb = supabase;
+  if (!sb) return { ok: false, error: "Supabase não configurado." };
+  const { data } = await sb.auth.getSession();
+  try {
+    const res = await fetch("/api/convites/enviar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token ?? ""}` },
+      body: JSON.stringify({ token }),
+    });
+    const body = (await res.json().catch(() => ({}))) as { error?: string; detail?: string };
+    if (!res.ok) {
+      const reasons: Record<string, string> = {
+        not_admin: "Só o dono ou um administrador pode enviar convites.",
+        already_accepted: "Este convite já foi aceite.",
+        not_configured: "O envio de e-mail ainda não está configurado.",
+      };
+      return { ok: false, error: reasons[body.error ?? ""] ?? body.detail ?? body.error ?? "Falha no envio." };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Sem ligação ao servidor." };
+  }
+}
+
 export const inviteLink = (token: string) =>
   typeof window !== "undefined" ? `${window.location.origin}/convite/${token}` : `/convite/${token}`;
 

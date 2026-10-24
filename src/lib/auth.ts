@@ -54,6 +54,7 @@ export function translateAuthError(message?: string) {
   if (m.includes("invalid email") || m.includes("unable to validate email")) return "Indique um e-mail válido.";
   if (m.includes("network") || m.includes("fetch")) return "Sem ligação. Verifique a internet e tente de novo.";
   if (m.includes("same password") || m.includes("different from the old")) return "A nova palavra-passe tem de ser diferente da actual.";
+  if (m.includes("error sending")) return "Não foi possível enviar o e-mail. Tente novamente dentro de instantes.";
   return message;
 }
 

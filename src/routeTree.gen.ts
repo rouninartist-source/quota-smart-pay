@@ -57,6 +57,7 @@ import { Route as DashboardDocumentosIdRouteImport } from './routes/dashboard.do
 import { Route as DashboardAssistenteThreadIdRouteImport } from './routes/dashboard.assistente.$threadId'
 import { Route as ApiPlanosEstadoRouteImport } from './routes/api/planos.estado'
 import { Route as ApiPlanosCheckoutRouteImport } from './routes/api/planos.checkout'
+import { Route as ApiConvitesEnviarRouteImport } from './routes/api/convites.enviar'
 
 const RegistoRoute = RegistoRouteImport.update({
   id: '/registo',
@@ -302,6 +303,11 @@ const ApiPlanosCheckoutRoute = ApiPlanosCheckoutRouteImport.update({
   path: '/api/planos/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiConvitesEnviarRoute = ApiConvitesEnviarRouteImport.update({
+  id: '/api/convites/enviar',
+  path: '/api/convites/enviar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -334,6 +340,7 @@ export interface FileRoutesByFullPath {
   '/verificar/$code': typeof VerificarCodeRoute
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/convites/enviar': typeof ApiConvitesEnviarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/verificar/$code': typeof VerificarCodeRoute
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/convites/enviar': typeof ApiConvitesEnviarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/verificar/$code': typeof VerificarCodeRoute
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/convites/enviar': typeof ApiConvitesEnviarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
   '/dashboard/assistente/$threadId': typeof DashboardAssistenteThreadIdRoute
@@ -482,6 +491,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/webhooks/payzeno'
     | '/dashboard/'
+    | '/api/convites/enviar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
@@ -527,6 +537,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/webhooks/payzeno'
     | '/dashboard'
+    | '/api/convites/enviar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
@@ -577,6 +588,7 @@ export interface FileRouteTypes {
     | '/verificar/$code'
     | '/webhooks/payzeno'
     | '/dashboard/'
+    | '/api/convites/enviar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
     | '/dashboard/assistente/$threadId'
@@ -611,6 +623,7 @@ export interface RootRouteChildren {
   ConviteTokenRoute: typeof ConviteTokenRoute
   VerificarCodeRoute: typeof VerificarCodeRoute
   WebhooksPayzenoRoute: typeof WebhooksPayzenoRoute
+  ApiConvitesEnviarRoute: typeof ApiConvitesEnviarRoute
   ApiPlanosCheckoutRoute: typeof ApiPlanosCheckoutRoute
   ApiPlanosEstadoRoute: typeof ApiPlanosEstadoRoute
   FacturasIdImprimirRoute: typeof FacturasIdImprimirRoute
@@ -955,6 +968,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPlanosCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/convites/enviar': {
+      id: '/api/convites/enviar'
+      path: '/api/convites/enviar'
+      fullPath: '/api/convites/enviar'
+      preLoaderRoute: typeof ApiConvitesEnviarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1081,6 +1101,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteTokenRoute: ConviteTokenRoute,
   VerificarCodeRoute: VerificarCodeRoute,
   WebhooksPayzenoRoute: WebhooksPayzenoRoute,
+  ApiConvitesEnviarRoute: ApiConvitesEnviarRoute,
   ApiPlanosCheckoutRoute: ApiPlanosCheckoutRoute,
   ApiPlanosEstadoRoute: ApiPlanosEstadoRoute,
   FacturasIdImprimirRoute: FacturasIdImprimirRoute,
