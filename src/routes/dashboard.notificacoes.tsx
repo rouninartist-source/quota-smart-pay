@@ -92,7 +92,8 @@ function NotificacoesPage() {
                 <button
                   onClick={() => {
                     markRead([n.id]);
-                    navigate({ to: "/dashboard/documentos/$id", params: { id: n.invoiceId } });
+                    if (n.plan) navigate({ to: "/dashboard/planos" });
+                    else navigate({ to: "/dashboard/documentos/$id", params: { id: n.invoiceId } });
                   }}
                   title="Abrir o documento"
                   className="flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:bg-muted/40"

@@ -164,8 +164,8 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
               {notifications.slice(0, 6).map((n) => (
                 <li key={n.id}>
                   <Link
-                    to="/dashboard/documentos/$id"
-                    params={{ id: n.invoiceId }}
+                    to={n.plan ? "/dashboard/planos" : "/dashboard/documentos/$id"}
+                    params={n.plan ? undefined : { id: n.invoiceId }}
                     onClick={() => markRead([n.id])}
                     className="flex gap-2.5 px-3 py-2.5 transition-colors hover:bg-muted/60"
                   >

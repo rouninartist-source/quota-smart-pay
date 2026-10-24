@@ -4,6 +4,8 @@
  * O "lido" fica no browser, por aviso.
  */
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "./supabase";
+import { getPlan } from "./plans";
 import { formatDate, formatMZN } from "./format";
 import {
   derivedStatus,
@@ -21,9 +23,51 @@ export type Notification = {
   time: string;
   at: number;
   kind: "pagamento" | "documento";
+  /** Documento a abrir; vazio nos avisos de pagamento do plano (abrem os Planos). */
   invoiceId: string;
+  /** Aviso de pagamento do plano do Quota (Payzeno), não de um documento. */
+  plan?: boolean;
   read: boolean;
 };
+
+/* Pagamentos do plano (Payzeno) dos últimos 30 dias — lidos uma vez e quando a lista é aberta. */
+type PlanPayment = { id: string; plan: string; amount: number; method: string; status: string; created_at: string; confirmed_at: string | null };
+let planPayments: PlanPayment[] = [];
+let planLoading: Promise<void> | null = null;
+
+export function loadPlanPayments() {
+  if (planLoading || typeof window === "undefined" || !supabase) return planLoading ?? Promise.resolve();
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  planLoading = (async () => {
+    const { data } = await supabase!
+      .from("plan_payments")
+      .select("id,plan,amount,method,status,created_at,confirmed_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false });
+    planPayments = (data ?? []) as PlanPayment[];
+    listeners.forEach((l) => l());
+  })().finally(() => {
+    planLoading = null;
+  });
+  return planLoading;
+}
+
+function planNotifications(now: number): Omit<Notification, "read">[] {
+  const wallet = (m: string) => (m === "emola" ? "e-Mola" : "M-Pesa");
+  return planPayments.map((p) => {
+    const at = new Date(p.confirmed_at ?? p.created_at).getTime();
+    const name = getPlan(p.plan).name;
+    const amount = `${formatMZN(Number(p.amount))} MZN via ${wallet(p.method)}`;
+    const text =
+      p.status === "confirmado"
+        ? { title: `Plano ${name} activado`, body: `Pagamento de ${amount} confirmado. Obrigado!` }
+        : p.status === "pendente"
+          ? { title: "Pagamento do plano por confirmar", body: `${name} · ${amount}. Abra os planos para ver o estado ou cancelar.` }
+          : { title: p.status === "expirado" ? "Pagamento do plano expirou" : "Pagamento do plano não concluído", body: `${name} · ${amount}. Nenhum valor foi cobrado.` };
+    // O id inclui o estado: quando o pedido muda (pendente → confirmado), aparece como aviso novo.
+    return { id: `plan-${p.id}-${p.status}`, ...text, time: ago(now - at), at, kind: "pagamento" as const, invoiceId: "", plan: true };
+  });
+}
 
 const KEY = "quota-notifications-read";
 const dayMs = 86_400_000;
@@ -123,10 +167,19 @@ export function useNotifications(): Notification[] {
     const l = () => tick((n) => n + 1);
     listeners.add(l);
     read = readSet();
+    void loadPlanPayments();
     l();
     return () => {
       listeners.delete(l);
     };
   }, []);
-  return useMemo(() => buildNotifications(invoices).map((n) => ({ ...n, read: read.has(n.id) })), [invoices, read.size]);
+  const now = Date.now();
+  return useMemo(
+    () =>
+      [...buildNotifications(invoices, now), ...planNotifications(now)]
+        .sort((a, b) => b.at - a.at)
+        .map((n) => ({ ...n, read: read.has(n.id) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [invoices, read.size, planPayments],
+  );
 }
