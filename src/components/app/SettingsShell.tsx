@@ -24,11 +24,14 @@ export type SettingsSection = {
 export function SettingsShell({
   sections,
   footer,
+  initialId,
 }: {
   sections: SettingsSection[];
   footer?: React.ReactNode;
+  /** Secção aberta à entrada (ex.: ?sec=pagamento vindo da lista de configuração). */
+  initialId?: string;
 }) {
-  const [activeId, setActiveId] = useState(sections[0]?.id);
+  const [activeId, setActiveId] = useState(sections.some((s) => s.id === initialId) ? initialId : sections[0]?.id);
   const index = Math.max(
     0,
     sections.findIndex((s) => s.id === activeId),

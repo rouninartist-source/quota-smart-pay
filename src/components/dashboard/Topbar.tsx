@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { rootOf, switchOrg, trialState, useOrg } from "@/lib/org-store";
+import { planState, rootOf, switchOrg, useOrg } from "@/lib/org-store";
 import { getPlan } from "@/lib/plans";
 
 type Props = {
@@ -33,7 +33,7 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
   const { org, orgs } = useOrg();
   const root = rootOf(org, orgs);
   const plan = getPlan(root?.plan);
-  const trial = trialState(root);
+  const state = planState(root);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/60 bg-background/80 px-3 backdrop-blur-xl md:px-6">
@@ -69,13 +69,18 @@ export function Topbar({ onOpenMobileMenu, onOpenSearch }: Props) {
             <span className="max-w-[160px] truncate font-medium">{org?.name ?? "A carregar…"}</span>
             <span className="hidden rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary lg:inline">{t("Plano actual:")} {plan.name}
             </span>
-            {trial.active && (
+            {state.phase === "trial" && (
               <span className="hidden rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground dark:text-warning lg:inline">
-                Trial · {trial.daysLeft}d
+                Trial · {state.daysLeft}d
               </span>
             )}
-            {trial.expired && (
-              <span className="hidden rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive lg:inline">{t("Trial terminado")}</span>
+            {(state.phase === "due-soon" || state.phase === "grace") && (
+              <span className="hidden rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning-foreground dark:text-warning lg:inline">
+                {state.phase === "grace" ? `Tolerância · ${state.graceDaysLeft}d` : `Termina em ${state.daysLeft}d`}
+              </span>
+            )}
+            {state.blocked && (
+              <span className="hidden rounded bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive lg:inline">{state.phase === "expired" ? "Plano expirado" : t("Trial terminado")}</span>
             )}
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </button>

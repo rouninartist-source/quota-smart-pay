@@ -20,6 +20,7 @@ import { uploadImage } from "@/lib/media";
 import { themeModes, useTheme } from "@/hooks/use-theme";
 
 export const Route = createFileRoute("/dashboard/definicoes")({
+  validateSearch: (search: Record<string, unknown>): { sec?: string } => (typeof search.sec === "string" ? { sec: search.sec } : {}),
   head: () => ({
     meta: [
       { title: "Definições da empresa · Quota Studio" },
@@ -454,7 +455,7 @@ function Definicoes() {
         </div>
       </section>
 
-      <SettingsShell sections={sections} />
+      <SettingsShell sections={sections} initialId={Route.useSearch().sec} />
     </form>
   );
 }

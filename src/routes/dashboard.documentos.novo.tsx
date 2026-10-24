@@ -29,7 +29,7 @@ import { downloadDocumentPdf } from "@/lib/pdf";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
 import { useCompany } from "@/lib/company-store";
-import { rootOf, trialState, useOrg } from "@/lib/org-store";
+import { planState, rootOf, useOrg } from "@/lib/org-store";
 import {
   addInvoice,
   documentKinds,
@@ -120,7 +120,7 @@ function Documentos() {
   // Isento / regime simplificado: os documentos saem sem IVA, seja qual for a taxa do artigo.
   const chargesVat = (company.ivaRegime ?? "normal") === "normal";
   const { org, orgs } = useOrg();
-  const trial = trialState(rootOf(org, orgs));
+  const plan = planState(rootOf(org, orgs));
 
   const initialKind: DocumentKind =
     (tipo && (tipo in documentKinds ? (tipo as DocumentKind) : legacyKind[tipo])) || "ft";
@@ -259,8 +259,8 @@ function Documentos() {
 
   /** Grava e devolve a factura criada; toda a acção passa por aqui. */
   async function persist(requested: InvoiceStatus) {
-    if (trial.expired) {
-      toast.error("O período experimental terminou.", {
+    if (plan.blocked) {
+      toast.error(plan.phase === "expired" ? "O plano expirou." : "O período experimental terminou.", {
         description: "Escolha um plano para continuar a emitir documentos.",
         action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
       });

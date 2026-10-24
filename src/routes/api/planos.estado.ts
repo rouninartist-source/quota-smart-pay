@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminSupabase, checkoutStatus, payzenoConfig } from "@/lib/payzeno.server";
+import { sendPlanPaymentConfirmation } from "@/lib/plan-mail.server";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/api/planos/estado")({
               });
               if (error) console.error("settle_plan_payment failed", error);
               else if (settled) status = (settled as { status: string }).status;
+              if (status === "confirmado") await sendPlanPaymentConfirmation(admin, row.id).catch((e) => console.error("confirmation email", e));
             } else if (!r.ok) {
               console.warn("payzeno status", r.status, r.text.slice(0, 300));
             }

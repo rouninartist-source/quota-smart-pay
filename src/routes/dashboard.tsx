@@ -2,7 +2,8 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth";
-import { rootOf, trialState, useOrg } from "@/lib/org-store";
+import { GRACE_DAYS, planState, rootOf, useOrg } from "@/lib/org-store";
+import { formatDate } from "@/lib/format";
 import { FirstLogin } from "@/components/app/FirstLogin";
 import { hydrateInvoices } from "@/lib/invoices-store";
 import { useT } from "@/lib/i18n";
@@ -62,7 +63,7 @@ function DashboardLayout() {
   useT();
   const { session, loading } = useSession();
   const { org, orgs, ready: orgReady } = useOrg();
-  const trial = trialState(rootOf(org, orgs));
+  const plan = planState(rootOf(org, orgs));
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { open: searchOpen, setOpen: setSearchOpen } = useCommandPalette();
@@ -144,15 +145,7 @@ function DashboardLayout() {
               fitsViewport ? "py-4 md:flex md:h-full md:flex-col md:py-4" : "py-6 md:py-8",
             )}
           >
-            {trial.expired && path !== "/dashboard/planos" && (
-              <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12px]">
-                <span className="font-semibold">O período experimental terminou.</span>
-                <span className="text-muted-foreground">Pode consultar tudo, mas emitir documentos exige um plano.</span>
-                <Link to="/dashboard/planos" className="ml-auto rounded-md bg-primary px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground hover:opacity-90">
-                  Escolher plano
-                </Link>
-              </div>
-            )}
+            {path !== "/dashboard/planos" && <PlanBanner plan={plan} />}
             <Outlet />
           </div>
         </main>
@@ -162,4 +155,44 @@ function DashboardLayout() {
       <MobileBottomNav />
     </div>
   );
+}
+
+/**
+ * Aviso do plano em todas as páginas: bloqueado (trial terminado / expirado),
+ * em tolerância (aviso diário — aparece em cada sessão até renovar) ou a
+ * terminar nos próximos 7 dias.
+ */
+function PlanBanner({ plan }: { plan: ReturnType<typeof planState> }) {
+  const cta = (label: string) => (
+    <Link to="/dashboard/planos" className="ml-auto rounded-md bg-primary px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground hover:opacity-90">
+      {label}
+    </Link>
+  );
+  if (plan.phase === "trial-ended" || plan.phase === "expired")
+    return (
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12px]">
+        <span className="font-semibold">{plan.phase === "trial-ended" ? "O período experimental terminou." : "O plano expirou."}</span>
+        <span className="text-muted-foreground">Pode consultar tudo, mas emitir documentos exige um plano activo.</span>
+        {cta(plan.phase === "trial-ended" ? "Escolher plano" : "Renovar agora")}
+      </div>
+    );
+  if (plan.phase === "grace")
+    return (
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-[12px]">
+        <span className="font-semibold">O plano terminou a {formatDate(plan.until!)}.</span>
+        <span className="text-muted-foreground">
+          Tem {plan.graceDaysLeft} dia{plan.graceDaysLeft === 1 ? "" : "s"} de tolerância (de {GRACE_DAYS}) — depois deixa de poder emitir documentos.
+        </span>
+        {cta("Renovar")}
+      </div>
+    );
+  if (plan.phase === "due-soon")
+    return (
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[12px]">
+        <span className="font-semibold">O plano termina {plan.daysLeft === 1 ? "amanhã" : `em ${plan.daysLeft} dias`} ({formatDate(plan.until!)}).</span>
+        <span className="text-muted-foreground">Renove para continuar sem interrupções.</span>
+        {cta("Renovar")}
+      </div>
+    );
+  return null;
 }

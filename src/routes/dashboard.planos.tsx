@@ -4,7 +4,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { authHeader, supabase } from "@/lib/supabase";
 import { Check, Sparkles, Building2, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { refreshOrg, rootOf, setOrgPlan, trialState, useOrg } from "@/lib/org-store";
+import { GRACE_DAYS, planState, refreshOrg, rootOf, setOrgPlan, trialState, useOrg } from "@/lib/org-store";
+import { formatDate } from "@/lib/format";
 import { plans, TRIAL_AI_LIMIT, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +63,7 @@ function PlanosPage() {
   }
   const current = root?.plan ?? "basic";
   const trial = trialState(root);
+  const state = planState(root);
   const children = orgs.filter((o) => o.parentOrg === root?.id);
   const isChild = !!org?.parentOrg;
   const rank = (id: PlanId) => plans.findIndex((p) => p.id === id);
@@ -91,6 +93,46 @@ function PlanosPage() {
           </Link>
         </div>
       </section>
+
+      {/* Estado do plano: qual, até quando, quanto falta — o que o cliente procura primeiro. */}
+      {!isChild && (
+        <section className="grid shrink-0 gap-3 rounded-lg border border-border/70 bg-card p-4 shadow-sm sm:grid-cols-4">
+          <div>
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">O seu plano</p>
+            <p className="mt-1 font-display text-[18px] font-semibold">{plans.find((p) => p.id === current)?.name}{state.phase === "trial" || state.phase === "trial-ended" ? " · trial" : ""}</p>
+          </div>
+          <div>
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{state.phase === "trial" || state.phase === "trial-ended" ? "Trial até" : "Pago até"}</p>
+            <p className="mt-1 text-[14px] font-semibold tabular-nums">{state.until ? formatDate(state.until) : "—"}</p>
+          </div>
+          <div>
+            <p className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Situação</p>
+            <p
+              className={cn(
+                "mt-1 text-[14px] font-semibold",
+                state.blocked ? "text-destructive" : state.phase === "grace" || state.phase === "due-soon" ? "text-warning-foreground dark:text-warning" : "text-success",
+              )}
+            >
+              {state.phase === "trial" && `Trial · faltam ${state.daysLeft} dia${state.daysLeft === 1 ? "" : "s"}`}
+              {state.phase === "trial-ended" && "Trial terminado"}
+              {state.phase === "active" && (state.until ? `Activo · faltam ${state.daysLeft} dias` : "Activo")}
+              {state.phase === "due-soon" && `Termina em ${state.daysLeft} dia${state.daysLeft === 1 ? "" : "s"}`}
+              {state.phase === "grace" && `Tolerância · ${state.graceDaysLeft} de ${GRACE_DAYS} dias`}
+              {state.phase === "expired" && "Expirado"}
+              {state.phase === "none" && "—"}
+            </p>
+          </div>
+          <div className="flex items-center sm:justify-end">
+            <button
+              type="button"
+              onClick={() => choose(current as PlanId)}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground hover:opacity-90"
+            >
+              {state.phase === "trial" || state.phase === "trial-ended" ? "Pagar o plano" : "Renovar / pagar mais meses"}
+            </button>
+          </div>
+        </section>
+      )}
 
       {isChild && (
         <p className="shrink-0 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[12px]">

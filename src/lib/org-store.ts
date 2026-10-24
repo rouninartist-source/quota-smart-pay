@@ -16,11 +16,44 @@ export type Org = {
   plan: PlanId;
   /** Fim do período experimental; `null` quando já há plano escolhido (pago). */
   trialEndsAt: string | null;
+  /** Até quando o plano está pago (cada pagamento soma meses). */
+  paidUntil: string | null;
   planRequested: PlanId | null;
   /** Empresa-mãe (só nas empresas adicionais do plano Multi-Empresas). */
   parentOrg: string | null;
   aiUses: number;
 };
+
+/** Dias de tolerância depois de o período pago terminar: continua a emitir, com aviso diário. */
+export const GRACE_DAYS = 5;
+
+export type PlanPhase = "none" | "trial" | "trial-ended" | "active" | "due-soon" | "grace" | "expired";
+
+/**
+ * Estado do plano da conta (a raiz manda): trial, pago, a terminar, em
+ * tolerância ou expirado. `blocked` = já não pode emitir documentos.
+ */
+export function planState(org: Org | null, now = Date.now()) {
+  const day = 86_400_000;
+  const base = { phase: "none" as PlanPhase, daysLeft: 0, graceDaysLeft: 0, until: null as string | null, blocked: false };
+  if (!org) return base;
+  if (org.trialEndsAt) {
+    const ms = new Date(org.trialEndsAt).getTime() - now;
+    return ms > 0
+      ? { ...base, phase: "trial" as PlanPhase, daysLeft: Math.ceil(ms / day), until: org.trialEndsAt }
+      : { ...base, phase: "trial-ended" as PlanPhase, until: org.trialEndsAt, blocked: true };
+  }
+  if (!org.paidUntil) return { ...base, phase: "active" as PlanPhase }; // contas antigas activadas à mão, sem prazo
+  const ms = new Date(org.paidUntil).getTime() - now;
+  if (ms > 0) {
+    const daysLeft = Math.ceil(ms / day);
+    return { ...base, phase: (daysLeft <= 7 ? "due-soon" : "active") as PlanPhase, daysLeft, until: org.paidUntil };
+  }
+  const graceMs = ms + GRACE_DAYS * day;
+  return graceMs > 0
+    ? { ...base, phase: "grace" as PlanPhase, graceDaysLeft: Math.ceil(graceMs / day), until: org.paidUntil }
+    : { ...base, phase: "expired" as PlanPhase, until: org.paidUntil, blocked: true };
+}
 
 /** Estado do trial da conta (a raiz manda). */
 export function trialState(org: Org | null, now = Date.now()) {
@@ -43,16 +76,17 @@ async function load() {
   const sb = supabase;
   if (!sb) return;
   const [full, { data: current }] = await Promise.all([
-    sb.from("orgs").select("id,name,nuit,plan,trial_ends_at,plan_requested,parent_org,ai_uses").order("name"),
+    sb.from("orgs").select("id,name,nuit,plan,trial_ends_at,paid_until,plan_requested,parent_org,ai_uses").order("name"),
     sb.rpc("current_org_id"),
   ]);
-  type Row = { id: string; name: string; nuit: string; plan?: string; trial_ends_at?: string | null; plan_requested?: string | null; parent_org?: string | null; ai_uses?: number };
+  type Row = { id: string; name: string; nuit: string; plan?: string; trial_ends_at?: string | null; paid_until?: string | null; plan_requested?: string | null; parent_org?: string | null; ai_uses?: number };
   const list = ((full.data ?? []) as Row[]).map<Org>((o) => ({
     id: o.id,
     name: o.name,
     nuit: o.nuit,
     plan: (o.plan ?? "basic") as PlanId,
     trialEndsAt: o.trial_ends_at ?? null,
+    paidUntil: o.paid_until ?? null,
     planRequested: (o.plan_requested ?? null) as PlanId | null,
     parentOrg: o.parent_org ?? null,
     aiUses: o.ai_uses ?? 0,

@@ -239,7 +239,7 @@ function PerfilPage() {
         </div>
       </section>
 
-      <SettingsShell sections={sections} />
+      <SettingsShell sections={sections} initialId="identidade" />
     </div>
   );
 }

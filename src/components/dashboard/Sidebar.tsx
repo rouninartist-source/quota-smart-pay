@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/format";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { t } from "@/lib/i18n";
 import { useState } from "react";
@@ -52,7 +53,7 @@ export function Sidebar({ collapsed, onToggle, onOpenSearch }: Props) {
           {!collapsed && (
             <div className="min-w-0">
               <p className="truncate text-[13px] font-semibold tracking-tight">{org?.name ?? "Quota"}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{t("Plano")} {getPlan(root?.plan).name}{root?.trialEndsAt ? " · trial" : ""}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{t("Plano")} {getPlan(root?.plan).name}{root?.trialEndsAt ? " · trial" : root?.paidUntil ? ` · até ${formatDate(root.paidUntil)}` : ""}</p>
             </div>
           )}
         </div>

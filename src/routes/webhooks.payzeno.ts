@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminSupabase, payzenoConfig, signatureMatches, terminalStatus } from "@/lib/payzeno.server";
+import { sendPlanPaymentConfirmation } from "@/lib/plan-mail.server";
 
 /**
  * A Payzeno avisa que um pagamento terminou.
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/webhooks/payzeno")({
         if (!status) return new Response("ok (not terminal)", { status: 200 });
 
         const providerRef = (data.reference ?? data.transaction_id ?? data.provider_ref) as string | undefined;
-        const { error } = await admin.rpc("settle_plan_payment", {
+        const { data: settled, error } = await admin.rpc("settle_plan_payment", {
           p_checkout_id: String(checkoutId),
           p_status: status,
           p_provider_ref: providerRef ?? null,
@@ -60,6 +61,8 @@ export const Route = createFileRoute("/webhooks/payzeno")({
           console.error("settle_plan_payment failed", error);
           return new Response("settle failed", { status: 500 });
         }
+        const row = settled as { id?: string; status?: string } | null;
+        if (row?.id && row.status === "confirmado") await sendPlanPaymentConfirmation(admin, row.id).catch((e) => console.error("confirmation email", e));
         return new Response("ok", { status: 200 });
       },
     },

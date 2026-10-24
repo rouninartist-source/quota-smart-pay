@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
 import { formatMZN, formatDate, initials } from "@/lib/format";
 import {
   invoiceBalance,
@@ -267,6 +268,7 @@ function DashboardOverview() {
 
   return (
     <div className="flex min-h-0 flex-col gap-3.5 md:h-full">
+      <SetupChecklist />
       {/* ══ KPI rail — absorve o herói, as sparklines e a distribuição ══ */}
       <section className="grid shrink-0 grid-cols-2 overflow-hidden rounded-lg border border-border/60 bg-card shadow-card md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <KpiCell

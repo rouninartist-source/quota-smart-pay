@@ -58,6 +58,7 @@ import { Route as DashboardAssistenteThreadIdRouteImport } from './routes/dashbo
 import { Route as ApiPlanosEstadoRouteImport } from './routes/api/planos.estado'
 import { Route as ApiPlanosCheckoutRouteImport } from './routes/api/planos.checkout'
 import { Route as ApiPlanosCancelarRouteImport } from './routes/api/planos.cancelar'
+import { Route as ApiCronLembretesRouteImport } from './routes/api/cron.lembretes'
 import { Route as ApiConvitesEnviarRouteImport } from './routes/api/convites.enviar'
 
 const RegistoRoute = RegistoRouteImport.update({
@@ -309,6 +310,11 @@ const ApiPlanosCancelarRoute = ApiPlanosCancelarRouteImport.update({
   path: '/api/planos/cancelar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronLembretesRoute = ApiCronLembretesRouteImport.update({
+  id: '/api/cron/lembretes',
+  path: '/api/cron/lembretes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiConvitesEnviarRoute = ApiConvitesEnviarRouteImport.update({
   id: '/api/convites/enviar',
   path: '/api/convites/enviar',
@@ -347,6 +353,7 @@ export interface FileRoutesByFullPath {
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/convites/enviar': typeof ApiConvitesEnviarRoute
+  '/api/cron/lembretes': typeof ApiCronLembretesRoute
   '/api/planos/cancelar': typeof ApiPlanosCancelarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
@@ -394,6 +401,7 @@ export interface FileRoutesByTo {
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard': typeof DashboardIndexRoute
   '/api/convites/enviar': typeof ApiConvitesEnviarRoute
+  '/api/cron/lembretes': typeof ApiCronLembretesRoute
   '/api/planos/cancelar': typeof ApiPlanosCancelarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/webhooks/payzeno': typeof WebhooksPayzenoRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/api/convites/enviar': typeof ApiConvitesEnviarRoute
+  '/api/cron/lembretes': typeof ApiCronLembretesRoute
   '/api/planos/cancelar': typeof ApiPlanosCancelarRoute
   '/api/planos/checkout': typeof ApiPlanosCheckoutRoute
   '/api/planos/estado': typeof ApiPlanosEstadoRoute
@@ -501,6 +510,7 @@ export interface FileRouteTypes {
     | '/webhooks/payzeno'
     | '/dashboard/'
     | '/api/convites/enviar'
+    | '/api/cron/lembretes'
     | '/api/planos/cancelar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/webhooks/payzeno'
     | '/dashboard'
     | '/api/convites/enviar'
+    | '/api/cron/lembretes'
     | '/api/planos/cancelar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
@@ -600,6 +611,7 @@ export interface FileRouteTypes {
     | '/webhooks/payzeno'
     | '/dashboard/'
     | '/api/convites/enviar'
+    | '/api/cron/lembretes'
     | '/api/planos/cancelar'
     | '/api/planos/checkout'
     | '/api/planos/estado'
@@ -636,6 +648,7 @@ export interface RootRouteChildren {
   VerificarCodeRoute: typeof VerificarCodeRoute
   WebhooksPayzenoRoute: typeof WebhooksPayzenoRoute
   ApiConvitesEnviarRoute: typeof ApiConvitesEnviarRoute
+  ApiCronLembretesRoute: typeof ApiCronLembretesRoute
   ApiPlanosCancelarRoute: typeof ApiPlanosCancelarRoute
   ApiPlanosCheckoutRoute: typeof ApiPlanosCheckoutRoute
   ApiPlanosEstadoRoute: typeof ApiPlanosEstadoRoute
@@ -988,6 +1001,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPlanosCancelarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/lembretes': {
+      id: '/api/cron/lembretes'
+      path: '/api/cron/lembretes'
+      fullPath: '/api/cron/lembretes'
+      preLoaderRoute: typeof ApiCronLembretesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/convites/enviar': {
       id: '/api/convites/enviar'
       path: '/api/convites/enviar'
@@ -1122,6 +1142,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerificarCodeRoute: VerificarCodeRoute,
   WebhooksPayzenoRoute: WebhooksPayzenoRoute,
   ApiConvitesEnviarRoute: ApiConvitesEnviarRoute,
+  ApiCronLembretesRoute: ApiCronLembretesRoute,
   ApiPlanosCancelarRoute: ApiPlanosCancelarRoute,
   ApiPlanosCheckoutRoute: ApiPlanosCheckoutRoute,
   ApiPlanosEstadoRoute: ApiPlanosEstadoRoute,
