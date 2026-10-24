@@ -58,7 +58,12 @@ export const Route = createFileRoute("/api/planos/checkout")({
           if ((count ?? 0) > 0) return json({ error: "has_child_orgs" }, 400);
         }
 
-        const amount = Math.round(plan.monthly * months * (months === 12 ? 0.9 : 1));
+        const price = Math.round(plan.monthly * months * (months === 12 ? 0.9 : 1));
+        // Modo de teste: PAYZENO_TEST_AMOUNT_MT=1 cobra 1 MT em qualquer plano, para testar o
+        // fluxo completo com dinheiro real. O registo guarda o valor de facto cobrado.
+        // Retirar a variável no Hostinger quando os testes acabarem.
+        const testAmount = Number(process.env.PAYZENO_TEST_AMOUNT_MT ?? "");
+        const amount = testAmount > 0 ? testAmount : price;
         const { data: row, error: insertError } = await admin
           .from("plan_payments")
           .insert({ org_id: root, created_by: user.id, plan: plan.id, months, amount, method, phone })
@@ -76,7 +81,7 @@ export const Route = createFileRoute("/api/planos/checkout")({
           session = await createCheckoutSession(cfg, {
             paymentId: row.id,
             amountMt: amount,
-            description: `Quota · plano ${plan.name} · ${months === 1 ? "1 mês" : `${months} meses`}`,
+            description: `Quota · plano ${plan.name} · ${months === 1 ? "1 mês" : `${months} meses`}${testAmount > 0 ? " · TESTE" : ""}`,
             method,
             customer,
           });
