@@ -305,6 +305,7 @@ export const en: Record<string, string> = {
   "com saldo em aberto": "with open balance",
   "nada vencido": "nothing overdue",
   "Ver todos os artigos": "See all posts",
+  "Renovar": "Renew",
   // recibos de cliente
   "Novo recibo": "New receipt",
   "A gerar…": "Generating…",

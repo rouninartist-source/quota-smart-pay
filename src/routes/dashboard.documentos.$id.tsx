@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Copy,
   Download,
+  Pencil,
   Printer,
   Send,
   Plus,
@@ -204,6 +205,9 @@ function DocumentoPage() {
           )}
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {inv.status === "rascunho" && (
+              <Action Icon={Pencil} onClick={() => navigate({ to: "/dashboard/documentos/novo", search: { editar: inv.id } })}>{t("Editar")}</Action>
+            )}
             {inv.status === "rascunho" && (
               <Action Icon={Send} onClick={issue} tone="success">{t("Emitir")}</Action>
             )}

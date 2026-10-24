@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/lib/supabase";
+import { authHeader, supabase } from "@/lib/supabase";
 import { Check, Sparkles, Building2, Clock, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
-import { rootOf, setOrgPlan, trialState, useOrg } from "@/lib/org-store";
+import { refreshOrg, rootOf, setOrgPlan, trialState, useOrg } from "@/lib/org-store";
 import { plans, TRIAL_AI_LIMIT, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +28,38 @@ function PlanosPage() {
   const [busy, setBusy] = useState<PlanId | null>(null);
   const [pending, setPending] = useState<{ id: string; plan: string; amount: number; method: string; created_at: string; checkout_id: string | null }[]>([]);
   useEffect(() => {
-    // Pedidos pendentes das últimas 24 h (a sessão da Payzeno expira nesse prazo).
-    const since = new Date(Date.now() - 86_400_000).toISOString();
-    supabase?.from("plan_payments").select("id,plan,amount,method,created_at,checkout_id").eq("status", "pendente").gte("created_at", since).order("created_at", { ascending: false }).then(({ data }) => setPending(data ?? []));
+    let alive = true;
+    void (async () => {
+      // Pedidos pendentes das últimas 24 h (a sessão da Payzeno expira nesse prazo).
+      const since = new Date(Date.now() - 86_400_000).toISOString();
+      const { data } = (await supabase?.from("plan_payments").select("id,plan,amount,method,created_at,checkout_id").eq("status", "pendente").gte("created_at", since).order("created_at", { ascending: false })) ?? { data: [] };
+      const rows = data ?? [];
+      if (alive) setPending(rows);
+      // Pergunta à Payzeno o estado real: os cancelados/expirados saem da lista, os pagos activam o plano.
+      const headers = await authHeader();
+      const still = await Promise.all(
+        rows.map(async (r) => {
+          if (!r.checkout_id) return r;
+          const res = await fetch(`/api/planos/estado?id=${encodeURIComponent(r.id)}`, { headers }).catch(() => null);
+          const body = res?.ok ? ((await res.json()) as { status?: string }) : null;
+          return !body || body.status === "pendente" ? r : null;
+        }),
+      );
+      if (!alive) return;
+      setPending(still.filter((r): r is (typeof rows)[number] => r !== null));
+      if (still.some((r, i) => r === null && rows[i].checkout_id)) void refreshOrg();
+    })();
+    return () => {
+      alive = false;
+    };
   }, [org?.id]);
+
+  async function cancelPending(id: string) {
+    const res = await fetch("/api/planos/cancelar", { method: "POST", headers: { "Content-Type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ id }) }).catch(() => null);
+    if (!res?.ok) return toast.error("Não foi possível cancelar o pedido");
+    setPending((list) => list.filter((p) => p.id !== id));
+    toast.success("Pedido de pagamento cancelado");
+  }
   const current = root?.plan ?? "basic";
   const trial = trialState(root);
   const children = orgs.filter((o) => o.parentOrg === root?.id);
@@ -87,14 +115,17 @@ function PlanosPage() {
           {p.checkout_id
             ? <> <Link to="/dashboard/planos/pagar" search={{ pagamento: p.id }} className="font-semibold text-primary hover:underline">Ver estado</Link></>
             : " Aguarda confirmação da equipa Quota."}
+          {" · "}
+          <button type="button" onClick={() => cancelPending(p.id)} className="font-semibold text-muted-foreground hover:text-destructive hover:underline">Cancelar</button>
         </p>
       ))}
 
       <section className="grid min-h-0 flex-1 gap-3 overflow-y-auto md:grid-cols-2 xl:grid-cols-4">
         {plans.map((p) => {
-          const active = p.id === current && !trial.active;
+          // Plano em uso e já pago (sem trial). Continua clicável: renovar soma meses ao período pago.
+          const active = p.id === current && !trial.active && !trial.expired;
           const downgradeBlocked = children.length > 0 && p.id !== "multi";
-          const label = active ? t("Plano actual") : trial.active || trial.expired ? t("Escolher e pagar") : rank(p.id) > rank(current) ? t("Fazer upgrade") : "Mudar para este plano";
+          const label = active ? t("Renovar") : trial.active || trial.expired ? t("Escolher e pagar") : rank(p.id) > rank(current) ? t("Fazer upgrade") : "Mudar para este plano";
           return (
             <article
               key={p.id}
@@ -130,7 +161,7 @@ function PlanosPage() {
               </ul>
               <button
                 onClick={() => choose(p.id)}
-                disabled={active || busy !== null || downgradeBlocked || isChild}
+                disabled={busy !== null || downgradeBlocked || isChild}
                 title={downgradeBlocked ? `Tem ${children.length + 1} empresas — este plano permite ${p.maxOrgs}.` : isChild ? "Gerido na empresa principal" : undefined}
                 className={cn(
                   "mt-5 inline-flex items-center justify-center gap-1.5 rounded-md px-3.5 py-2.5 text-[12px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",

@@ -4,7 +4,7 @@ import { ChevronLeft, Check, Loader2, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { refreshOrg, rootOf, useOrg } from "@/lib/org-store";
 import { plans, type PlanId } from "@/lib/plans";
-import { supabase } from "@/lib/supabase";
+import { authHeader } from "@/lib/supabase";
 import { Field, inputClass } from "@/components/catalog/Modal";
 import { cn } from "@/lib/utils";
 
@@ -32,12 +32,6 @@ const ERRORS: Record<string, string> = {
   provider_refused: "A Payzeno recusou o pedido. Tente novamente dentro de instantes.",
   provider_unreachable: "Não foi possível contactar a Payzeno. Verifique a ligação e tente novamente.",
 };
-
-async function authHeader(): Promise<Record<string, string>> {
-  const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
-  const token = data.session?.access_token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 function PagarPage() {
   const { pagamento } = Route.useSearch();

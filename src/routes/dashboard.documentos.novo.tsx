@@ -34,6 +34,8 @@ import {
   addInvoice,
   documentKinds,
   isQuoteKind,
+  updateDraft,
+  useInvoices,
   type DocumentKind,
   type InvoiceStatus,
 } from "@/lib/invoices-store";
@@ -56,7 +58,8 @@ export const Route = createFileRoute("/dashboard/documentos/novo")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { tipo?: string; cliente?: string; item?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tipo?: string; cliente?: string; item?: string; editar?: string } => ({
+    ...(typeof search.editar === "string" ? { editar: search.editar } : {}),
     ...(typeof search.tipo === "string" ? { tipo: search.tipo } : {}),
     ...(typeof search.cliente === "string" ? { cliente: search.cliente } : {}),
     ...(typeof search.item === "string" ? { item: search.item } : {}),
@@ -105,7 +108,10 @@ const addDays = (iso: string, days: number) => {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function Documentos() {
-  const { tipo, cliente, item } = Route.useSearch();
+  const { tipo, cliente, item, editar } = Route.useSearch();
+  const allInvoices = useInvoices();
+  // Edição de um rascunho (?editar=<id>): o mesmo editor, a gravar por cima do rascunho.
+  const editing = editar ? allInvoices.find((i) => i.id === editar) : undefined;
   const navigate = useNavigate();
   const clients = useClients();
   const products = useProducts();
@@ -163,6 +169,33 @@ function Documentos() {
     if (!notes) setNotes(company.paymentNote ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company.paymentNote]);
+
+  // Carrega o rascunho no editor uma vez; um documento já emitido não se edita.
+  const loadedDraft = useRef(false);
+  useEffect(() => {
+    if (!editing || loadedDraft.current) return;
+    loadedDraft.current = true;
+    if (editing.status !== "rascunho") {
+      toast.error("Só os rascunhos podem ser editados.", { description: "Um documento emitido anula-se e duplica-se." });
+      navigate({ to: "/dashboard/documentos/$id", params: { id: editing.id } });
+      return;
+    }
+    setType(docTypes.find((d) => d.id === editing.kind) ?? docTypes[2]);
+    setClientId(editing.clientId ?? "");
+    setClient(editing.client.name);
+    setNuit(editing.client.nuit);
+    setContact({ email: editing.client.email, phone: editing.client.phone, address: editing.client.address });
+    setDate(editing.issued);
+    setValidity(String(Math.max(0, Math.round((new Date(editing.due).getTime() - new Date(editing.issued).getTime()) / 86_400_000))));
+    setNotes(editing.notes ?? "");
+    setDiscount(editing.discount ?? 0);
+    setLines(
+      editing.lines.length
+        ? editing.lines.map((l, i) => ({ id: Date.now() + i, desc: l.description, note: l.note ?? "", qty: l.qty, price: l.price, vat: l.vat, img: l.img ?? "" }))
+        : [{ id: 1, desc: "", note: "", qty: 1, price: 0, vat: 16, img: "" }],
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing]);
 
   const isVisual = type.id === "cotv";
   const isQuote = isQuoteKind(type.id);
@@ -252,8 +285,7 @@ function Documentos() {
     const paidNow = type.id === "fr";
     // Uma VD/factura-recibo emitida já está paga.
     const status: InvoiceStatus = requested === "emitida" && paidNow ? "paga" : requested;
-    const created = await addInvoice({
-      kind: type.id,
+    const fields = {
       discount,
       issued: date,
       due,
@@ -263,9 +295,9 @@ function Documentos() {
       client: { name: client.trim(), nuit: nuit.trim(), ...contact },
       lines: validLines.map((l) => ({ description: l.desc.trim(), qty: l.qty, price: l.price, vat: chargesVat ? l.vat : 0, note: l.note || undefined, img: l.img || undefined })),
       // Uma VD/factura-recibo já vem paga: fica logo com o pagamento registado.
-      payments: paidNow ? [{ id: "", date, amount: totals.total, method: "numerario" }] : [],
-    });
-    return created;
+      payments: paidNow ? [{ id: "", date, amount: totals.total, method: "numerario" as const }] : [],
+    };
+    return editing ? updateDraft(editing.id, fields) : addInvoice({ kind: type.id, ...fields });
   }
 
   async function saveDraft() {
@@ -325,7 +357,8 @@ function Documentos() {
               return (
                 <button
                   key={d.id}
-                  onClick={() => setType(d)}
+                  onClick={() => !editing && setType(d)}
+                  disabled={!!editing && !active}
                   aria-pressed={active}
                   title={d.desc}
                   className={cn(
@@ -341,6 +374,11 @@ function Documentos() {
             })}
           </div>
 
+          {editing && (
+            <span className="inline-flex shrink-0 items-center rounded-md bg-warning/15 px-2 py-1 text-[11px] font-semibold text-warning-foreground dark:text-warning">
+              A editar {editing.number}
+            </span>
+          )}
           <span className="inline-flex shrink-0 items-center gap-1.5 border-l border-border/60 py-1 pl-3 text-[11px] font-semibold text-muted-foreground">
             <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", isReady ? "bg-success" : "bg-warning")} />
             <span className="tabular-nums">{reference}</span>

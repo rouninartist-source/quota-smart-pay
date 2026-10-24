@@ -30,3 +30,10 @@ export function requireSupabase(): SupabaseClient {
   }
   return supabase;
 }
+
+/** Cabeçalho Authorization com o token da sessão, para chamar as rotas /api do próprio servidor. */
+export async function authHeader(): Promise<Record<string, string>> {
+  const { data } = (await supabase?.auth.getSession()) ?? { data: { session: null } };
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}

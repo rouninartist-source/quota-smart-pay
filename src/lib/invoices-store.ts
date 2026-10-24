@@ -398,6 +398,58 @@ export async function addInvoice(
   return getInvoice(id);
 }
 
+/**
+ * Edita um rascunho: cliente, datas, notas, desconto e linhas (as linhas são
+ * substituídas). O número e o tipo ficam — o número já foi atribuído ao tipo.
+ * Só rascunhos: um documento emitido não se altera, anula-se.
+ */
+export async function updateDraft(
+  id: string,
+  input: Pick<Invoice, "discount" | "issued" | "due" | "status" | "notes" | "clientId" | "client" | "lines" | "payments">,
+) {
+  const sb = supabase;
+  if (!sb) return undefined;
+  const current = getInvoice(id);
+  if (!current || current.status !== "rascunho") {
+    fail("editar o documento", { message: "só os rascunhos podem ser editados" });
+    return undefined;
+  }
+
+  const { error } = await sb
+    .from("invoices")
+    .update({
+      discount: input.discount ?? 0,
+      issued: input.issued,
+      due: input.due,
+      status: input.status,
+      notes: input.notes ?? null,
+      client_id: input.clientId ?? null,
+      client_snapshot: input.client,
+    })
+    .eq("id", id)
+    .eq("status", "rascunho");
+  if (error) {
+    fail("guardar o rascunho", error);
+    return undefined;
+  }
+
+  const { error: delError } = await sb.from("invoice_lines").delete().eq("invoice_id", id);
+  if (delError) fail("actualizar as linhas", delError);
+  else if (input.lines.length) {
+    const { error: lineError } = await sb.from("invoice_lines").insert(lineRows(id, input.lines));
+    if (lineError) fail("gravar as linhas", lineError);
+  }
+  if (input.payments?.length) {
+    const { error: payError } = await sb.from("payments").insert(
+      input.payments.map((p) => ({ invoice_id: id, paid_on: p.date, amount: p.amount, method: p.method, reference: p.reference ?? null })),
+    );
+    if (payError) fail("gravar os pagamentos", payError);
+  }
+
+  await refresh(id);
+  return getInvoice(id);
+}
+
 export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
   const sb = supabase;
   if (!sb) return;
