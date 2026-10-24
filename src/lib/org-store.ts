@@ -147,14 +147,14 @@ export function rootOf(o: Org | null, all: Org[] = orgs) {
   return o.parentOrg ? (all.find((x) => x.id === o.parentOrg) ?? o) : o;
 }
 
-/** Consome um crédito de IA; no trial há 3. */
-export async function useAiCredit(): Promise<{ allowed: boolean; uses: number; limit: number | null }> {
+/** Consome um crédito de IA: no trial há 3 no total; nos planos, um limite por mês (Basic 20 · Smart 300 · Multi 1000). */
+export async function useAiCredit(): Promise<{ allowed: boolean; uses: number; limit: number | null; trial?: boolean }> {
   const sb = supabase;
   if (!sb) return { allowed: true, uses: 0, limit: null };
   const { data, error } = await sb.rpc("use_ai_credit");
   if (error) return { allowed: true, uses: 0, limit: null };
   void refreshOrg();
-  return data as { allowed: boolean; uses: number; limit: number | null };
+  return data as { allowed: boolean; uses: number; limit: number | null; trial?: boolean };
 }
 
 /**

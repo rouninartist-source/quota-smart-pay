@@ -8,6 +8,7 @@ import { GRACE_DAYS, planState, refreshOrg, rootOf, setOrgPlan, trialState, useO
 import { formatDate } from "@/lib/format";
 import { plans, TRIAL_AI_LIMIT, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
+import { PlanComparison } from "@/components/quota/PlanComparison";
 
 export const Route = createFileRoute("/dashboard/planos")({
   head: () => ({
@@ -78,7 +79,7 @@ function PlanosPage() {
   void toast;
 
   return (
-    <div className="flex flex-col gap-3 md:h-full md:min-h-0">
+    <div className="flex flex-col gap-3">
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="inline-flex items-center gap-1.5 pl-1 text-[12.5px] font-semibold">
@@ -162,7 +163,7 @@ function PlanosPage() {
         </p>
       ))}
 
-      <section className="grid min-h-0 flex-1 gap-3 overflow-y-auto md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((p) => {
           // Plano em uso e já pago (sem trial). Continua clicável: renovar soma meses ao período pago.
           const active = p.id === current && !trial.active && !trial.expired;
@@ -172,7 +173,7 @@ function PlanosPage() {
             <article
               key={p.id}
               className={cn(
-                "flex flex-col rounded-lg border bg-card p-5 shadow-sm",
+                "relative flex flex-col rounded-lg border bg-card p-5 shadow-sm",
                 active ? "border-primary ring-[3px] ring-primary/12" : "border-border/70",
               )}
             >
@@ -182,27 +183,22 @@ function PlanosPage() {
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground">{p.tagline}</p>
                 </div>
                 {active && <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10.5px] font-semibold text-primary">Actual</span>}
+                {!active && p.popular && <span className="rounded-md bg-primary px-2 py-0.5 text-[10.5px] font-semibold text-primary-foreground">Mais popular</span>}
                 {trial.active && p.id === "basic" && <span className="rounded-md bg-warning/15 px-2 py-0.5 text-[10.5px] font-semibold text-warning-foreground dark:text-warning">Em trial</span>}
               </div>
               <p className="mt-4 font-display text-[26px] font-semibold tabular-nums">
                 {fmt(p.monthly)} <span className="text-[12px] font-normal text-muted-foreground">MT / mês</span>
               </p>
               <ul className="mt-4 space-y-2 text-[12.5px]">
-                {[
-                  `${p.maxOrgs} empresa${p.maxOrgs === 1 ? "" : "s"}`,
-                  p.users,
-                  "Documentos ilimitados",
-                  "Templates standard",
-                  "Cobranças por WhatsApp",
-                  p.ai ? "Quota AI incluído" : "Sem Quota AI",
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2">
-                    <Check className={cn("h-3.5 w-3.5", f.startsWith("Sem") ? "text-muted-foreground/40" : "text-success")} /> {f}
+                {[`${p.maxOrgs} empresa${p.maxOrgs === 1 ? "" : "s"} · ${p.maxUsers} utilizadores`, ...p.highlights, `Suporte: ${p.support}`].map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" /> {f}
                   </li>
                 ))}
               </ul>
               <button
                 onClick={() => choose(p.id)}
+                style={{ marginTop: "auto" }}
                 disabled={busy !== null || downgradeBlocked || isChild}
                 title={downgradeBlocked ? `Tem ${children.length + 1} empresas — este plano permite ${p.maxOrgs}.` : isChild ? "Gerido na empresa principal" : undefined}
                 className={cn(
@@ -229,6 +225,7 @@ function PlanosPage() {
             <MessageCircle className="h-3.5 w-3.5" />{t("Falar connosco")}</a>
         </article>
       </section>
+      <PlanComparison current={current} className="shrink-0" />
       <p className="shrink-0 text-[11px] text-muted-foreground">
         Pagamentos por M-Pesa ou e-Mola através da Payzeno; o plano activa-se assim que o pagamento é confirmado. O período experimental de 14 dias aplica-se apenas ao Basic.
       </p>

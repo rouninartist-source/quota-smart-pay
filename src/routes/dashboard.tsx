@@ -27,7 +27,6 @@ const FITS_VIEWPORT = new Set([
   "/dashboard/assistente",
   "/dashboard/equipa",
   "/dashboard/utilizadores",
-  "/dashboard/planos",
   "/dashboard/documentos",
   "/dashboard/equipa",
   "/dashboard/documentos/novo",

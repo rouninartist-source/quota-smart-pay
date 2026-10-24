@@ -164,17 +164,20 @@ function ChatWindow({
   async function send(text: string) {
     const trimmed = text.trim();
     if ((!trimmed && attachments.length === 0) || busy) return;
-    // No período experimental há 3 operações de IA; o Postgres conta.
+    // O Postgres conta: 3 operações no trial, depois um limite por mês conforme o plano.
     const credit = await useAiCredit();
     if (!credit.allowed) {
-      toast.error(`Limite do período experimental: ${credit.limit} operações de Quota AI.`, {
-        description: "Escolha um plano com Quota AI para continuar.",
-        action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
-      });
+      toast.error(
+        credit.trial ? `Limite do período experimental: ${credit.limit} operações de Quota AI.` : `Atingiu as ${credit.limit} operações de Quota AI deste mês.`,
+        {
+          description: credit.trial ? "Escolha um plano para continuar." : "O contador reinicia no dia 1 — ou passe para um plano com mais operações.",
+          action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
+        },
+      );
       return;
     }
-    if (credit.limit !== null) {
-      toast.message(`Quota AI · ${credit.uses} de ${credit.limit} operações do trial`);
+    if (credit.limit !== null && (credit.trial || credit.limit - credit.uses <= 5)) {
+      toast.message(`Quota AI · ${credit.uses} de ${credit.limit} operações${credit.trial ? " do trial" : " este mês"}`);
     }
     void sendMessage({
       text: trimmed || "Analisa o ficheiro em anexo e propõe o documento adequado.",

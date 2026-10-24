@@ -17,8 +17,11 @@ import {
 import loginVisual from "@/assets/login-visual.jpg";
 
 export const Route = createFileRoute("/registo")({
-  validateSearch: (search: Record<string, unknown>): { convite?: string } =>
-    typeof search.convite === "string" ? { convite: search.convite } : {},
+  validateSearch: (search: Record<string, unknown>): { convite?: string; plano?: PlanId } => ({
+    ...(typeof search.convite === "string" ? { convite: search.convite } : {}),
+    // Vindo da página de preços ("Escolher Smart"): o plano já fica escolhido.
+    ...(search.plano === "basic" || search.plano === "smart" || search.plano === "multi" ? { plano: search.plano } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Criar conta · Quota" },
@@ -74,7 +77,7 @@ function Registo() {
 
   const [step, setStep] = useState(1);
   // Pacote escolhido antes de criar a conta. O trial corre sempre no Basic.
-  const [plan, setPlan] = useState<PlanId | null>(null);
+  const [plan, setPlan] = useState<PlanId | null>(Route.useSearch().plano ?? null);
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
