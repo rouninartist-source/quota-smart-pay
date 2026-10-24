@@ -5,7 +5,7 @@ import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock-data";
 import { addProduct, deleteProduct, nextSku, updateProduct, useProducts, type ProductInput } from "@/lib/catalog-store";
-import { shrinkImage } from "@/lib/images";
+import { uploadImage } from "@/lib/media";
 import { Camera } from "lucide-react";
 
 /** Categorias sugeridas mesmo num catálogo vazio. */
@@ -74,7 +74,13 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
               className="sr-only"
               onChange={async (e) => {
                 const f = e.target.files?.[0];
-                if (f) set("image", await shrinkImage(f, 480));
+                e.target.value = "";
+                if (!f) return;
+                try {
+                  set("image", await uploadImage(f, "products"));
+                } catch (err) {
+                  toast.error("Não foi possível carregar a fotografia", { description: (err as Error).message });
+                }
               }}
             />
           </label>

@@ -9,6 +9,7 @@ import { useT } from "@/lib/i18n";
 import { hydrateClients } from "@/lib/clients-store";
 import { hydrateCompany } from "@/lib/company-store";
 import { hydrateCatalog } from "@/lib/catalog-store";
+import { migrateInlineImages } from "@/lib/media-migrate";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -91,6 +92,8 @@ function DashboardLayout() {
   useEffect(() => {
     if (!org) return;
     void Promise.all([hydrateInvoices(), hydrateClients(), hydrateCompany(), hydrateCatalog()]);
+    // Imagens antigas guardadas como texto na base de dados passam para o Storage.
+    migrateInlineImages();
   }, [org]);
 
   if (isSupabaseConfigured && (loading || !session)) {

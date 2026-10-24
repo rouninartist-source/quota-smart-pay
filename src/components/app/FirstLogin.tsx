@@ -5,6 +5,7 @@ import { CompleteOrgSetup } from "./CompleteOrgSetup";
 import { createOrg, refreshOrg } from "@/lib/org-store";
 import { saveCompany } from "@/lib/company-store";
 import { supabase } from "@/lib/supabase";
+import { isDataUrl, uploadImage } from "@/lib/media";
 import type { SignupMeta } from "@/lib/auth";
 import type { PlanId } from "@/lib/plans";
 
@@ -35,6 +36,11 @@ export function FirstLogin({ session }: { session: Session }) {
           logo = localStorage.getItem("quota-pending-logo") ?? undefined;
           localStorage.removeItem("quota-pending-logo");
         } catch {}
+        // No registo ainda não havia sessão para enviar o logotipo; vai agora para o Storage.
+        if (isDataUrl(logo)) {
+          await refreshOrg();
+          logo = await uploadImage(logo, "logo").catch(() => undefined);
+        }
         await saveCompany({ name: c.name, nuit: c.nuit, email: session.user.email ?? "", phone: meta.phone ?? "", ...(logo ? { logo } : {}) });
       }
       // já não é preciso repetir no próximo início de sessão

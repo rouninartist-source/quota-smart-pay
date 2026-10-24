@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { shrinkImage } from "@/lib/images";
+import { uploadImage } from "@/lib/media";
 import { downloadDocumentPdf } from "@/lib/pdf";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
@@ -457,7 +457,13 @@ function Documentos() {
                           className="sr-only"
                           onChange={async (e) => {
                             const f = e.target.files?.[0];
-                            if (f) update(l.id, { img: await shrinkImage(f, 480) });
+                            e.target.value = "";
+                            if (!f) return;
+                            try {
+                              update(l.id, { img: await uploadImage(f, "lines") });
+                            } catch (err) {
+                              toast.error("Não foi possível carregar a fotografia", { description: (err as Error).message });
+                            }
                           }}
                         />
                       </label>

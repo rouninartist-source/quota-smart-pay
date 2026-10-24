@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { shrinkImage } from "@/lib/images";
+import { uploadImage } from "@/lib/media";
 import { Camera } from "lucide-react";
 import {
   changePassword,
@@ -108,7 +108,13 @@ function PerfilPage() {
                   className="sr-only"
                   onChange={async (e) => {
                     const f = e.target.files?.[0];
-                    if (f) set("avatar", await shrinkImage(f, 160));
+                    e.target.value = "";
+                    if (!f) return;
+                    try {
+                      set("avatar", await uploadImage(f, "avatar"));
+                    } catch (err) {
+                      toast.error("Não foi possível carregar a fotografia", { description: (err as Error).message });
+                    }
                   }}
                 />
               </label>

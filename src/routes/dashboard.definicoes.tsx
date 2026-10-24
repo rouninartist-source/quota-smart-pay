@@ -16,6 +16,7 @@ import {
 
 import { BankPicker } from "@/components/app/BankPicker";
 import { cn } from "@/lib/utils";
+import { uploadImage } from "@/lib/media";
 import { themeModes, useTheme } from "@/hooks/use-theme";
 
 export const Route = createFileRoute("/dashboard/definicoes")({
@@ -51,15 +52,17 @@ function Definicoes() {
     setDraft(company);
   }, [company]);
 
-  function onLogo(file?: File) {
+  /** O logotipo vai para o Storage; nas definições fica só o URL. */
+  async function onLogo(file?: File) {
     if (!file) return;
-    if (file.size > 600_000) return setError("O logotipo deve ter menos de 600 KB.");
-    const reader = new FileReader();
-    reader.onload = () => {
+    if (file.size > 8_000_000) return setError("O logotipo deve ter menos de 8 MB.");
+    try {
+      const url = await uploadImage(file, "logo");
       setError(undefined);
-      setDraft((d) => ({ ...d, logo: String(reader.result) }));
-    };
-    reader.readAsDataURL(file);
+      setDraft((d) => ({ ...d, logo: url }));
+    } catch (err) {
+      setError(`Não foi possível carregar o logotipo: ${(err as Error).message}`);
+    }
   }
 
   function submit(e: React.FormEvent) {
