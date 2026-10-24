@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quota · Testes 24/10</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e5e9f2; --primary:#2563eb; --ok:#059669; --warn:#b45309; --bad:#dc2626; --chip:#eef2ff; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0b1220; --card:#111a2e; --ink:#e5e9f2; --muted:#94a3b8; --line:#1e293b; --chip:#1e293b; } }
+  :root[data-theme="dark"] { --bg:#0b1220; --card:#111a2e; --ink:#e5e9f2; --muted:#94a3b8; --line:#1e293b; --chip:#1e293b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.55 Inter,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:920px; margin:0 auto; padding:28px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; letter-spacing:-.01em; }
+  h2 { font-size:17px; margin:0 0 10px; }
+  .sub { color:var(--muted); margin:0 0 18px; }
+  .bar { position:sticky; top:0; z-index:5; background:var(--bg); padding:10px 0; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  .prog { flex:1; height:8px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .prog i { display:block; height:100%; width:0; background:var(--ok); transition:width .2s; }
+  .count { font-weight:600; font-size:13px; white-space:nowrap; }
+  button { font:inherit; font-size:12px; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:8px; padding:6px 10px; cursor:pointer; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:14px 0; }
+  .meta { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; }
+  .tag { font-size:11px; padding:2px 8px; border-radius:99px; background:var(--chip); color:var(--muted); }
+  .tag.ok { color:var(--ok); } .tag.warn { color:var(--warn); }
+  ul.changes { margin:0 0 12px 18px; padding:0; color:var(--muted); }
+  ul.changes li { margin:2px 0; }
+  .item { display:flex; gap:10px; padding:9px 0; border-top:1px solid var(--line); }
+  .item input { margin-top:3px; width:17px; height:17px; accent-color:var(--ok); flex-shrink:0; }
+  .item label { flex:1; cursor:pointer; }
+  .item b { display:block; }
+  .exp { color:var(--muted); font-size:13px; }
+  .item.done b { text-decoration:line-through; color:var(--muted); }
+  .note { border-left:3px solid var(--warn); padding:8px 12px; background:var(--chip); border-radius:6px; margin:10px 0; font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  td, th { text-align:left; padding:7px 6px; border-top:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+  code { font-size:12px; background:var(--chip); padding:1px 5px; border-radius:4px; }
+  @media print { .bar button { display:none; } section { break-inside:avoid; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Quota · Alterações de 23–24/10 e checklist de testes</h1>
+  <p class="sub">Para o Milson testar em <b>quota.milsonuix.com</b> (não em milsonuix.com). Versão em produção: <code>9dc6229</code>. Marque cada teste — fica guardado neste browser.</p>
+
+  <div class="bar">
+    <div class="prog"><i id="p"></i></div>
+    <span class="count" id="c">0 / 0</span>
+    <button onclick="if(confirm('Limpar todas as marcações?')){localStorage.removeItem(K);location.reload()}">Limpar</button>
+    <button onclick="window.print()">Imprimir</button>
+  </div>
+
+  <section>
+    <h2>Antes de começar</h2>
+    <div class="note">Use a conta de teste <b>tirson@93interactions.com</b> (ou a sua, se estiver em <code>PAYZENO_TEST_EMAILS</code> — essas contas pagam <b>1 MT</b> por qualquer plano). Contas fora da lista pagam o preço real.</div>
+    <div class="note">O site <b>milsonuix.com</b> ainda mostra uma cópia do Quota sem configuração — <b>não teste lá</b>. Tem de ser desligado do repositório no Hostinger.</div>
+  </section>
+
+  <section data-sec>
+    <h2>1. Documentos — novo aspecto</h2>
+    <div class="meta"><span class="tag ok">Testado: build + capturas locais dos 3 layouts</span></div>
+    <ul class="changes">
+      <li>Só 3 layouts: Clássico, Básico Claro, Básico Escuro — mesma estrutura, cores próprias</li>
+      <li>Logotipo no topo; emitente à esquerda e cliente à direita na mesma linha; itens numerados</li>
+      <li>Valor por extenso; sem «Pago»; rodapé «Documento emitido por sistema informático — Quota.»; QR de verificação</li>
+    </ul>
+    <div class="item"><input type="checkbox"><label><b>Abrir uma factura emitida</b><span class="exp">Logo (ou espaço reservado) no topo · tipo, número e datas à direita · emitente e cliente lado a lado · linhas com # · valor por extenso por baixo do total · sem «Pago» · rodapé novo com QR.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Design → trocar entre Clássico, Básico Claro e Básico Escuro</b><span class="exp">Só aparecem 3 layouts. A estrutura é igual nos três; mudam as cores (fundo branco / bloco cinza / bloco escuro).</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Ler o QR do rodapé com o telemóvel</b><span class="exp">Abre a página «Verificação de documento»: válido, emitente + NUIT, número, data, total e cliente — sem iniciar sessão. Num documento anulado diz ANULADO.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Valor por extenso com valores difíceis</b><span class="exp">Ex.: 1 234,50 → «mil duzentos e trinta e quatro meticais e cinquenta centavos»; 1 000 000 → «um milhão de meticais».</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Definições → Documentos → Idioma: English</b><span class="exp">A factura sai em inglês (Invoice, Issue date, Amount in words…) mesmo com a app em português. Voltar a Português depois.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Definições → Documentos → Regime de IVA: Isento / Simplificado</b><span class="exp">Documento novo sai sem IVA e sem coluna de IVA, com a menção do regime. ⚠ Confirmar o texto legal com o contabilista. Voltar a «normal» depois.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Definições → Dados de pagamento → código SWIFT numa conta</b><span class="exp">O SWIFT aparece nos dados de pagamento da factura.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>2. PDF</h2>
+    <div class="meta"><span class="tag ok">Testado: build</span><span class="tag warn">Por testar: ficheiro real</span></div>
+    <div class="item"><input type="checkbox"><label><b>Botão PDF numa factura</b><span class="exp">Descarrega logo o ficheiro (sem abrir página). A folha ocupa a A4 inteira, sem margens cinzentas; o logotipo aparece.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Novo documento → PDF</b><span class="exp">Grava como rascunho, descarrega o PDF e abre a página do documento.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>PDF com o modo escuro ligado</b><span class="exp">O PDF continua branco.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Enviar → Copiar ligação do PDF → abrir numa janela privada</b><span class="exp">Página com «Descarregar PDF» que dá o mesmo PDF A4.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>3. Recibos</h2>
+    <div class="meta"><span class="tag ok">Testado: build + capturas do recibo</span></div>
+    <ul class="changes">
+      <li>Novo recibo: cliente → facturas em aberto → Total / 50% / Outro valor → um recibo para várias facturas</li>
+      <li>Recibo só com os campos obrigatórios; identifica a(s) factura(s) por número, data e valor</li>
+    </ul>
+    <div class="item"><input type="checkbox"><label><b>Documentos → Novo recibo → escolher um cliente com 3 facturas em aberto</b><span class="exp">Lista as facturas por pagar (mais antigas primeiro), todas marcadas, com o saldo de cada.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>«Total» → M-Pesa → Emitir recibo</b><span class="exp">Abre o recibo (REC …) com as 3 facturas; as facturas ficam «Paga».</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>«50%» em 2 facturas</b><span class="exp">Cada uma recebe metade do saldo e fica «Parcial».</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>«Outro valor» maior que o total em dívida</b><span class="exp">Erro, nada é gravado.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>No recibo: Imprimir, PDF, WhatsApp</b><span class="exp">Imprimir só mostra o recibo; PDF A4; WhatsApp abre com o número do cliente e mensagem de confirmação.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Documentos → separador Recibos</b><span class="exp">O recibo de várias facturas aparece numa só linha; «Referente a» lista os números.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Conteúdo do recibo</b><span class="exp">Só: emitente e NUIT, número e data, «Recebido de» + NUIT, frase com valor em algarismos e por extenso, tabela das facturas (número, data, valor, pago), forma de pagamento, rodapé e QR. ⚠ Contabilista confirma os campos mínimos.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>4. Rascunhos editáveis</h2>
+    <div class="meta"><span class="tag ok">Testado: abrir FT 2026/00012 em edição (cliente e linhas carregados)</span></div>
+    <div class="item"><input type="checkbox"><label><b>Abrir um rascunho → Editar</b><span class="exp">O editor abre com «A editar FT …», cliente, NUIT, datas, linhas, notas e desconto preenchidos; o tipo de documento fica bloqueado.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Mudar o cliente, adicionar uma linha, Guardar</b><span class="exp">Mantém o mesmo número; as alterações aparecem no documento.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Duplicar um documento emitido → editar o duplicado</b><span class="exp">O duplicado é rascunho e edita-se normalmente.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Tentar abrir <code>?editar=</code> de um documento emitido</b><span class="exp">Aviso «Só os rascunhos podem ser editados» e volta ao documento.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>5. Utilizadores e convites por e-mail</h2>
+    <div class="meta"><span class="tag ok">Testado: endpoint recusa sem sessão</span><span class="tag warn">Por testar: envio real</span></div>
+    <div class="item"><input type="checkbox"><label><b>Utilizadores → Criar convite para um e-mail real</b><span class="exp">Mensagem «Convite enviado»; chega de <b>noreply@quota.milsonuix.com</b>, com o aspecto do Quota e botão «Aceitar convite». Não abre o Thunderbird.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Responder ao e-mail do convite</b><span class="exp">A resposta vai para quem convidou (Reply-To).</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Ícone do envelope num convite pendente</b><span class="exp">Reenvia o e-mail («Convite reenviado»).</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Aceitar o convite noutra conta</b><span class="exp">Cria a palavra-passe e entra na empresa com o papel escolhido.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Limite de utilizadores</b><span class="exp">Basic: 2 · Smart: 5 · Multi-Empresas: 10 por empresa. Acima disso, «Criar convite» avisa do limite.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>6. E-mails de autenticação</h2>
+    <div class="meta"><span class="tag ok">Testado: recuperação de palavra-passe recebida (Tirson)</span></div>
+    <div class="item"><input type="checkbox"><label><b>Recuperar palavra-passe</b><span class="exp">Chega de noreply@quota.milsonuix.com, assunto «Definir nova palavra-passe · Quota», com o aspecto do Quota.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Criar conta nova</b><span class="exp">E-mail «Confirme o seu e-mail · Quota»; a ligação confirma e entra.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>7. Planos e pagamento (Payzeno)</h2>
+    <div class="meta"><span class="tag ok">Testado: pagamento de 1 MT confirmado, plano activo até 24/11/2026; Payzeno recebe o valor em centavos (600 MT = 60000)</span></div>
+    <ul class="changes">
+      <li>Pagamento por M-Pesa/e-Mola na página da Payzeno; o plano activa-se sozinho</li>
+      <li>Cartão de estado: plano, pago até, dias que faltam, renovar</li>
+      <li>5 dias de tolerância depois do fim, com aviso diário; depois bloqueia a emissão</li>
+      <li>E-mail de confirmação do Quota; lembretes diários às 08:00</li>
+    </ul>
+    <div class="item"><input type="checkbox"><label><b>Planos → cartão no topo</b><span class="exp">«O seu plano», «Pago até», «Situação» (activo · faltam N dias) e «Renovar / pagar mais meses». A barra lateral diz «Plano Basic · até 24/11/2026».</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Pagar 1 MT com uma conta de teste (Basic → Mensal → M-Pesa)</b><span class="exp">A página da Payzeno mostra 1 MT e «TESTE». Depois de pagar volta ao Quota: «Plano Basic activo» em segundos; «Pago até» avança 1 mês.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>E-mail de confirmação</b><span class="exp">Além do e-mail da Payzeno, chega «Pagamento confirmado · plano Basic activo até …» de noreply@quota.milsonuix.com, com plano, valor, carteira e referência.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Conta fora da lista de testes → Pagar</b><span class="exp">A Payzeno mostra o preço real (ex.: 600 MT). Fechar sem pagar.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Pagamentos pendentes → Cancelar</b><span class="exp">Ao abrir os Planos, os cancelados/expirados desaparecem sozinhos; os restantes têm «Cancelar», que os retira.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Notificações → Pagamentos</b><span class="exp">Lista os pagamentos do plano dos últimos 30 dias (pendente / activado / não concluído); o clique abre os Planos. O sino no topo mostra os mesmos.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Trial terminado → Basic</b><span class="exp">O cartão do plano actual diz «Escolher e pagar» (antes ficava bloqueado em «Plano actual»).</span></label></div>
+    <div class="note">Tolerância e lembretes só se vêem perto do fim do período (a partir de 17/11 para esta conta). Avisos: azul ≤7 dias antes, âmbar durante os 5 dias de tolerância, vermelho e emissão bloqueada depois.</div>
+  </section>
+
+  <section data-sec>
+    <h2>8. Página de preços e tabela de comparação</h2>
+    <div class="meta"><span class="tag ok">Testado: capturas locais</span></div>
+    <div class="item"><input type="checkbox"><label><b>Página inicial → Preços</b><span class="exp">Mensal / Trimestral / Anual (−10%) com o total do ciclo; 4 cartões (Smart «Mais popular», Empresarial «Sob consulta»).</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>«Escolher Smart» na página pública</b><span class="exp">Abre o registo com o Smart já escolhido.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>«Compare os planos»</b><span class="exp">Tabela por grupos (Documentos · Equipa · Cobranças · Quota AI · Suporte) com ✓ / — / números.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Planos dentro da app</b><span class="exp">Os mesmos cartões e a mesma tabela, com o seu plano destacado.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Quota AI no Basic</b><span class="exp">20 operações por mês; ao chegar ao limite, aviso com «Ver planos». (Trial: 3 no total.)</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Rever textos e benefícios</b><span class="exp">Confirmar que concordam com o que se promete em cada plano.</span></label></div>
+  </section>
+
+  <section data-sec>
+    <h2>9. Imagens no Storage e configuração</h2>
+    <div class="meta"><span class="tag ok">Testado: 14 imagens migradas; upload/apagar com regras de acesso</span></div>
+    <div class="item"><input type="checkbox"><label><b>Carregar logotipo, foto de perfil e foto de produto</b><span class="exp">Aparecem na app; no Supabase → Storage → media ficam em orgs/… e users/….</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Trocar e remover uma imagem</b><span class="exp">Funciona sem erro.</span></label></div>
+    <div class="item"><input type="checkbox"><label><b>Visão geral → «Complete a configuração»</b><span class="exp">Lista o que falta (NUIT, morada, contactos, logotipo, dados de pagamento, nome, plano); cada item abre a secção certa das Definições; desaparece quando está tudo completo.</span></label></div>
+  </section>
+
+  <section>
+    <h2>Pendentes e limitações conhecidas</h2>
+    <table>
+      <tr><th>Item</th><th>Situação</th></tr>
+      <tr><td>milsonuix.com a servir o Quota</td><td>Desligar o repositório <code>quota-smart-pay</code> do site milsonuix.com no Hostinger (causa builds falhados por correrem em paralelo).</td></tr>
+      <tr><td>Checkout próprio (sem a página da Payzeno)</td><td>Bloqueado: a Payzeno tem de activar «direct API payments» na conta.</td></tr>
+      <tr><td>Webhook da Payzeno</td><td>Os pagamentos confirmam-se pela consulta de estado; falta ver nos Runtime logs se o webhook chega/assinatura.</td></tr>
+      <tr><td>Modo de teste 1 MT</td><td>Retirar <code>PAYZENO_TEST_AMOUNT_MT</code> e <code>PAYZENO_TEST_EMAILS</code> quando acabarem os testes.</td></tr>
+      <tr><td>Texto legal (regime de IVA, campos do recibo)</td><td>Confirmar com o contabilista.</td></tr>
+      <tr><td>Ainda por fazer</td><td>Serviços/categorias (lote 2), facturação em moeda estrangeira (lote 3), envio de documentos por e-mail com limite mensal, lembretes de facturas vencidas, factura/recibo fiscal da subscrição (lote 4 — precisa NUIT e morada da Quota Studio Lda). Chat da equipa: «em breve».</td></tr>
+    </table>
+  </section>
+</div>
+<script>
+  const K = "quota-checklist-2026-10-24";
+  const boxes = [...document.querySelectorAll(".item input")];
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(K) || "{}"); } catch {}
+  const update = () => {
+    const n = boxes.filter((b) => b.checked).length;
+    document.getElementById("c").textContent = n + " / " + boxes.length;
+    document.getElementById("p").style.width = (100 * n / boxes.length) + "%";
+  };
+  boxes.forEach((b, i) => {
+    b.checked = !!saved[i];
+    b.closest(".item").classList.toggle("done", b.checked);
+    b.id = "t" + i; b.nextElementSibling.htmlFor = b.id;
+    b.addEventListener("change", () => {
+      saved[i] = b.checked;
+      b.closest(".item").classList.toggle("done", b.checked);
+      try { localStorage.setItem(K, JSON.stringify(saved)); } catch {}
+      update();
+    });
+  });
+  update();
+</script>
+</body>
+</html>
