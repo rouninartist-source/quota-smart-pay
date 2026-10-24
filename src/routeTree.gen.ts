@@ -23,7 +23,6 @@ import { Route as VerificarCodeRouteImport } from './routes/verificar.$code'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardUtilizadoresRouteImport } from './routes/dashboard.utilizadores'
 import { Route as DashboardServicosRouteImport } from './routes/dashboard.servicos'
-import { Route as DashboardRecibosRouteImport } from './routes/dashboard.recibos'
 import { Route as DashboardProdutosRouteImport } from './routes/dashboard.produtos'
 import { Route as DashboardPlanosRouteImport } from './routes/dashboard.planos'
 import { Route as DashboardPerfilRouteImport } from './routes/dashboard.perfil'
@@ -39,11 +38,15 @@ import { Route as DashboardClientesRouteImport } from './routes/dashboard.client
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as DashboardRecibosIndexRouteImport } from './routes/dashboard.recibos.index'
 import { Route as DashboardFacturasIndexRouteImport } from './routes/dashboard.facturas.index'
 import { Route as DashboardEquipaIndexRouteImport } from './routes/dashboard.equipa.index'
 import { Route as DashboardDocumentosIndexRouteImport } from './routes/dashboard.documentos.index'
 import { Route as DashboardAssistenteIndexRouteImport } from './routes/dashboard.assistente.index'
+import { Route as RecibosIdImprimirRouteImport } from './routes/recibos.$id.imprimir'
 import { Route as FacturasIdImprimirRouteImport } from './routes/facturas.$id.imprimir'
+import { Route as DashboardRecibosNovoRouteImport } from './routes/dashboard.recibos.novo'
+import { Route as DashboardRecibosIdRouteImport } from './routes/dashboard.recibos.$id'
 import { Route as DashboardPlanosPagarRouteImport } from './routes/dashboard.planos_.pagar'
 import { Route as DashboardFacturasNovaRouteImport } from './routes/dashboard.facturas.nova'
 import { Route as DashboardFacturasIdRouteImport } from './routes/dashboard.facturas.$id'
@@ -124,11 +127,6 @@ const DashboardServicosRoute = DashboardServicosRouteImport.update({
   path: '/servicos',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardRecibosRoute = DashboardRecibosRouteImport.update({
-  id: '/recibos',
-  path: '/recibos',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardProdutosRoute = DashboardProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -204,6 +202,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRecibosIndexRoute = DashboardRecibosIndexRouteImport.update({
+  id: '/recibos/',
+  path: '/recibos/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFacturasIndexRoute = DashboardFacturasIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -226,10 +229,25 @@ const DashboardAssistenteIndexRoute =
     path: '/',
     getParentRoute: () => DashboardAssistenteRoute,
   } as any)
+const RecibosIdImprimirRoute = RecibosIdImprimirRouteImport.update({
+  id: '/recibos/$id/imprimir',
+  path: '/recibos/$id/imprimir',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FacturasIdImprimirRoute = FacturasIdImprimirRouteImport.update({
   id: '/facturas/$id/imprimir',
   path: '/facturas/$id/imprimir',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRecibosNovoRoute = DashboardRecibosNovoRouteImport.update({
+  id: '/recibos/novo',
+  path: '/recibos/novo',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRecibosIdRoute = DashboardRecibosIdRouteImport.update({
+  id: '/recibos/$id',
+  path: '/recibos/$id',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardPlanosPagarRoute = DashboardPlanosPagarRouteImport.update({
   id: '/planos_/pagar',
@@ -303,7 +321,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/planos': typeof DashboardPlanosRoute
   '/dashboard/produtos': typeof DashboardProdutosRoute
-  '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -319,11 +336,15 @@ export interface FileRoutesByFullPath {
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
   '/dashboard/planos/pagar': typeof DashboardPlanosPagarRoute
+  '/dashboard/recibos/$id': typeof DashboardRecibosIdRoute
+  '/dashboard/recibos/novo': typeof DashboardRecibosNovoRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
+  '/recibos/$id/imprimir': typeof RecibosIdImprimirRoute
   '/dashboard/assistente/': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos/': typeof DashboardDocumentosIndexRoute
   '/dashboard/equipa/': typeof DashboardEquipaIndexRoute
   '/dashboard/facturas/': typeof DashboardFacturasIndexRoute
+  '/dashboard/recibos/': typeof DashboardRecibosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -344,7 +365,6 @@ export interface FileRoutesByTo {
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/planos': typeof DashboardPlanosRoute
   '/dashboard/produtos': typeof DashboardProdutosRoute
-  '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -360,11 +380,15 @@ export interface FileRoutesByTo {
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
   '/dashboard/planos/pagar': typeof DashboardPlanosPagarRoute
+  '/dashboard/recibos/$id': typeof DashboardRecibosIdRoute
+  '/dashboard/recibos/novo': typeof DashboardRecibosNovoRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
+  '/recibos/$id/imprimir': typeof RecibosIdImprimirRoute
   '/dashboard/assistente': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos': typeof DashboardDocumentosIndexRoute
   '/dashboard/equipa': typeof DashboardEquipaIndexRoute
   '/dashboard/facturas': typeof DashboardFacturasIndexRoute
+  '/dashboard/recibos': typeof DashboardRecibosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -391,7 +415,6 @@ export interface FileRoutesById {
   '/dashboard/perfil': typeof DashboardPerfilRoute
   '/dashboard/planos': typeof DashboardPlanosRoute
   '/dashboard/produtos': typeof DashboardProdutosRoute
-  '/dashboard/recibos': typeof DashboardRecibosRoute
   '/dashboard/servicos': typeof DashboardServicosRoute
   '/dashboard/utilizadores': typeof DashboardUtilizadoresRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -407,11 +430,15 @@ export interface FileRoutesById {
   '/dashboard/facturas/$id': typeof DashboardFacturasIdRoute
   '/dashboard/facturas/nova': typeof DashboardFacturasNovaRoute
   '/dashboard/planos_/pagar': typeof DashboardPlanosPagarRoute
+  '/dashboard/recibos/$id': typeof DashboardRecibosIdRoute
+  '/dashboard/recibos/novo': typeof DashboardRecibosNovoRoute
   '/facturas/$id/imprimir': typeof FacturasIdImprimirRoute
+  '/recibos/$id/imprimir': typeof RecibosIdImprimirRoute
   '/dashboard/assistente/': typeof DashboardAssistenteIndexRoute
   '/dashboard/documentos/': typeof DashboardDocumentosIndexRoute
   '/dashboard/equipa/': typeof DashboardEquipaIndexRoute
   '/dashboard/facturas/': typeof DashboardFacturasIndexRoute
+  '/dashboard/recibos/': typeof DashboardRecibosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -439,7 +466,6 @@ export interface FileRouteTypes {
     | '/dashboard/perfil'
     | '/dashboard/planos'
     | '/dashboard/produtos'
-    | '/dashboard/recibos'
     | '/dashboard/servicos'
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
@@ -455,11 +481,15 @@ export interface FileRouteTypes {
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
     | '/dashboard/planos/pagar'
+    | '/dashboard/recibos/$id'
+    | '/dashboard/recibos/novo'
     | '/facturas/$id/imprimir'
+    | '/recibos/$id/imprimir'
     | '/dashboard/assistente/'
     | '/dashboard/documentos/'
     | '/dashboard/equipa/'
     | '/dashboard/facturas/'
+    | '/dashboard/recibos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -480,7 +510,6 @@ export interface FileRouteTypes {
     | '/dashboard/perfil'
     | '/dashboard/planos'
     | '/dashboard/produtos'
-    | '/dashboard/recibos'
     | '/dashboard/servicos'
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
@@ -496,11 +525,15 @@ export interface FileRouteTypes {
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
     | '/dashboard/planos/pagar'
+    | '/dashboard/recibos/$id'
+    | '/dashboard/recibos/novo'
     | '/facturas/$id/imprimir'
+    | '/recibos/$id/imprimir'
     | '/dashboard/assistente'
     | '/dashboard/documentos'
     | '/dashboard/equipa'
     | '/dashboard/facturas'
+    | '/dashboard/recibos'
   id:
     | '__root__'
     | '/'
@@ -526,7 +559,6 @@ export interface FileRouteTypes {
     | '/dashboard/perfil'
     | '/dashboard/planos'
     | '/dashboard/produtos'
-    | '/dashboard/recibos'
     | '/dashboard/servicos'
     | '/dashboard/utilizadores'
     | '/dashboard/whatsapp'
@@ -542,11 +574,15 @@ export interface FileRouteTypes {
     | '/dashboard/facturas/$id'
     | '/dashboard/facturas/nova'
     | '/dashboard/planos_/pagar'
+    | '/dashboard/recibos/$id'
+    | '/dashboard/recibos/novo'
     | '/facturas/$id/imprimir'
+    | '/recibos/$id/imprimir'
     | '/dashboard/assistente/'
     | '/dashboard/documentos/'
     | '/dashboard/equipa/'
     | '/dashboard/facturas/'
+    | '/dashboard/recibos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -565,6 +601,7 @@ export interface RootRouteChildren {
   ApiPlanosCheckoutRoute: typeof ApiPlanosCheckoutRoute
   ApiPlanosEstadoRoute: typeof ApiPlanosEstadoRoute
   FacturasIdImprimirRoute: typeof FacturasIdImprimirRoute
+  RecibosIdImprimirRoute: typeof RecibosIdImprimirRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -665,13 +702,6 @@ declare module '@tanstack/react-router' {
       path: '/servicos'
       fullPath: '/dashboard/servicos'
       preLoaderRoute: typeof DashboardServicosRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/recibos': {
-      id: '/dashboard/recibos'
-      path: '/recibos'
-      fullPath: '/dashboard/recibos'
-      preLoaderRoute: typeof DashboardRecibosRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/produtos': {
@@ -779,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/recibos/': {
+      id: '/dashboard/recibos/'
+      path: '/recibos'
+      fullPath: '/dashboard/recibos/'
+      preLoaderRoute: typeof DashboardRecibosIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/facturas/': {
       id: '/dashboard/facturas/'
       path: '/'
@@ -807,12 +844,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAssistenteIndexRouteImport
       parentRoute: typeof DashboardAssistenteRoute
     }
+    '/recibos/$id/imprimir': {
+      id: '/recibos/$id/imprimir'
+      path: '/recibos/$id/imprimir'
+      fullPath: '/recibos/$id/imprimir'
+      preLoaderRoute: typeof RecibosIdImprimirRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/facturas/$id/imprimir': {
       id: '/facturas/$id/imprimir'
       path: '/facturas/$id/imprimir'
       fullPath: '/facturas/$id/imprimir'
       preLoaderRoute: typeof FacturasIdImprimirRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/recibos/novo': {
+      id: '/dashboard/recibos/novo'
+      path: '/recibos/novo'
+      fullPath: '/dashboard/recibos/novo'
+      preLoaderRoute: typeof DashboardRecibosNovoRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/recibos/$id': {
+      id: '/dashboard/recibos/$id'
+      path: '/recibos/$id'
+      fullPath: '/dashboard/recibos/$id'
+      preLoaderRoute: typeof DashboardRecibosIdRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/planos_/pagar': {
       id: '/dashboard/planos_/pagar'
@@ -951,12 +1009,14 @@ interface DashboardRouteChildren {
   DashboardPerfilRoute: typeof DashboardPerfilRoute
   DashboardPlanosRoute: typeof DashboardPlanosRoute
   DashboardProdutosRoute: typeof DashboardProdutosRoute
-  DashboardRecibosRoute: typeof DashboardRecibosRoute
   DashboardServicosRoute: typeof DashboardServicosRoute
   DashboardUtilizadoresRoute: typeof DashboardUtilizadoresRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardPlanosPagarRoute: typeof DashboardPlanosPagarRoute
+  DashboardRecibosIdRoute: typeof DashboardRecibosIdRoute
+  DashboardRecibosNovoRoute: typeof DashboardRecibosNovoRoute
+  DashboardRecibosIndexRoute: typeof DashboardRecibosIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -973,12 +1033,14 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardPerfilRoute: DashboardPerfilRoute,
   DashboardPlanosRoute: DashboardPlanosRoute,
   DashboardProdutosRoute: DashboardProdutosRoute,
-  DashboardRecibosRoute: DashboardRecibosRoute,
   DashboardServicosRoute: DashboardServicosRoute,
   DashboardUtilizadoresRoute: DashboardUtilizadoresRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardPlanosPagarRoute: DashboardPlanosPagarRoute,
+  DashboardRecibosIdRoute: DashboardRecibosIdRoute,
+  DashboardRecibosNovoRoute: DashboardRecibosNovoRoute,
+  DashboardRecibosIndexRoute: DashboardRecibosIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
@@ -1001,6 +1063,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPlanosCheckoutRoute: ApiPlanosCheckoutRoute,
   ApiPlanosEstadoRoute: ApiPlanosEstadoRoute,
   FacturasIdImprimirRoute: FacturasIdImprimirRoute,
+  RecibosIdImprimirRoute: RecibosIdImprimirRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

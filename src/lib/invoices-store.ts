@@ -59,6 +59,8 @@ export type Payment = {
   /** Recibo emitido para este pagamento (total ou parcial). */
   receiptNumber?: string;
   receiptIssued?: string;
+  /** Recibo de cliente (pode cobrir várias facturas) a que este pagamento pertence. */
+  receiptId?: string;
 };
 
 export type Invoice = {
@@ -160,6 +162,7 @@ type PaymentRow = {
   reference: string | null;
   receipt_number: string | null;
   receipt_issued: string | null;
+  receipt_id: string | null;
 };
 type InvoiceRow = {
   id: string;
@@ -181,7 +184,7 @@ type InvoiceRow = {
 const SELECT =
   "id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
   "invoice_lines(id,position,description,note,qty,price,vat,image_url)," +
-  "payments(id,paid_on,amount,method,reference,receipt_number,receipt_issued)";
+  "payments(id,paid_on,amount,method,reference,receipt_number,receipt_issued,receipt_id)";
 
 function toInvoice(r: InvoiceRow): Invoice {
   return {
@@ -217,6 +220,7 @@ function toInvoice(r: InvoiceRow): Invoice {
         reference: p.reference ?? undefined,
         receiptNumber: p.receipt_number ?? undefined,
         receiptIssued: p.receipt_issued ?? undefined,
+        receiptId: p.receipt_id ?? undefined,
       })),
     receiptNumber: r.receipt_number ?? undefined,
     receiptIssued: r.receipt_issued ?? undefined,
@@ -258,6 +262,9 @@ async function refreshList() {
   invoices = ((data ?? []) as unknown as InvoiceRow[]).map(toInvoice);
   emit();
 }
+
+/** Recarrega todas as facturas — depois de uma operação que mexe em várias. */
+export const reloadInvoices = refreshList;
 
 /** Recarrega uma factura da base de dados e substitui-a no cache. */
 async function refresh(id: string) {

@@ -24,6 +24,7 @@ import {
 import { DEFAULT_WHATSAPP_TEMPLATE, fillTemplate, useCompany } from "@/lib/company-store";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
+import { useReceipts } from "@/lib/receipts-store";
 
 type Kind = "factura" | "proforma" | "vd" | "recibo" | "cotacao";
 type Filter = "todos" | Kind;
@@ -104,6 +105,10 @@ type Row = {
   asReceipt?: boolean;
   /** Pagamento a que o recibo diz respeito. */
   paymentId?: string;
+  /** Recibo de cliente (uma ou várias facturas) — abre a página do recibo. */
+  receiptId?: string;
+  /** Documentos a que o recibo se refere. */
+  refs?: string;
 };
 
 function splitNumber(n: string) {
@@ -113,6 +118,7 @@ function splitNumber(n: string) {
 
 function DocumentosList() {
   const invoices = useInvoices();
+  const receipts = useReceipts();
   const ready = useInvoicesReady();
   const navigate = useNavigate();
   const { tipo, doc } = Route.useSearch();
@@ -151,7 +157,8 @@ function DocumentosList() {
       });
       // Um recibo por pagamento (total ou parcial) — dinheiro recebido, estado sempre Pago.
       for (const p of inv.payments ?? []) {
-        if (!p.receiptNumber) continue;
+        // Pagamentos de um recibo de cliente aparecem uma só vez, no recibo (abaixo).
+        if (!p.receiptNumber || p.receiptId) continue;
         out.push({
           key: `recibo-${p.id}`,
           id: inv.id,
@@ -185,8 +192,29 @@ function DocumentosList() {
         });
       }
     }
+    for (const rc of receipts) {
+      const first = invoices.find((i) => i.id === rc.items[0]?.invoiceId);
+      if (!first) continue;
+      const settled = rc.items.every((i) => i.balanceAfter <= 0.01);
+      out.push({
+        key: `rcpt-${rc.id}`,
+        id: first.id,
+        ...splitNumber(rc.number),
+        kind: "recibo",
+        client: rc.client.name,
+        method: paymentMethodLabels[rc.method],
+        date: rc.issued,
+        total: rc.total,
+        statusLabel: settled ? "Pago" : "Parcial",
+        statusClass: statusToneClass.success,
+        invoice: first,
+        asReceipt: true,
+        receiptId: rc.id,
+        refs: rc.items.map((i) => i.number).join(", "),
+      });
+    }
     return out.sort((a, b) => b.date.localeCompare(a.date));
-  }, [invoices]);
+  }, [invoices, receipts]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -341,9 +369,12 @@ function DocumentosList() {
       ?.scrollIntoView({ block: "nearest" });
   };
 
-  const openRow = (r: Row) => navigate({ to: "/dashboard/documentos/$id", params: { id: r.id } });
+  const openRow = (r: Row) =>
+    r.receiptId
+      ? navigate({ to: "/dashboard/recibos/$id", params: { id: r.receiptId } })
+      : navigate({ to: "/dashboard/documentos/$id", params: { id: r.id } });
   const printRow = (r: Row) =>
-    window.open(
+    r.receiptId ? window.open(`/recibos/${r.receiptId}/imprimir`, "_blank", "noreferrer") : window.open(
       `/facturas/${r.id}/imprimir${r.asReceipt ? `?tipo=recibo${r.paymentId ? `&pagamento=${r.paymentId}` : ""}` : r.kind === "cotacao" ? "?tipo=cotacao" : ""}`,
       "_blank",
       "noreferrer",
@@ -405,9 +436,15 @@ function DocumentosList() {
           </div>
 
           <Link
+            to="/dashboard/recibos/novo"
+            search={{}}
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3.5 py-2 text-[12px] font-semibold text-success transition hover:bg-success/15"
+          >
+            <Plus className="h-3.5 w-3.5" />{t("Novo recibo")}</Link>
+          <Link
             to="/dashboard/documentos/novo"
             search={{ tipo: undefined }}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
           >
             <Plus className="h-3.5 w-3.5" />{t("Novo documento")}</Link>
         </div>
@@ -624,7 +661,7 @@ function DocumentosList() {
             onOpen={() => openRow(current)}
             onPrint={() => printRow(current)}
             onChase={() => chaseRow(current)}
-            onShare={() => setShareRow(current)}
+            onShare={() => (current.receiptId ? openRow(current) : setShareRow(current))}
           />
         )}
         {shareRow && (
@@ -731,7 +768,7 @@ function DocumentPanel({
         {row.asReceipt ? (
           <dl className="mt-2.5 flex flex-col gap-2">
             <Meta label={t("Método")} value={row.method ?? "—"} />
-            <Meta label="Referente a" value={inv.number} />
+            <Meta label="Referente a" value={row.refs ?? inv.number} />
             <Meta label="Valor recebido" value={`${formatMZN(row.total, { decimals: false })} MZN`} />
             <Meta label={t("Estado")} value={t(row.statusLabel)} />
           </dl>

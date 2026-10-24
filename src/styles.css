@@ -189,6 +189,9 @@
 .dark .invoice-sheet { box-shadow: 0 0 0 1px oklch(1 0 0 / 0.08), 0 12px 32px -12px oklch(0 0 0 / 0.7); }
 .dark img[src^="/banks/"] { filter: saturate(0.9); }
 
+/* PDF: a folha desenhada fora do ecrã ocupa a página A4 inteira (ver lib/pdf.tsx). */
+.pdf-capture .invoice-sheet { max-width: none; min-height: 1123px; margin: 0; box-shadow: none; }
+
 @layer base {
   * { border-color: var(--color-border); }
   html {

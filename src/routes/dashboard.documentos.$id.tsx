@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
+import { downloadDocumentPdf } from "@/lib/pdf";
 import { toast } from "sonner";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { formatDate, formatMZN } from "@/lib/format";
@@ -78,6 +79,7 @@ function DocumentoPage() {
   const [payMethod, setPayMethod] = useState<PaymentMethod>("mpesa");
   const [payRef, setPayRef] = useState("");
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   if (!invoice) {
     return (
@@ -105,6 +107,17 @@ function DocumentoPage() {
   const printPath = `/facturas/${inv.id}/imprimir${viewed ? `?tipo=recibo&pagamento=${viewed.id}` : docKind === "cotacao" ? "?tipo=cotacao" : ""}`;
   const receiptPath = (pid: string) => `/facturas/${inv.id}/imprimir?tipo=recibo&pagamento=${pid}`;
   const link = shareLink(inv, docKind === "recibo" ? "recibo" : "documento", viewed?.id);
+
+  async function savePdf() {
+    setPdfBusy(true);
+    try {
+      await downloadDocumentPdf(inv, docKind, viewed?.id);
+    } catch {
+      toast.error("Não foi possível gerar o PDF");
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   async function copyLink() {
     await navigator.clipboard?.writeText(link);
@@ -195,7 +208,7 @@ function DocumentoPage() {
               <Action Icon={Send} onClick={issue} tone="success">{t("Emitir")}</Action>
             )}
             <Action Icon={Printer} onClick={() => window.open(printPath, "_blank", "noreferrer")}>{t("Imprimir")}</Action>
-            <Action Icon={Download} onClick={() => window.open(`${printPath}${printPath.includes("?") ? "&" : "?"}preview=1`, "_blank", "noreferrer")}>{t("PDF")}</Action>
+            <Action Icon={Download} onClick={savePdf} disabled={pdfBusy}>{pdfBusy ? t("A gerar…") : t("PDF")}</Action>
             <Action Icon={Copy} onClick={copyLink}>{t("Ligação")}</Action>
             {inv.status !== "rascunho" && (
               <Action Icon={Send} onClick={() => setShare(true)} disabled={!live} tone="success">{t("Enviar")}</Action>
@@ -274,7 +287,7 @@ function DocumentoPage() {
                     <span className="min-w-0 flex-1 truncate">{paymentMethodLabels[p.method]}{p.reference ? ` · ${p.reference}` : ""}</span>
                     <span className="font-semibold tabular-nums">{formatMZN(p.amount)}</span>
                     {p.receiptNumber ? (
-                      <button onClick={() => window.open(receiptPath(p.id), "_blank", "noreferrer")} title="Imprimir recibo" className="inline-flex items-center gap-1 rounded bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/15">
+                      <button onClick={() => (p.receiptId ? navigate({ to: "/dashboard/recibos/$id", params: { id: p.receiptId } }) : window.open(receiptPath(p.id), "_blank", "noreferrer"))} title={p.receiptId ? "Abrir recibo" : "Imprimir recibo"} className="inline-flex items-center gap-1 rounded bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success hover:bg-success/15">
                         <CheckCheck className="h-3 w-3" /> {p.receiptNumber}
                       </button>
                     ) : live ? (
@@ -292,6 +305,11 @@ function DocumentoPage() {
               {live && balance > 0.01 && !payOpen && (
                 <button onClick={() => { setPayAmount(String(balance)); setWithReceipt(true); setPayOpen(true); }} className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-[11.5px] font-semibold text-success hover:bg-success/15">
                   <Receipt className="h-3.5 w-3.5" />{t("Receber e emitir recibo (total ou parcial)")}</button>
+              )}
+              {live && balance > 0.01 && !payOpen && (
+                <Link to="/dashboard/recibos/novo" search={{ factura: inv.id }} className="mt-1.5 block text-center text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline">
+                  {t("Recibo com várias facturas deste cliente")}
+                </Link>
               )}
             </section>
           )}

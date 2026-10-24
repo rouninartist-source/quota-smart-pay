@@ -25,6 +25,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { shrinkImage } from "@/lib/images";
+import { downloadDocumentPdf } from "@/lib/pdf";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
 import { useCompany } from "@/lib/company-store";
@@ -279,7 +280,13 @@ function Documentos() {
     const created = await persist("rascunho");
     setBusy(null);
     if (!created) return;
-    window.open(`/facturas/${created.id}/imprimir${mode === "pdf" ? "?preview=1" : ""}`, "_blank", "noreferrer");
+    if (mode === "pdf") {
+      setBusy("pdf");
+      await downloadDocumentPdf(created, isQuote ? "cotacao" : "factura").catch(() => toast.error("Não foi possível gerar o PDF"));
+      setBusy(null);
+    } else {
+      window.open(`/facturas/${created.id}/imprimir`, "_blank", "noreferrer");
+    }
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 

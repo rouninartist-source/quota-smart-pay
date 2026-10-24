@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { t } from "@/lib/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Download, Printer, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { useInvoice } from "@/lib/invoices-store";
+import { downloadDocumentPdf } from "@/lib/pdf";
 
 const searchSchema = z.object({
   tipo: z.enum(["factura", "recibo", "cotacao"]).optional(),
@@ -59,7 +60,6 @@ function PrintInvoice() {
   const invoice = useInvoice(id);
   const docKind: DocKind = tipo ?? "factura";
 
-  const sheetRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -68,30 +68,12 @@ function PrintInvoice() {
     return () => clearTimeout(t);
   }, [invoice, preview]);
 
-  /** Gera um ficheiro PDF a sério: a folha é rasterizada pelo próprio browser e colocada numa página A4. */
+  /** Mesmo PDF que os botões da app: a folha A4 inteira, sem margens à volta. */
   async function downloadPdf() {
-    if (!sheetRef.current || !invoice) return;
+    if (!invoice) return;
     setSaving(true);
     try {
-      const [{ toJpeg }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
-      const node = sheetRef.current;
-      const png = await toJpeg(node, { pixelRatio: 2, quality: 0.9, backgroundColor: "#ffffff", cacheBust: true });
-      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = node.offsetHeight / node.offsetWidth;
-      const imgW = pageW;
-      const imgH = pageW * ratio;
-      // documentos mais altos que uma página continuam nas seguintes
-      let y = 0;
-      pdf.addImage(png, "JPEG", 0, 0, imgW, imgH);
-      while (imgH - y > pageH) {
-        y += pageH;
-        pdf.addPage();
-        pdf.addImage(png, "JPEG", 0, -y, imgW, imgH);
-      }
-      const number = (docKind === "recibo" ? (pagamento ? invoice.payments?.find((p) => p.id === pagamento)?.receiptNumber : invoice.receiptNumber) : invoice.number) ?? invoice.number;
-      pdf.save(`${number.replace(/[\s/]+/g, "-")}.pdf`);
+      await downloadDocumentPdf(invoice, docKind, pagamento);
     } finally {
       setSaving(false);
     }
@@ -126,9 +108,7 @@ function PrintInvoice() {
           </button>
         )}
       </div>
-      <div ref={sheetRef}>
-        <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={pagamento} />
-      </div>
+      <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={pagamento} />
     </main>
   );
 }

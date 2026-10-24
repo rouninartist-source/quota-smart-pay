@@ -87,6 +87,7 @@ export const quickCreate: QuickCreate[] = [
   { label: "Nova factura", to: "/dashboard/documentos/novo", search: { tipo: "ft" }, icon: FileText, shortcut: "F", description: "Emitir documento fiscal" },
   { label: "Nova cotação", to: "/dashboard/documentos/novo", search: { tipo: "cot" }, icon: FileSpreadsheet, shortcut: "C", description: "Proposta para cliente" },
   { label: "VD / Factura-recibo", to: "/dashboard/documentos/novo", search: { tipo: "fr" }, icon: ReceiptText, shortcut: "R", description: "Factura paga no acto" },
+  { label: "Novo recibo", to: "/dashboard/recibos/novo", icon: ReceiptText, shortcut: "B", description: "Receber de uma ou várias facturas" },
   { label: "Novo cliente", to: "/dashboard/clientes", icon: Users, shortcut: "N", description: "Adicionar ao CRM" },
 ];
 
