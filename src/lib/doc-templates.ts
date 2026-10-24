@@ -6,13 +6,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "./supabase";
 
-export type DocTemplateId =
-  | "classico"
-  | "moderno"
-  | "minimal"
-  | "corporativo"
-  | "basic-claro"
-  | "basic-escuro";
+/** Só três layouts, todos com a estrutura do Clássico — mudam as cores e as formas. */
+export type DocTemplateId = "classico" | "basic-claro" | "basic-escuro";
 
 export type DocTemplate = {
   id: DocTemplateId;
@@ -28,48 +23,24 @@ export const docTemplates: DocTemplate[] = [
     name: "Clássico",
     tagline: "Formal e fiscal",
     description:
-      "Cabeçalho tradicional com logotipo à esquerda e dados fiscais bem visíveis. Ideal para contabilistas e concursos públicos.",
-    bullets: ["Logotipo + NUIT em destaque", "Tabela com linhas finas", "Rodapé fiscal completo"],
-  },
-  {
-    id: "moderno",
-    name: "Moderno",
-    tagline: "Faixa de marca",
-    description:
-      "Faixa escura no topo com o nome da empresa e o número do documento. Transmite marca forte em propostas e cotações.",
-    bullets: ["Faixa de cor no topo", "Totais em bloco destacado", "Cabeçalho de tabela sombreado"],
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    tagline: "Limpo e leve",
-    description:
-      "Muito espaço branco, tipografia leve e apenas o essencial. Perfeito para serviços criativos e consultoria.",
-    bullets: ["Sem molduras pesadas", "Tipografia discreta", "Foco no valor a pagar"],
-  },
-  {
-    id: "corporativo",
-    name: "Corporativo",
-    tagline: "Barra lateral",
-    description:
-      "Barra lateral escura com o número do documento e o total a pagar. Boa para empresas com muitos documentos por mês.",
-    bullets: ["Barra lateral de marca", "Total sempre visível", "Tabela com fundo alternado"],
+      "Fundo branco e linhas finas. Logotipo no topo, emitente e cliente lado a lado, valor por extenso e QR de verificação no rodapé.",
+    bullets: ["Linhas finas", "Emitente e cliente lado a lado", "QR de verificação"],
   },
   {
     id: "basic-claro",
-    name: "Basic Claro",
+    name: "Básico Claro",
     tagline: "Bloco claro",
     description:
-      "Cabeçalho em bloco cinza suave com o número, datas e o cliente. Rodapé em três colunas com instruções de pagamento (banco, M-Pesa e e-Mola) e notas.",
-    bullets: ["Bloco de cabeçalho arredondado", "Totais em caixa destacada", "Rodapé com logos de pagamento"],
+      "A mesma estrutura do Clássico, com o cabeçalho e os totais em blocos cinza suave de cantos arredondados.",
+    bullets: ["Cabeçalho em bloco arredondado", "Totais em caixa destacada", "Mesma estrutura do Clássico"],
   },
   {
     id: "basic-escuro",
-    name: "Basic Escuro",
+    name: "Básico Escuro",
     tagline: "Bloco escuro",
     description:
-      "Mesma estrutura do Basic Claro, mas com o bloco de topo escuro e o nome da empresa em destaque. Ideal para marcas com identidade forte.",
-    bullets: ["Cabeçalho escuro de marca", "Cliente e datas no topo", "Rodapé com dados bancários e carteiras"],
+      "A mesma estrutura do Clássico, com o cabeçalho num bloco escuro — para marcas com identidade forte.",
+    bullets: ["Cabeçalho escuro de marca", "Totais em caixa destacada", "Mesma estrutura do Clássico"],
   },
 ];
 

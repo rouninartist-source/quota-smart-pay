@@ -37,6 +37,7 @@ import { Route as DashboardCotacoesRouteImport } from './routes/dashboard.cotaco
 import { Route as DashboardClientesRouteImport } from './routes/dashboard.clientes'
 import { Route as DashboardAssistenteRouteImport } from './routes/dashboard.assistente'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
+import { Route as ApiVerificarRouteImport } from './routes/api/verificar'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as DashboardRecibosIndexRouteImport } from './routes/dashboard.recibos.index'
 import { Route as DashboardFacturasIndexRouteImport } from './routes/dashboard.facturas.index'
@@ -197,6 +198,11 @@ const ConviteTokenRoute = ConviteTokenRouteImport.update({
   path: '/convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVerificarRoute = ApiVerificarRouteImport.update({
+  id: '/api/verificar',
+  path: '/api/verificar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verificar': typeof ApiVerificarRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByTo {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verificar': typeof ApiVerificarRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/clientes': typeof DashboardClientesRoute
   '/dashboard/cotacoes': typeof DashboardCotacoesRoute
@@ -401,6 +409,7 @@ export interface FileRoutesById {
   '/recuperar': typeof RecuperarRoute
   '/registo': typeof RegistoRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verificar': typeof ApiVerificarRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/dashboard/assistente': typeof DashboardAssistenteRouteWithChildren
   '/dashboard/clientes': typeof DashboardClientesRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/api/verificar'
     | '/convite/$token'
     | '/dashboard/assistente'
     | '/dashboard/clientes'
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/api/verificar'
     | '/convite/$token'
     | '/dashboard/clientes'
     | '/dashboard/cotacoes'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registo'
     | '/api/chat'
+    | '/api/verificar'
     | '/convite/$token'
     | '/dashboard/assistente'
     | '/dashboard/clientes'
@@ -595,6 +607,7 @@ export interface RootRouteChildren {
   RecuperarRoute: typeof RecuperarRoute
   RegistoRoute: typeof RegistoRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiVerificarRoute: typeof ApiVerificarRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   VerificarCodeRoute: typeof VerificarCodeRoute
   WebhooksPayzenoRoute: typeof WebhooksPayzenoRoute
@@ -800,6 +813,13 @@ declare module '@tanstack/react-router' {
       path: '/convite/$token'
       fullPath: '/convite/$token'
       preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verificar': {
+      id: '/api/verificar'
+      path: '/api/verificar'
+      fullPath: '/api/verificar'
+      preLoaderRoute: typeof ApiVerificarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -1057,6 +1077,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarRoute: RecuperarRoute,
   RegistoRoute: RegistoRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiVerificarRoute: ApiVerificarRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   VerificarCodeRoute: VerificarCodeRoute,
   WebhooksPayzenoRoute: WebhooksPayzenoRoute,

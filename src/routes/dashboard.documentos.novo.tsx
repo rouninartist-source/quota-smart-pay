@@ -111,6 +111,8 @@ function Documentos() {
   const products = useProducts();
   const services = useServices();
   const company = useCompany();
+  // Isento / regime simplificado: os documentos saem sem IVA, seja qual for a taxa do artigo.
+  const chargesVat = (company.ivaRegime ?? "normal") === "normal";
   const { org, orgs } = useOrg();
   const trial = trialState(rootOf(org, orgs));
 
@@ -171,10 +173,10 @@ function Documentos() {
     const base = sub - disc;
     const vat = lines.reduce((a, l) => {
       const share = sub > 0 ? (l.qty * l.price) / sub : 0;
-      return a + (base * share * l.vat) / 100;
+      return a + (base * share * (chargesVat ? l.vat : 0)) / 100;
     }, 0);
     return { sub, disc, vat, total: base + vat };
-  }, [lines, discount]);
+  }, [lines, discount, chargesVat]);
 
   const update = (id: number, patch: Partial<Line>) =>
     setLines((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
@@ -259,7 +261,7 @@ function Documentos() {
       notes,
       clientId: clientId || undefined,
       client: { name: client.trim(), nuit: nuit.trim(), ...contact },
-      lines: validLines.map((l) => ({ description: l.desc.trim(), qty: l.qty, price: l.price, vat: l.vat, note: l.note || undefined, img: l.img || undefined })),
+      lines: validLines.map((l) => ({ description: l.desc.trim(), qty: l.qty, price: l.price, vat: chargesVat ? l.vat : 0, note: l.note || undefined, img: l.img || undefined })),
       // Uma VD/factura-recibo já vem paga: fica logo com o pagamento registado.
       payments: paidNow ? [{ id: "", date, amount: totals.total, method: "numerario" }] : [],
     });
@@ -632,7 +634,7 @@ function Documentos() {
             <div className="ml-auto mt-3 flex w-[min(230px,65%)] flex-col gap-1.5">
               <Sum label={t("Subtotal")} value={mzn(totals.sub)} />
               {discount > 0 && <Sum label={`Desconto ${discount}%`} value={`− ${mzn(totals.disc)}`} />}
-              <Sum label="IVA 16%" value={mzn(totals.vat)} />
+              <Sum label={chargesVat ? "IVA 16%" : company.ivaRegime === "isento" ? "IVA (isento)" : "IVA (regime simplificado)"} value={mzn(totals.vat)} />
               <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2.5">
                 <span className="text-[12px] font-semibold">{t("Total")}</span>
                 <span className="font-display text-[16px] font-semibold tabular-nums text-primary">

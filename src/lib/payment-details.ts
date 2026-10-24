@@ -50,6 +50,8 @@ export type BankAccount = {
   accountName: string;
   account: string;
   nib?: string;
+  /** Código SWIFT/BIC, para pagamentos do estrangeiro. */
+  swift?: string;
 };
 
 export type WalletAccount = {

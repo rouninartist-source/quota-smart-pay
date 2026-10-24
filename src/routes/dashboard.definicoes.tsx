@@ -244,6 +244,9 @@ function Definicoes() {
                                   <input id={`co-bank-nib-${i}`} className={inputClass} value={bank.nib ?? ""} onChange={(e) => update({ nib: e.target.value })} />
                                 </Field>
                               </FieldRow>
+                              <Field label="Código SWIFT (opcional — pagamentos do estrangeiro)" htmlFor={`co-bank-swift-${i}`}>
+                                <input id={`co-bank-swift-${i}`} className={inputClass} value={bank.swift ?? ""} placeholder="Ex.: BCIMMZMX" onChange={(e) => update({ swift: e.target.value.toUpperCase().replace(/\s/g, "") })} />
+                              </Field>
                             </div>
                           );
                         })}
@@ -342,11 +345,51 @@ function Definicoes() {
       ),
     },
     {
+      id: "documentos",
+      label: "Documentos",
+      hint: "Idioma e regime de IVA",
+      title: "Documentos",
+      description: "Idioma impresso nos documentos e regime de IVA da empresa. O idioma dos documentos é independente do idioma da aplicação.",
+      content: (
+        <>
+          <FieldRow>
+            <Field label="Idioma dos documentos" htmlFor="co-doclang">
+              <select id="co-doclang" className={inputClass} value={draft.docLang ?? "pt"} onChange={(e) => setDraft({ ...draft, docLang: e.target.value as "pt" | "en" })}>
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+              </select>
+            </Field>
+            <Field label="Regime de IVA" htmlFor="co-regime">
+              <select id="co-regime" className={inputClass} value={draft.ivaRegime ?? "normal"} onChange={(e) => setDraft({ ...draft, ivaRegime: e.target.value as "normal" | "isento" | "simplificado" })}>
+                <option value="normal">Regime normal (IVA 16%)</option>
+                <option value="simplificado">Regime simplificado</option>
+                <option value="isento">Isento de IVA</option>
+              </select>
+            </Field>
+          </FieldRow>
+          {(draft.ivaRegime ?? "normal") !== "normal" && (
+            <Field label="Menção de IVA impressa nos documentos" htmlFor="co-vatnote">
+              <input
+                id="co-vatnote"
+                className={inputClass}
+                value={draft.vatNote ?? ""}
+                placeholder={draft.ivaRegime === "isento" ? "IVA: isento." : "IVA: regime simplificado."}
+                onChange={(e) => setDraft({ ...draft, vatNote: e.target.value })}
+              />
+              <span className="mt-1 block text-[11px] text-muted-foreground">
+                Novos documentos saem sem IVA e sem a coluna de IVA. Confirme com o seu contabilista o texto legal exacto (por exemplo, o artigo do CIVA aplicável).
+              </span>
+            </Field>
+          )}
+        </>
+      ),
+    },
+    {
       id: "rodape",
       label: "Rodapé do PDF",
-      hint: "Nota legal e referência",
+      hint: "Nota de pagamento",
       title: "Rodapé do PDF",
-      description: "Nota legal e referência de pagamento no fim do documento.",
+      description: "Nota impressa junto dos dados de pagamento. O rodapé legal («Documento emitido por sistema informático — Quota.») e o QR de verificação saem sempre.",
       content: (
         <>
           <Field label="Nota de pagamento" htmlFor="co-note">

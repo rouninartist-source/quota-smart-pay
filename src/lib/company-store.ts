@@ -8,6 +8,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "./supabase";
 import type { BankAccount, WalletAccount } from "@/lib/payment-details";
+import type { DocLang } from "@/lib/doc-text";
+
+export type IvaRegime = "normal" | "isento" | "simplificado";
 
 export type Company = {
   name: string;
@@ -15,8 +18,14 @@ export type Company = {
   address: string;
   email: string;
   phone: string;
-  /** Data URL of the uploaded logo (optional). */
+  /** URL do logotipo no Storage (bucket `media`). */
   logo?: string;
+  /** Idioma impresso nos documentos — independente do idioma da interface. */
+  docLang?: DocLang;
+  /** Regime de IVA da empresa; isento e simplificado não liquidam IVA nos documentos. */
+  ivaRegime?: IvaRegime;
+  /** Menção de IVA impressa nos documentos (vazio = texto por omissão do regime). */
+  vatNote?: string;
   paymentNote: string;
   /** Mostrar bloco "Dados de pagamento" no documento. */
   showPaymentDetails: boolean;
@@ -85,7 +94,7 @@ async function ensureRow() {
   if (!sb) return null;
   if (rowId) return rowId;
 
-  const { data, error } = await sb.from("company").select("id,settings").limit(1).maybeSingle();
+  const { data, error } = await sb.from("company").select("id,settings,orgs(iva_regime)").limit(1).maybeSingle();
   if (error) {
     fail("carregar as definições", error);
     return null;
@@ -98,6 +107,11 @@ async function ensureRow() {
       // Definições antigas só tinham uma conta (`bank`): passa a fazer parte da lista.
       if (!settings.banks && settings.bank) company.banks = [settings.bank];
       if (!settings.paymentMode) company.paymentMode = "both";
+    }
+    // O regime vem do registo (orgs.iva_regime) até ser mudado nas definições.
+    if (!company.ivaRegime) {
+      const r = (data as { orgs?: { iva_regime?: string } | null }).orgs?.iva_regime;
+      company.ivaRegime = r === "isento" || r === "simplificado" ? r : "normal";
     }
     return rowId;
   }

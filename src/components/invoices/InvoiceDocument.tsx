@@ -1,30 +1,19 @@
-import { formatDate, formatMZN } from "@/lib/format";
+import { formatMZN } from "@/lib/format";
 import { companyBanks, companyWallets, useCompany } from "@/lib/company-store";
 import { useDocTemplate, type DocTemplateId } from "@/lib/doc-templates";
+import { amountInWords, docText } from "@/lib/doc-text";
 import { BankMark, WalletMark } from "@/components/invoices/PaymentLogos";
-import { QuotaSeal } from "@/components/invoices/QuotaSeal";
-import { CancelledBand } from "@/components/invoices/CancelledBand";
-import { BasicDocument } from "@/components/invoices/BasicDocument";
+import { DocFooter, DocSheet, PartyBlock, themeOf, themeStyles } from "@/components/invoices/DocTheme";
+import { ReceiptDocument, receiptFromInvoice } from "@/components/invoices/ReceiptDocument";
 import { cn } from "@/lib/utils";
-import {
-  documentKinds,
-  invoicePaid,
-  invoiceTotals,
-  isQuoteKind,
-  lineNet,
-  paymentMethodLabels,
-  type Invoice,
-} from "@/lib/invoices-store";
+import { invoiceTotals, isQuoteKind, lineNet, type Invoice } from "@/lib/invoices-store";
 
 export type DocKind = "factura" | "recibo" | "cotacao";
 
-const kindLabel: Record<DocKind, string> = {
-  factura: "Factura",
-  recibo: "Recibo",
-  cotacao: "Cotação",
-};
-
-/** Printable A4 invoice sheet. Intentionally uses fixed light colours (paper). */
+/**
+ * Documento A4 (factura, pró-forma, VD, cotação). Os recibos têm o seu próprio
+ * formato, só com os campos obrigatórios — ver ReceiptDocument.
+ */
 export function InvoiceDocument({
   invoice,
   templateOverride,
@@ -39,296 +28,147 @@ export function InvoiceDocument({
   /** Recibo de um pagamento concreto (total ou parcial). Sem isto, recibo de quitação da factura. */
   paymentId?: string;
 }) {
-  const { sub, discount, vat, total } = invoiceTotals(invoice);
   const company = useCompany();
   const active = useDocTemplate();
-  const template = templateOverride ?? active;
-  const paid = invoicePaid(invoice);
-  const allPayments = invoice.payments ?? [];
-  const receiptPayment = paymentId ? allPayments.find((p) => p.id === paymentId) : undefined;
-  // Num recibo de pagamento só esse pagamento aparece; no de quitação, todos.
-  const payments = receiptPayment ? [receiptPayment] : allPayments;
-  const received = receiptPayment ? receiptPayment.amount : paid || total;
+  const theme = themeOf(templateOverride ?? active);
+
+  if (docKind === "recibo") {
+    return <ReceiptDocument receipt={receiptFromInvoice(invoice, paymentId)} templateOverride={templateOverride} />;
+  }
+
+  const s = themeStyles(theme);
+  const lang = company.docLang ?? "pt";
+  const tx = docText(lang);
+  const { sub, discount, vat, total } = invoiceTotals(invoice);
   const banks = companyBanks(company);
   const wallets = companyWallets(company);
   const visual = invoice.kind === "cotv";
-
-  if (template === "basic-claro" || template === "basic-escuro") {
-    return <BasicDocument invoice={invoice} docKind={docKind} dark={template === "basic-escuro"} paymentId={paymentId} />;
-  }
-
-  const modern = template === "moderno";
-  const minimal = template === "minimal";
-  const corporate = template === "corporativo";
-  const elegant = false; // o layout serifado foi retirado (QA)
-
-  const isReceipt = docKind === "recibo";
-  const reference = isReceipt ? (receiptPayment?.receiptNumber ?? invoice.receiptNumber ?? invoice.number) : invoice.number;
-  // O rótulo impresso vem do tipo real (Pró-forma, VD…), não só de factura/cotação.
-  const title = isReceipt ? kindLabel.recibo : documentKinds[invoice.kind]?.label ?? kindLabel[docKind];
+  const quote = isQuoteKind(invoice.kind);
+  // Sem IVA liquidado (isento / regime simplificado): sem coluna nem linha de IVA, com a menção do regime.
+  const regime = company.ivaRegime ?? "normal";
+  const noVat = regime !== "normal" && vat === 0;
+  const vatNote = regime === "normal" ? "" : company.vatNote?.trim() || (regime === "isento" ? tx.vatExempt : tx.vatSimplified);
+  const title = tx.kinds[invoice.kind] ?? tx.kinds.ft;
+  const fmtQty = (n: number) => new Intl.NumberFormat("pt-MZ", { maximumFractionDigits: 3 }).format(n);
 
   return (
-    <div
-      className={cn(
-        "invoice-sheet relative mx-auto w-full max-w-[820px] overflow-hidden bg-white text-[13px] text-slate-900 shadow-card",
-        invoice.status === "cancelada" && "pl-8",
-        corporate && "border-l-[10px] border-slate-900",
-        elegant && "font-serif",
-      )}
+    <DocSheet
+      theme={theme}
+      company={company}
+      lang={lang}
+      title={title}
+      reference={invoice.number}
+      dates={[
+        [tx.issueDate, invoice.issued],
+        [quote ? tx.validUntil : tx.dueDate, invoice.due],
+      ]}
+      side={<PartyBlock theme={theme} label={tx.client} party={invoice.client} />}
+      cancelled={invoice.status === "cancelada"}
     >
-      {invoice.status === "cancelada" && <CancelledBand />}
-      {modern && <div className="h-2.5 w-full bg-slate-900" />}
-      <div className={cn("p-8 md:p-12", minimal && "md:p-14")}>
-        {company.logo && (
-          <div className={cn("mb-5 flex", elegant && "justify-center")}>
-            <img
-              src={company.logo}
-              alt={`Logotipo de ${company.name}`}
-              className="h-16 max-w-[220px] object-contain object-left"
-            />
-          </div>
-        )}
-        <header
-          className={cn(
-            "gap-6 pb-6",
-            elegant
-              ? "flex flex-col items-center border-b-[3px] border-double border-slate-300 text-center"
-              : "flex flex-wrap items-start justify-between",
-            !elegant && (minimal ? "border-b border-slate-100" : "border-b border-slate-200"),
-          )}
-        >
-          <div className={cn(elegant && "text-center")}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Emitido por</p>
-            <p className="mt-1 font-display text-2xl font-semibold tracking-tight text-slate-900">{company.name}</p>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              {company.address}
-              <br />
-              NUIT {company.nuit} · {company.email} · {company.phone}
-            </p>
-          </div>
-          <div className={cn(elegant ? "text-center" : "text-right")}>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{title}</p>
-            <p className="font-display text-xl font-semibold tabular-nums">{reference}</p>
-            <p className="mt-2 text-[12px] text-slate-500">
-              Emissão:{" "}
-              <span className="tabular-nums">
-                {formatDate(isReceipt ? (receiptPayment?.receiptIssued ?? invoice.receiptIssued ?? invoice.issued) : invoice.issued)}
-              </span>
-              {!isReceipt && (
-                <>
-                  <br />
-                  {isQuoteKind(invoice.kind) ? "Válida até" : "Vencimento"}:{" "}
-                  <span className="tabular-nums font-medium text-slate-700">{formatDate(invoice.due)}</span>
-                </>
+      <table className="mt-8 w-full border-collapse">
+        <thead>
+          <tr className={cn("text-left", s.tableHead)}>
+            <th className="w-8 pr-2 font-medium">#</th>
+            {visual && <th className="w-16 font-medium">{tx.image}</th>}
+            <th className={cn("font-medium", s.basic && "font-display text-[14px] font-bold text-slate-900")}>{tx.description}</th>
+            <th className="text-right font-medium">{tx.qty}</th>
+            <th className="text-right font-medium">{tx.price}</th>
+            {!noVat && <th className="text-right font-medium">{tx.vat}</th>}
+            <th className="text-right font-medium">{tx.total}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoice.lines.map((l, i) => (
+            <tr key={i} className={s.row}>
+              <td className="py-2.5 pr-2 align-top tabular-nums text-slate-400">{i + 1}</td>
+              {visual && (
+                <td className="py-2 pr-3">
+                  {l.img ? <img src={l.img} alt="" className="h-12 w-12 rounded-md object-cover" /> : <span className="block h-12 w-12 rounded-md bg-slate-100" />}
+                </td>
               )}
-              {isReceipt && (
-                <>
-                  <br />
-                  Ref. {documentKinds[invoice.kind]?.label.toLowerCase() ?? "factura"} <span className="tabular-nums">{invoice.number}</span>
-                </>
-              )}
-            </p>
-          </div>
-        </header>
-
-        <section className={cn("mt-6 flex", elegant ? "justify-center text-center" : "justify-end text-right")}>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Cliente</p>
-            <p className="mt-1.5 font-semibold">{invoice.client.name}</p>
-            <p className="text-[12px] leading-relaxed text-slate-500">
-              {invoice.client.nuit && <>NUIT {invoice.client.nuit}<br /></>}
-              {invoice.client.address && <>{invoice.client.address}<br /></>}
-              {[invoice.client.email, invoice.client.phone].filter(Boolean).join(" · ")}
-            </p>
-            {isReceipt && (
-              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600">
-                {receiptPayment && receiptPayment.amount < total - 0.01 ? "Pagamento parcial" : "Pago"} · {formatMZN(received)} MZN
-              </p>
-            )}
-          </div>
-        </section>
-
-        <table className="mt-8 w-full border-collapse">
-          <thead>
-            <tr
-              className={cn(
-                "text-left text-[10px] uppercase tracking-[0.14em]",
-                modern
-                  ? "bg-slate-100 text-slate-600 [&>th]:px-2"
-                  : corporate
-                    ? "bg-slate-900 text-slate-200 [&>th]:px-2"
-                    : minimal
-                      ? "border-b border-slate-200 text-slate-400"
-                      : elegant
-                        ? "border-y-2 border-slate-300 text-slate-500"
-                        : "border-y border-slate-200 text-slate-500",
-              )}
-            >
-              {visual && <th className="w-16 py-2.5 font-medium">Imagem</th>}
-              <th className="py-2.5 font-medium">Descrição</th>
-              <th className="py-2.5 text-right font-medium">Qtd</th>
-              <th className="py-2.5 text-right font-medium">Preço</th>
-              <th className="py-2.5 text-right font-medium">IVA</th>
-              <th className="py-2.5 text-right font-medium">Total</th>
+              <td className="py-2.5 pr-4">
+                {l.description}
+                {l.note && <span className="block text-[11px] text-slate-500">{l.note}</span>}
+              </td>
+              <td className="py-2.5 text-right tabular-nums">{fmtQty(l.qty)}</td>
+              <td className="py-2.5 text-right tabular-nums">{formatMZN(l.price)}</td>
+              {!noVat && <td className="py-2.5 text-right tabular-nums">{l.vat}%</td>}
+              <td className="py-2.5 text-right font-medium tabular-nums">{formatMZN(lineNet(l))}</td>
             </tr>
-          </thead>
-          <tbody className={cn(corporate && "[&>tr:nth-child(even)]:bg-slate-50")}>
-            {invoice.lines.map((l, i) => (
-              <tr key={i} className="border-b border-slate-100">
-                {visual && (
-                  <td className="py-2 pr-3">
-                    {l.img ? (
-                      <img src={l.img} alt="" className="h-12 w-12 rounded-md object-cover" />
-                    ) : (
-                      <span className="block h-12 w-12 rounded-md bg-slate-100" />
-                    )}
-                  </td>
-                )}
-                <td className={cn("py-2.5 pr-4", corporate && "px-2")}>
-                  {l.description}
-                  {l.note && <span className="block text-[11px] text-slate-500">{l.note}</span>}
-                </td>
-                <td className="py-2.5 text-right tabular-nums">{l.qty}</td>
-                <td className="py-2.5 text-right tabular-nums">{formatMZN(l.price)}</td>
-                <td className="py-2.5 text-right tabular-nums">{l.vat}%</td>
-                <td className={cn("py-2.5 text-right font-medium tabular-nums", corporate && "px-2")}>
-                  {formatMZN(lineNet(l))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
 
-        <div className="mt-6 flex justify-end">
-          <dl
-            className={cn(
-              "w-full max-w-[280px] space-y-2 text-[13px]",
-              elegant && "rounded-sm bg-slate-50 p-4",
-              corporate && "rounded-sm border border-slate-200 p-4",
-            )}
-          >
+      <div className="mt-6 flex justify-end">
+        <dl className={cn("w-full max-w-[300px] space-y-2 text-[13px]", s.totals)}>
+          <div className="flex justify-between">
+            <dt className="text-slate-500">{tx.subtotal}</dt>
+            <dd className="tabular-nums">{formatMZN(sub)}</dd>
+          </div>
+          {invoice.discount > 0 && (
             <div className="flex justify-between">
-              <dt className="text-slate-500">Subtotal</dt>
-              <dd className="tabular-nums">{formatMZN(sub)}</dd>
+              <dt className="text-slate-500">{tx.discount} {invoice.discount}%</dt>
+              <dd className="tabular-nums">− {formatMZN(discount)}</dd>
             </div>
+          )}
+          {!noVat && (
             <div className="flex justify-between">
-              <dt className="text-slate-500">IVA</dt>
+              <dt className="text-slate-500">{tx.vat}</dt>
               <dd className="tabular-nums">{formatMZN(vat)}</dd>
             </div>
-            <div className="flex justify-between border-t border-slate-200 pt-2 text-[15px] font-semibold">
-              <dt>Total</dt>
-              <dd className="tabular-nums">{formatMZN(total)} MZN</dd>
-            </div>
-            {invoice.discount > 0 && (
-              <div className="flex justify-between">
-                <dt className="text-slate-500">Desconto {invoice.discount}%</dt>
-                <dd className="tabular-nums">− {formatMZN(discount)}</dd>
-              </div>
-            )}
-            {paid > 0 && !isReceipt && (
-              <div className="flex justify-between text-emerald-700">
-                <dt>Pago</dt>
-                <dd className="tabular-nums">{formatMZN(paid)} MZN</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-
-        {payments.length > 0 && (
-          <section className="mt-8">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              {isReceipt ? "Pagamentos deste recibo" : "Pagamentos recebidos"}
-            </p>
-            <table className="mt-2 w-full border-collapse text-[12px]">
-              <tbody>
-                {payments.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-100">
-                    <td className="py-2 tabular-nums text-slate-500">{formatDate(p.date)}</td>
-                    <td className="py-2 text-slate-600">
-                      {paymentMethodLabels[p.method]}
-                      {p.reference ? ` · ${p.reference}` : ""}
-                    </td>
-                    <td className="py-2 text-right font-medium tabular-nums">{formatMZN(p.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        )}
-
-        {company.showPaymentDetails && !isReceipt && (banks.length > 0 || wallets.length > 0) && (
-          <section
-            className={cn(
-              "mt-8 rounded-sm p-4",
-              modern
-                ? "bg-slate-900 text-slate-100"
-                : minimal
-                  ? "border border-slate-100"
-                  : "border border-slate-200",
-            )}
-          >
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Dados de pagamento</p>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              {banks.length > 0 && (
-                <div className="space-y-3">
-                  {banks.map((bank, i) => (
-                    <div key={i} className="space-y-1.5">
-                      <BankMark id={bank.bankId} />
-                      <p className={cn("text-[12px] font-semibold", modern && "text-white")}>{bank.accountName}</p>
-                      <p className={cn("text-[11px] tabular-nums", modern ? "text-slate-300" : "text-slate-500")}>
-                        Conta {bank.account}
-                        {bank.nib ? (
-                          <>
-                            <br />
-                            NIB {bank.nib}
-                          </>
-                        ) : null}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {wallets.length > 0 && (
-                <div className="space-y-2.5">
-                  {wallets.map((w) => (
-                    <div key={w.provider} className="flex items-center gap-2.5">
-                      <WalletMark provider={w.provider} />
-                      <div className="leading-tight">
-                        <p className={cn("text-[12px] font-semibold tabular-nums", modern && "text-white")}>
-                          {w.number}
-                        </p>
-                        <p className={cn("text-[10.5px] uppercase", modern ? "text-slate-300" : "text-slate-500")}>
-                          {w.name}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        <footer
-          className={cn(
-            "mt-10 flex flex-wrap items-end justify-between gap-4 pt-5 text-[11px] leading-relaxed text-slate-500",
-            minimal ? "border-t border-slate-100" : "border-t border-slate-200",
           )}
-        >
-          <div className="min-w-[220px] max-w-[70%]">
-            {invoice.notes && <p className="mb-2 text-slate-700">{invoice.notes}</p>}
-            <p>
-              {isReceipt
-                ? receiptPayment && receiptPayment.amount < total - 0.01
-                  ? `Recibo de pagamento parcial de ${formatMZN(received)} MZN referente a ${invoice.number}; saldo em aberto ${formatMZN(Math.max(0, total - paid))} MZN.`
-                  : `Recibo de quitação referente a ${invoice.number}.`
-                : company.paymentNote}{" "}
-              Documento processado por {company.name} — válido sem assinatura nem selo branco.
-            </p>
+          <div className="flex items-baseline justify-between border-t border-slate-200 pt-2 text-[15px] font-semibold">
+            <dt>{tx.total}</dt>
+            <dd className="tabular-nums">{formatMZN(total)} MZN</dd>
           </div>
-          <QuotaSeal reference={reference} />
-        </footer>
+        </dl>
       </div>
-    </div>
+
+      <p className="mt-4 text-[12px] leading-relaxed text-slate-600">
+        <span className="font-semibold text-slate-800">{tx.inWords}:</span> {amountInWords(total, lang)}.
+      </p>
+      {vatNote && <p className="mt-1 text-[12px] text-slate-600">{vatNote}</p>}
+
+      {company.showPaymentDetails && (banks.length > 0 || wallets.length > 0) && (
+        <section className={cn("mt-8", s.box)}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{tx.paymentDetails}</p>
+          <div className="mt-3 grid grid-cols-2 gap-4">
+            {banks.length > 0 && (
+              <div className="space-y-3">
+                {banks.map((bank, i) => (
+                  <div key={i} className="space-y-1.5">
+                    <BankMark id={bank.bankId} />
+                    <p className="text-[12px] font-semibold">{bank.accountName}</p>
+                    <p className="text-[11px] tabular-nums text-slate-500">
+                      {tx.account} {bank.account}
+                      {bank.nib && <><br />NIB {bank.nib}</>}
+                      {bank.swift && <><br />SWIFT {bank.swift}</>}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {wallets.length > 0 && (
+              <div className="space-y-2.5">
+                {wallets.map((w) => (
+                  <div key={w.provider} className="flex items-center gap-2.5">
+                    <WalletMark provider={w.provider} />
+                    <div className="leading-tight">
+                      <p className="text-[12px] font-semibold tabular-nums">{w.number}</p>
+                      <p className="text-[10.5px] uppercase text-slate-500">{w.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {company.paymentNote && <p className="mt-3 text-[11px] text-slate-500">{company.paymentNote}</p>}
+        </section>
+      )}
+
+      <DocFooter lang={lang} reference={invoice.number} orgId={invoice.orgId}>
+        {invoice.notes && <p className="mb-2 text-slate-700">{invoice.notes}</p>}
+      </DocFooter>
+    </DocSheet>
   );
 }

@@ -22,6 +22,7 @@ export type ReceiptItem = {
 
 export type Receipt = {
   id: string;
+  orgId?: string;
   number: string;
   issued: string;
   clientId?: string;
@@ -45,6 +46,7 @@ type ItemRow = {
 
 type Row = {
   id: string;
+  org_id?: string | null;
   number: string;
   issued: string;
   client_id: string | null;
@@ -56,10 +58,11 @@ type Row = {
   notes: string | null;
 };
 
-const SELECT = "id,number,issued,client_id,client_snapshot,method,reference,total,items,notes";
+const SELECT = "id,org_id,number,issued,client_id,client_snapshot,method,reference,total,items,notes";
 
 const toReceipt = (r: Row): Receipt => ({
   id: r.id,
+  orgId: r.org_id ?? undefined,
   number: r.number,
   issued: r.issued,
   clientId: r.client_id ?? undefined,

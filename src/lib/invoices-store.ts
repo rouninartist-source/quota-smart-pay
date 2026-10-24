@@ -65,6 +65,8 @@ export type Payment = {
 
 export type Invoice = {
   id: string;
+  /** Empresa emitente — usada no código QR de verificação. */
+  orgId?: string;
   number: string;
   kind: DocumentKind;
   /** Desconto global em percentagem, aplicado ao subtotal. */
@@ -166,6 +168,7 @@ type PaymentRow = {
 };
 type InvoiceRow = {
   id: string;
+  org_id?: string | null;
   number: string;
   kind: string;
   discount: number;
@@ -182,13 +185,14 @@ type InvoiceRow = {
 };
 
 const SELECT =
-  "id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
+  "id,org_id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
   "invoice_lines(id,position,description,note,qty,price,vat,image_url)," +
   "payments(id,paid_on,amount,method,reference,receipt_number,receipt_issued,receipt_id)";
 
 function toInvoice(r: InvoiceRow): Invoice {
   return {
     id: r.id,
+    orgId: r.org_id ?? undefined,
     number: r.number,
     kind: (r.kind in documentKinds ? r.kind : "ft") as DocumentKind,
     discount: Number(r.discount ?? 0),
