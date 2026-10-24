@@ -62,7 +62,11 @@ export const Route = createFileRoute("/api/planos/checkout")({
         // Modo de teste: PAYZENO_TEST_AMOUNT_MT=1 cobra 1 MT em qualquer plano, para testar o
         // fluxo completo com dinheiro real. O registo guarda o valor de facto cobrado.
         // Retirar a variável no Hostinger quando os testes acabarem.
-        const testAmount = Number(process.env.PAYZENO_TEST_AMOUNT_MT ?? "");
+        // PAYZENO_TEST_EMAILS (lista separada por vírgulas) limita o modo de teste a essas contas:
+        // assim pode ficar ligado em produção sem que um cliente real pague 1 MT.
+        const testers = (process.env.PAYZENO_TEST_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+        const isTester = testers.length === 0 || testers.includes((user.email ?? "").toLowerCase());
+        const testAmount = isTester ? Number(process.env.PAYZENO_TEST_AMOUNT_MT ?? "") : 0;
         const amount = testAmount > 0 ? testAmount : price;
         const { data: row, error: insertError } = await admin
           .from("plan_payments")
