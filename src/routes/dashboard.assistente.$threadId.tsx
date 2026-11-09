@@ -31,7 +31,7 @@ import {
   useThreads,
 } from "@/lib/agent-threads";
 import { cn } from "@/lib/utils";
-import { useAiCredit } from "@/lib/org-store";
+import { authHeader } from "@/lib/supabase";
 
 export const Route = createFileRoute("/dashboard/assistente/$threadId")({
   head: () => ({
@@ -106,7 +106,8 @@ function ChatWindow({
   onNewThread: () => void;
   onDelete: (id: string) => void;
 }) {
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat" }), []);
+  // O servidor confirma a sessão e consome a operação de Quota AI antes de chamar o Claude.
+  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/chat", headers: () => authHeader() }), []);
   const navigate = useNavigate();
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -121,10 +122,29 @@ function ChatWindow({
     id: threadId,
     messages: initialMessages,
     transport,
-    onError: (error) =>
+    onData: (part) => {
+      if (part.type !== "data-credit") return;
+      const c = part.data as { uses: number; limit: number | null; trial: boolean };
+      if (c.limit !== null && (c.trial || c.limit - c.uses <= 5))
+        toast.message(`Quota AI · ${c.uses} de ${c.limit} operações${c.trial ? " do trial" : " este mês"}`);
+    },
+    onError: (error) => {
+      // O servidor responde em JSON com a razão (limite do plano, sessão, configuração).
+      let info: { error?: string; message?: string } = {};
+      try {
+        info = JSON.parse(error.message);
+      } catch {}
+      if (info.error === "ai_limit") {
+        toast.error(info.message ?? "Atingiu o limite de Quota AI.", {
+          description: "O contador reinicia no dia 1 — ou passe para um plano com mais operações.",
+          action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
+        });
+        return;
+      }
       toast.error("Não foi possível responder", {
-        description: error.message || "Tente novamente dentro de alguns instantes.",
-      }),
+        description: info.message || error.message || "Tente novamente dentro de alguns instantes.",
+      });
+    },
   });
 
   const busy = status === "submitted" || status === "streaming";
@@ -164,21 +184,6 @@ function ChatWindow({
   async function send(text: string) {
     const trimmed = text.trim();
     if ((!trimmed && attachments.length === 0) || busy) return;
-    // O Postgres conta: 3 operações no trial, depois um limite por mês conforme o plano.
-    const credit = await useAiCredit();
-    if (!credit.allowed) {
-      toast.error(
-        credit.trial ? `Limite do período experimental: ${credit.limit} operações de Quota AI.` : `Atingiu as ${credit.limit} operações de Quota AI deste mês.`,
-        {
-          description: credit.trial ? "Escolha um plano para continuar." : "O contador reinicia no dia 1 — ou passe para um plano com mais operações.",
-          action: { label: "Ver planos", onClick: () => navigate({ to: "/dashboard/planos" }) },
-        },
-      );
-      return;
-    }
-    if (credit.limit !== null && (credit.trial || credit.limit - credit.uses <= 5)) {
-      toast.message(`Quota AI · ${credit.uses} de ${credit.limit} operações${credit.trial ? " do trial" : " este mês"}`);
-    }
     void sendMessage({
       text: trimmed || "Analisa o ficheiro em anexo e propõe o documento adequado.",
       files: attachments.map((a) => ({
