@@ -273,12 +273,32 @@ function DocumentoPage() {
 
               {payOpen && (
                 <form onSubmit={submitPayment} className="mt-3 grid gap-2 rounded-md border border-border/70 bg-surface p-2.5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input label={t("Data")} type="date" value={payDate} onChange={setPayDate} />
+                  <Input label={t("Data")} type="date" value={payDate} onChange={setPayDate} />
+                  {/* Valor ou percentagem do total do documento — os dois campos acompanham-se. */}
+                  <div className="grid grid-cols-[minmax(0,1fr)_88px] gap-2">
                     <label className="grid gap-1">
                       <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Valor (MZN)")}</span>
                       <MoneyInput value={Number(payAmount) || 0} onChange={(n) => setPayAmount(n ? String(n) : "")} placeholder={formatMZN(balance)} className="h-8 rounded-md border border-border bg-card px-2 text-[12px] outline-none focus:border-primary/60" />
                     </label>
+                    <label className="grid gap-1">
+                      <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("% do total")}</span>
+                      <div className="relative">
+                        <MoneyInput
+                          value={total > 0 && Number(payAmount) > 0 ? Math.round((Number(payAmount) / total) * 10000) / 100 : 0}
+                          onChange={(p) => setPayAmount(p ? String(Math.min(balance, Math.round(total * Math.min(p, 100)) / 100)) : "")}
+                          placeholder="%"
+                          className="h-8 w-full rounded-md border border-border bg-card pl-2 pr-6 text-[12px] outline-none focus:border-primary/60"
+                        />
+                        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">%</span>
+                      </div>
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {[25, 30, 50, 75].map((p) => (
+                      <button key={p} type="button" onClick={() => setPayAmount(String(Math.min(balance, Math.round(total * p) / 100)))} className="rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold tabular-nums hover:bg-muted">
+                        {p}%
+                      </button>
+                    ))}
                   </div>
                   <label className="grid gap-1">
                     <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Método")}</span>

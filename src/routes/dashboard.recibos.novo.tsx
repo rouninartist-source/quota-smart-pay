@@ -28,7 +28,7 @@ export const Route = createFileRoute("/dashboard/recibos/novo")({
   component: NovoRecibo,
 });
 
-type Mode = "total" | "metade" | "outro";
+type Mode = "total" | "percent" | "outro";
 
 const METHODS: PaymentMethod[] = ["mpesa", "emola", "transferencia", "numerario", "cheque"];
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -43,10 +43,10 @@ function openInvoicesOf(client: Client, invoices: Invoice[]) {
     .sort((a, b) => a.due.localeCompare(b.due) || a.issued.localeCompare(b.issued));
 }
 
-/** Quanto recebe cada factura: o saldo todo, metade de cada, ou um valor que vai liquidando das mais antigas para as mais recentes. */
-function allocate(selected: Invoice[], mode: Mode, custom: number) {
+/** Quanto recebe cada factura: o saldo todo, uma percentagem do saldo de cada, ou um valor que vai liquidando das mais antigas para as mais recentes. */
+function allocate(selected: Invoice[], mode: Mode, custom: number, pct: number) {
   if (mode === "total") return selected.map((i) => round2(invoiceBalance(i)));
-  if (mode === "metade") return selected.map((i) => round2(invoiceBalance(i) / 2));
+  if (mode === "percent") return selected.map((i) => round2((invoiceBalance(i) * Math.min(Math.max(pct, 0), 100)) / 100));
   let left = round2(custom);
   return selected.map((i) => {
     const take = round2(Math.min(left, invoiceBalance(i)));
@@ -66,6 +66,7 @@ function NovoRecibo() {
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [mode, setMode] = useState<Mode>("total");
   const [custom, setCustom] = useState("");
+  const [pct, setPct] = useState(50);
   const [method, setMethod] = useState<PaymentMethod>("mpesa");
   const [reference, setReference] = useState("");
   const [date, setDate] = useState(today());
@@ -92,7 +93,7 @@ function NovoRecibo() {
   const selected = open.filter((i) => picked.has(i.id));
   const owed = round2(selected.reduce((a, i) => a + invoiceBalance(i), 0));
   const customValue = Number(custom) || 0;
-  const amounts = allocate(selected, mode, customValue);
+  const amounts = allocate(selected, mode, customValue, pct);
   const received = round2(amounts.reduce((a, n) => a + n, 0));
   const amountOf = (id: string) => amounts[selected.findIndex((i) => i.id === id)] ?? 0;
 
@@ -116,6 +117,7 @@ function NovoRecibo() {
     if (selected.length === 0) return toast.error("Escolha pelo menos uma factura.");
     if (mode === "outro" && (customValue <= 0 || customValue > owed + 0.01))
       return toast.error(`Indique um valor entre 0 e ${formatMZN(owed)} MZN.`);
+    if (mode === "percent" && (pct <= 0 || pct > 100)) return toast.error("Indique uma percentagem entre 1 e 100.");
     if (received <= 0) return toast.error("O valor a receber tem de ser maior do que zero.");
 
     setBusy(true);
@@ -251,7 +253,7 @@ function NovoRecibo() {
               <div className="mt-2 grid grid-cols-3 gap-2">
                 {([
                   ["total", "Total", `${formatMZN(owed)} MZN`],
-                  ["metade", "50%", `${formatMZN(round2(owed / 2))} MZN`],
+                  ["percent", "Percentagem", `${pct}% · ${formatMZN(round2((owed * pct) / 100))} MZN`],
                   ["outro", "Outro valor", "Pagamento parcial"],
                 ] as const).map(([m, label, hint]) => (
                   <button key={m} type="button" onClick={() => setMode(m)} className={cn("rounded-lg border p-3 text-left transition", mode === m ? "border-primary bg-primary/5" : "border-border/70 bg-surface hover:border-border")}>
@@ -260,6 +262,21 @@ function NovoRecibo() {
                   </button>
                 ))}
               </div>
+              {mode === "percent" && (
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <Field label="Percentagem do saldo" hint={selected.length > 1 ? "Aplica-se ao saldo de cada factura." : undefined}>
+                    <div className="relative w-28">
+                      <MoneyInput autoFocus decimals={2} className={cn(inputClass, "pr-7")} value={pct} onChange={(n) => setPct(Math.min(n, 100))} placeholder="50" />
+                      <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-muted-foreground">%</span>
+                    </div>
+                  </Field>
+                  {[25, 30, 50, 75].map((p) => (
+                    <button key={p} type="button" onClick={() => setPct(p)} className={cn("h-9 rounded-md border px-3 text-[12px] font-semibold tabular-nums transition", pct === p ? "border-primary bg-primary/5 text-primary" : "border-border bg-surface hover:bg-muted")}>
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+              )}
               {mode === "outro" && (
                 <div className="mt-3 max-w-xs">
                   <Field label="Valor recebido (MZN)" hint={selected.length > 1 ? "Liquida primeiro as facturas mais antigas." : undefined}>

@@ -16,6 +16,7 @@ import {
 
 import { BankPicker } from "@/components/app/BankPicker";
 import { CategoryManager } from "@/components/catalog/Categories";
+import { NumberingManager } from "@/components/app/NumberingManager";
 import { cn } from "@/lib/utils";
 import { uploadImage } from "@/lib/media";
 import { themeModes, useTheme } from "@/hooks/use-theme";
@@ -408,6 +409,14 @@ function Definicoes() {
                     </Field>
         </>
       ),
+    },
+    {
+      id: "numeracao",
+      label: "Numeração",
+      hint: "Próximo número de cada série",
+      title: "Numeração",
+      description: "Defina o próximo número de cotações, facturas, pró-formas e recibos — por exemplo, para continuar a numeração de outro sistema. Não é possível repetir um número já usado este ano. Guarda-se logo ao aplicar.",
+      content: <NumberingManager inputClass={inputClass} />,
     },
     {
       id: "categorias",

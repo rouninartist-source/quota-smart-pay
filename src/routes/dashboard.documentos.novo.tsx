@@ -35,6 +35,7 @@ import {
   addInvoice,
   documentKinds,
   isQuoteKind,
+  convertToInvoice,
   updateDraft,
   useInvoices,
   type DocumentKind,
@@ -312,6 +313,17 @@ function Documentos() {
     navigate({ to: "/dashboard/documentos/$id", params: { id: created.id } });
   }
 
+  /** Rascunho de cotação/pró-forma → factura: guarda o que está no editor e cria a factura a partir daí. */
+  async function convert() {
+    setBusy("save");
+    const saved = await persist("rascunho");
+    const ft = saved ? await convertToInvoice(saved.id) : undefined;
+    setBusy(null);
+    if (!ft) return;
+    toast.success(`Factura criada a partir de ${saved!.number}`, { description: "Reveja e emita." });
+    navigate({ to: "/dashboard/documentos/$id", params: { id: ft.id } });
+  }
+
   async function savePdf(mode: "pdf" | "print") {
     setBusy("pdf");
     const created = await persist("rascunho");
@@ -381,6 +393,16 @@ function Documentos() {
             <span className="inline-flex shrink-0 items-center rounded-md bg-warning/15 px-2 py-1 text-[11px] font-semibold text-warning-foreground dark:text-warning">
               A editar {editing.number}
             </span>
+          )}
+          {/* O tipo de um rascunho não muda (o número já tem o prefixo); uma cotação passa a factura por conversão. */}
+          {editing && (isQuoteKind(editing.kind) || editing.kind === "pf") && (
+            <button
+              type="button"
+              onClick={convert}
+              disabled={busy !== null}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success transition hover:bg-success/15 disabled:opacity-50"
+            >
+              <FileCheck2 className="h-3.5 w-3.5" />{t("Converter em factura")}</button>
           )}
           <span className="inline-flex shrink-0 items-center gap-1.5 border-l border-border/60 py-1 pl-3 text-[11px] font-semibold text-muted-foreground">
             <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", isReady ? "bg-success" : "bg-warning")} />
