@@ -27,7 +27,8 @@ function receiptOf(inv: Invoice, paymentId?: string) {
 export function shareLink(inv: Invoice, kind: ShareKind = "documento", paymentId?: string) {
   const receipt = kind === "recibo" ? receiptOf(inv, paymentId) : undefined;
   const isReceipt = !!receipt;
-  const params = new URLSearchParams();
+  // preview=1: quem recebe a ligação vê o documento com «Descarregar PDF», sem abrir a caixa de impressão.
+  const params = new URLSearchParams({ preview: "1" });
   if (isReceipt) {
     params.set("tipo", "recibo");
     params.set("pagamento", receipt.id);

@@ -166,7 +166,7 @@ type PaymentRow = {
   receipt_issued: string | null;
   receipt_id: string | null;
 };
-type InvoiceRow = {
+export type InvoiceRow = {
   id: string;
   org_id?: string | null;
   number: string;
@@ -184,12 +184,13 @@ type InvoiceRow = {
   payments: PaymentRow[] | null;
 };
 
-const SELECT =
+/** Também usado pelo servidor (/api/documento) para a ligação pública do documento. */
+export const SELECT =
   "id,org_id,number,kind,discount,issued,due,status,notes,client_id,client_snapshot,receipt_number,receipt_issued," +
   "invoice_lines(id,position,description,note,qty,price,vat,image_url)," +
   "payments(id,paid_on,amount,method,reference,receipt_number,receipt_issued,receipt_id)";
 
-function toInvoice(r: InvoiceRow): Invoice {
+export function toInvoice(r: InvoiceRow): Invoice {
   return {
     id: r.id,
     orgId: r.org_id ?? undefined,

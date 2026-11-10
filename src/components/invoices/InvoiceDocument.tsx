@@ -1,5 +1,5 @@
 import { formatMZN } from "@/lib/format";
-import { companyBanks, companyWallets, useCompany } from "@/lib/company-store";
+import { companyBanks, companyWallets, useCompany, type Company } from "@/lib/company-store";
 import { useDocTemplate, type DocTemplateId } from "@/lib/doc-templates";
 import { amountInWords, docText } from "@/lib/doc-text";
 import { BankMark, WalletMark } from "@/components/invoices/PaymentLogos";
@@ -19,21 +19,25 @@ export function InvoiceDocument({
   templateOverride,
   docKind = "factura",
   paymentId,
+  companyOverride,
 }: {
   invoice: Invoice;
   /** Força um layout específico (usado na página de Design). */
   templateOverride?: DocTemplateId;
+  /** Dados da empresa vindos de fora (ligação pública, sem sessão). */
+  companyOverride?: Company;
   /** Tipo de documento a imprimir (factura, recibo ou cotação). */
   docKind?: DocKind;
   /** Recibo de um pagamento concreto (total ou parcial). Sem isto, recibo de quitação da factura. */
   paymentId?: string;
 }) {
-  const company = useCompany();
+  const storeCompany = useCompany();
+  const company = companyOverride ?? storeCompany;
   const active = useDocTemplate();
   const theme = themeOf(templateOverride ?? active);
 
   if (docKind === "recibo") {
-    return <ReceiptDocument receipt={receiptFromInvoice(invoice, paymentId)} templateOverride={templateOverride} />;
+    return <ReceiptDocument receipt={receiptFromInvoice(invoice, paymentId)} templateOverride={templateOverride} companyOverride={companyOverride} />;
   }
 
   const s = themeStyles(theme);

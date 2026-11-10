@@ -1,5 +1,5 @@
 import { formatDate, formatMZN } from "@/lib/format";
-import { useCompany } from "@/lib/company-store";
+import { useCompany, type Company } from "@/lib/company-store";
 import { useDocTemplate, type DocTemplateId } from "@/lib/doc-templates";
 import { amountInWords, docText } from "@/lib/doc-text";
 import { invoiceTotal, type Invoice } from "@/lib/invoices-store";
@@ -12,8 +12,18 @@ import { cn } from "@/lib/utils";
  * valor recebido em algarismos e por extenso, a(s) factura(s) a que se refere
  * (número, data, valor) e a forma de pagamento.
  */
-export function ReceiptDocument({ receipt, templateOverride }: { receipt: Receipt; templateOverride?: DocTemplateId }) {
-  const company = useCompany();
+export function ReceiptDocument({
+  receipt,
+  templateOverride,
+  companyOverride,
+}: {
+  receipt: Receipt;
+  templateOverride?: DocTemplateId;
+  /** Dados da empresa vindos de fora (ligação pública, sem sessão). */
+  companyOverride?: Company;
+}) {
+  const storeCompany = useCompany();
+  const company = companyOverride ?? storeCompany;
   const active = useDocTemplate();
   const theme = themeOf(templateOverride ?? active);
   const s = themeStyles(theme);

@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { Download, Printer, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
-import { useInvoice } from "@/lib/invoices-store";
+import { useInvoice, useInvoicesReady, type Invoice } from "@/lib/invoices-store";
+import { defaultCompany, type Company } from "@/lib/company-store";
+import { docTemplates, type DocTemplateId } from "@/lib/doc-templates";
 import { downloadDocumentPdf } from "@/lib/pdf";
 
 const searchSchema = z.object({
@@ -57,8 +59,32 @@ export const Route = createFileRoute("/facturas/$id/imprimir")({
 function PrintInvoice() {
   const { id } = Route.useParams();
   const { tipo, preview, pagamento } = Route.useSearch();
-  const invoice = useInvoice(id);
+  const own = useInvoice(id);
+  const ready = useInvoicesReady();
   const docKind: DocKind = tipo ?? "factura";
+
+  // Quem recebe a ligação (WhatsApp / e-mail) não tem sessão: o documento vem do servidor,
+  // com os dados da empresa e o layout que saem impressos.
+  const [shared, setShared] = useState<{ invoice: Invoice; company: Company; template: DocTemplateId } | null>(null);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => {
+    if (own) return;
+    const t = setTimeout(() => {
+      fetch(`/api/documento?id=${encodeURIComponent(id)}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d: { invoice: Invoice; company: Partial<Company>; template: string }) =>
+          setShared({
+            invoice: d.invoice,
+            company: { ...defaultCompany, ...d.company },
+            template: (docTemplates.some((x) => x.id === d.template) ? d.template : "classico") as DocTemplateId,
+          }),
+        )
+        .catch(() => setMissing(true));
+      // Com sessão, espera um instante pelas facturas da empresa antes de ir ao servidor.
+    }, ready ? 0 : 1500);
+    return () => clearTimeout(t);
+  }, [id, own, ready]);
+  const invoice = own ?? shared?.invoice;
 
   const [saving, setSaving] = useState(false);
 
@@ -73,7 +99,7 @@ function PrintInvoice() {
     if (!invoice) return;
     setSaving(true);
     try {
-      await downloadDocumentPdf(invoice, docKind, pagamento);
+      await downloadDocumentPdf(invoice, docKind, pagamento, own ? undefined : shared ?? undefined);
     } finally {
       setSaving(false);
     }
@@ -82,7 +108,11 @@ function PrintInvoice() {
   if (!invoice) {
     return (
       <main className="grid min-h-dvh place-items-center bg-slate-100 p-8 text-center text-slate-600">
-        <p className="text-sm">Documento não encontrado neste dispositivo.</p>
+        {missing ? (
+          <p className="text-sm">Documento não encontrado. Confirme a ligação com quem lha enviou.</p>
+        ) : (
+          <p className="inline-flex items-center gap-2 text-sm"><Loader2 className="h-4 w-4 animate-spin" /> A abrir o documento…</p>
+        )}
       </main>
     );
   }
@@ -108,7 +138,13 @@ function PrintInvoice() {
           </button>
         )}
       </div>
-      <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={pagamento} />
+      <InvoiceDocument
+        invoice={invoice}
+        docKind={docKind}
+        paymentId={pagamento}
+        companyOverride={own ? undefined : shared?.company}
+        templateOverride={own ? undefined : shared?.template}
+      />
     </main>
   );
 }

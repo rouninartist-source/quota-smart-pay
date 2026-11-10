@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { ReceiptDocument } from "@/components/invoices/ReceiptDocument";
 import type { Invoice } from "@/lib/invoices-store";
+import type { Company } from "@/lib/company-store";
+import type { DocTemplateId } from "@/lib/doc-templates";
 import type { Receipt } from "@/lib/receipts-store";
 
 /** A4 a 96 dpi: 210 × 297 mm. */
@@ -25,9 +27,15 @@ export function pdfFileName(invoice: Invoice, docKind: DocKind = "factura", paym
  * a altura de uma página, e só a folha é rasterizada — antes era o contentor à
  * volta, que num ecrã largo deixava o documento pequeno e descentrado no papel.
  */
-export function downloadDocumentPdf(invoice: Invoice, docKind: DocKind = "factura", paymentId?: string) {
+export function downloadDocumentPdf(
+  invoice: Invoice,
+  docKind: DocKind = "factura",
+  paymentId?: string,
+  /** Ligação pública: empresa e layout vêm do servidor, não da sessão. */
+  shared?: { company: Company; template: DocTemplateId },
+) {
   return downloadSheetPdf(
-    <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={paymentId} />,
+    <InvoiceDocument invoice={invoice} docKind={docKind} paymentId={paymentId} companyOverride={shared?.company} templateOverride={shared?.template} />,
     pdfFileName(invoice, docKind, paymentId),
   );
 }
