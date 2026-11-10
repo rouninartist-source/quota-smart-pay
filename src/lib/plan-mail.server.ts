@@ -9,7 +9,7 @@ import { getPlan } from "./plans";
 const site = () => (process.env.VITE_SITE_URL ?? "https://quota.milsonuix.com").replace(/\/$/, "");
 const fmtDate = (iso: string) =>
   new Intl.DateTimeFormat("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Africa/Maputo" }).format(new Date(iso));
-const fmtMt = (n: number) => new Intl.NumberFormat("pt-MZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const fmtMt = (n: number) => new Intl.NumberFormat("pt-MZ", { useGrouping: "always" as unknown as boolean, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 /** E-mails dos donos e administradores da empresa (quem gere o plano). */
 export async function orgAdminEmails(admin: SupabaseClient, orgId: string) {

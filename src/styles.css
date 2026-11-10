@@ -293,6 +293,8 @@
   @page { size: A4; margin: 12mm; }
   html, body { background: #fff !important; }
   .invoice-sheet { box-shadow: none !important; max-width: none !important; padding: 0 !important; }
+  .doc-fit { height: auto !important; overflow: visible !important; }
+  .doc-fit-inner { transform: none !important; width: auto !important; }
 }
 
 /* Valores escrevem-se à mão: sem setas nos campos numéricos (pedido do QA). */

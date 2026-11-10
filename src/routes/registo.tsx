@@ -233,7 +233,7 @@ function Registo() {
                 <span className="font-display text-[17px] font-semibold">{p.name}</span>
                 <span className="mt-0.5 text-[11.5px] text-muted-foreground">{p.tagline}</span>
                 <span className="mt-4 font-display text-[24px] font-semibold tabular-nums">
-                  {new Intl.NumberFormat("pt-PT").format(p.monthly)} <span className="text-[12px] font-normal text-muted-foreground">MT / mês</span>
+                  {new Intl.NumberFormat("pt-PT", { useGrouping: "always" as unknown as boolean }).format(p.monthly)} <span className="text-[12px] font-normal text-muted-foreground">MT / mês</span>
                 </span>
                 <ul className="mt-4 space-y-1.5 text-[12.5px]">
                   {[`${p.maxOrgs} empresa${p.maxOrgs === 1 ? "" : "s"}`, p.users, p.ai ? "Quota AI incluído" : "Sem Quota AI"].map((f) => (

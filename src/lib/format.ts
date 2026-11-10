@@ -8,7 +8,7 @@ export function formatMZN(value: number, opts?: { compact?: boolean; decimals?: 
     const u = units.find((x) => Math.abs(value) >= x.v)!;
     return `${(value / u.v).toFixed(1).replace(".0", "").replace(".", ",")}${u.s}`;
   }
-  return new Intl.NumberFormat("pt-MZ", {
+  return new Intl.NumberFormat("pt-MZ", { useGrouping: "always" as unknown as boolean,
     minimumFractionDigits: opts?.decimals === false ? 0 : 2,
     maximumFractionDigits: opts?.decimals === false ? 0 : 2,
   }).format(value);

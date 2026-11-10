@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -84,7 +84,9 @@ const legacyKind: Record<string, DocumentKind> = { factura: "ft", cotacao: "cot"
 type Line = { id: number; desc: string; note: string; qty: number; price: number; vat: number; img: string };
 
 const mzn = (n: number) =>
-  new Intl.NumberFormat("pt-MZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  new Intl.NumberFormat("pt-MZ", { useGrouping: "always" as unknown as boolean, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const fmtQty = (n: number) =>
+  new Intl.NumberFormat("pt-MZ", { useGrouping: "always" as unknown as boolean, maximumFractionDigits: 3 }).format(n);
 
 const tileGradients = [
   "linear-gradient(135deg, oklch(0.62 0.19 263), oklch(0.78 0.14 230))",
@@ -466,7 +468,7 @@ function Documentos() {
             />
           </div>
 
-          <div className="hidden shrink-0 grid-cols-[minmax(0,1fr)_56px_96px_96px_28px] gap-2 border-b border-border/70 px-4 py-2 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground sm:grid">
+          <div className="hidden shrink-0 grid-cols-[minmax(0,1fr)_64px_116px_124px_28px] gap-2 border-b border-border/70 px-4 py-2 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground sm:grid">
             <span>{t("Descrição")}</span>
             <span className="text-right">{t("Qtd")}</span>
             <span className="text-right">{t("Preço")}</span>
@@ -482,11 +484,11 @@ function Documentos() {
                 <div
                   key={l.id}
                   className={cn(
-                    "group grid grid-cols-[minmax(0,1fr)_44px_84px_28px] items-center gap-2 rounded-lg px-1.5 py-1 transition hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_56px_96px_96px_28px]",
+                    "group relative grid grid-cols-[68px_minmax(0,1fr)_minmax(0,1fr)] items-start gap-x-2 gap-y-1 rounded-lg border-b border-border/50 px-1.5 py-1.5 transition hover:bg-muted/50 sm:grid-cols-[minmax(0,1fr)_64px_116px_124px_28px] sm:border-b-0 sm:py-1",
                     flagged === l.id && "ring-2 ring-destructive/50",
                   )}
                 >
-                  <div className="flex min-w-0 items-center gap-2">
+                  <div className="col-span-full flex min-w-0 items-center gap-2 pr-8 sm:col-span-1 sm:pr-0">
                     {isVisual && (
                       <label
                         title={t("Fotografia do artigo")}
@@ -542,13 +544,13 @@ function Documentos() {
                     placeholder={t("Preço")}
                     className={cellClass("right")}
                   />
-                  <span className="hidden px-2 text-right text-[12.5px] font-bold tabular-nums sm:block">
+                  <span className="whitespace-nowrap px-2 text-right leading-8 text-[12.5px] font-bold tabular-nums">
                     {mzn(l.qty * l.price)}
                   </span>
                   <button
                     onClick={() => setLines((ls) => ls.filter((x) => x.id !== l.id))}
                     aria-label={`Remover ${l.desc || "linha"}`}
-                    className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+                    className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition sm:static hover:bg-destructive/10 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100 sm:opacity-0"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -639,13 +641,13 @@ function Documentos() {
                       </div>
                     )}
                     <div className="p-2.5">
-                      <p className="truncate text-[12px] font-semibold">{l.desc || "Sem descrição"}</p>
+                      <p className="line-clamp-2 text-[12px] font-semibold [overflow-wrap:anywhere]">{l.desc || "Sem descrição"}</p>
                       {l.note && <p className="truncate text-[11px] text-muted-foreground">{l.note}</p>}
                       <div className="mt-2 flex items-center justify-between">
                         <span className="rounded-md bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                          {l.qty} un.
+                          {fmtQty(l.qty)} un.
                         </span>
-                        <span className="text-[12px] font-semibold tabular-nums text-primary">
+                        <span className="whitespace-nowrap text-[12px] font-semibold tabular-nums text-primary">
                           {mzn(l.qty * l.price)}
                         </span>
                       </div>
@@ -654,7 +656,8 @@ function Documentos() {
                 ))}
               </div>
             ) : (
-              <table className="mt-3 w-full border-collapse">
+              <table className="mt-3 w-full table-fixed border-collapse">
+                <colgroup><col /><col className="w-14" /><col className="w-[120px]" /></colgroup>
                 <thead>
                   <tr className="border-b border-border/70 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
                     <th className="pb-2 text-left font-semibold">{t("Descrição")}</th>
@@ -665,22 +668,22 @@ function Documentos() {
                 <tbody>
                   {lines.map((l) => (
                     <tr key={l.id} className="border-b border-border/50">
-                      <td className="max-w-0 truncate py-2.5 pr-3 text-[12px] font-medium">{l.desc || "—"}</td>
-                      <td className="py-2.5 text-right text-[12px] tabular-nums">{l.qty}</td>
-                      <td className="py-2.5 text-right text-[12px] tabular-nums">{mzn(l.qty * l.price)}</td>
+                      <td className="break-words py-2.5 pr-3 align-top text-[12px] font-medium [overflow-wrap:anywhere]">{l.desc || "—"}</td>
+                      <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top text-[12px] tabular-nums">{fmtQty(l.qty)}</td>
+                      <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top text-[12px] tabular-nums">{mzn(l.qty * l.price)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
 
-            <div className="ml-auto mt-3 flex w-[min(230px,65%)] flex-col gap-1.5">
+            <div className="ml-auto mt-3 flex w-full max-w-[320px] flex-col gap-1.5">
               <Sum label={t("Subtotal")} value={mzn(totals.sub)} />
               {discount > 0 && <Sum label={`Desconto ${discount}%`} value={`− ${mzn(totals.disc)}`} />}
               <Sum label={chargesVat ? "IVA 16%" : company.ivaRegime === "isento" ? "IVA (isento)" : "IVA (regime simplificado)"} value={mzn(totals.vat)} />
-              <div className="mt-1 flex items-baseline justify-between border-t border-border pt-2.5">
+              <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-border pt-2.5">
                 <span className="text-[12px] font-semibold">{t("Total")}</span>
-                <span className="font-display text-[16px] font-semibold tabular-nums text-primary">
+                <span className="whitespace-nowrap font-display text-[16px] font-semibold tabular-nums text-primary">
                   {mzn(totals.total)} MZN
                 </span>
               </div>
@@ -834,9 +837,9 @@ function CatalogPicker({
 
 function Sum({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-[11.5px] tabular-nums text-muted-foreground">
-      <span>{label}</span>
-      <span>{value}</span>
+    <div className="flex justify-between gap-3 text-[11.5px] tabular-nums text-muted-foreground">
+      <span className="min-w-0">{label}</span>
+      <span className="whitespace-nowrap">{value}</span>
     </div>
   );
 }
@@ -857,13 +860,33 @@ function Cell({
   align?: "left" | "right";
   muted?: boolean;
 }) {
+  // Texto: cresce em altura com a descrição (quebra na sua coluna) em vez de esconder o resto.
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [value]);
+  if (type !== "text")
+    return (
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(cellClass(align), muted && "text-[11.5px] text-muted-foreground")}
+      />
+    );
   return (
-    <input
-      type={type}
+    <textarea
+      ref={ref}
+      rows={1}
       value={value}
       placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)}
-      className={cn(cellClass(align), muted && "text-[11.5px] text-muted-foreground")}
+      onChange={(e) => onChange(e.target.value.replace(/\n/g, " "))}
+      onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+      className={cn(cellClass(align), "h-auto min-h-8 resize-none overflow-hidden py-1.5 leading-5 [overflow-wrap:anywhere]", muted && "text-[11.5px] text-muted-foreground")}
     />
   );
 }

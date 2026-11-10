@@ -4,7 +4,7 @@ import { Check, MessageCircle } from "lucide-react";
 import { billingCycles, cyclePrice, plans, TRIAL_DAYS } from "@/lib/plans";
 import { PlanComparison } from "@/components/quota/PlanComparison";
 
-const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(Math.round(n));
+const fmt = (n: number) => new Intl.NumberFormat("pt-PT", { useGrouping: "always" as unknown as boolean }).format(Math.round(n));
 const CONTACT = "https://wa.me/258840000000?text=" + encodeURIComponent("Olá, gostaria de um plano Empresarial do Quota (sob consulta).");
 
 /** Página pública de preços: ciclos, cartões e tabela de comparação (dados em src/lib/plans.ts). */

@@ -45,14 +45,21 @@ export function ReceiptDocument({
         {tx.receiptStatement(receipt.client.name, `${formatMZN(receipt.total)} MZN (${amountInWords(receipt.total, lang)})`, method, receipt.items.length > 1)}
       </p>
 
-      <table className="mt-6 w-full border-collapse">
+      <table className="mt-6 w-full table-fixed border-collapse">
+        <colgroup>
+          <col className="w-7" />
+          <col />
+          <col className="w-[104px]" />
+          <col className="w-[132px]" />
+          <col className="w-[132px]" />
+        </colgroup>
         <thead>
           <tr className={cn("text-left", s.tableHead)}>
-            <th className="w-8 pr-2 font-medium">#</th>
+            <th className="pr-2 font-medium">#</th>
             <th className="font-medium">{tx.document}</th>
             <th className="font-medium">{tx.date}</th>
-            <th className="text-right font-medium">{tx.documentValue}</th>
-            <th className="text-right font-medium">{tx.amountPaid}</th>
+            <th className="pl-2 text-right font-medium">{tx.documentValue}</th>
+            <th className="pl-2 text-right font-medium">{tx.amountPaid}</th>
           </tr>
         </thead>
         <tbody>
@@ -63,16 +70,16 @@ export function ReceiptDocument({
                 <span className="font-medium tabular-nums">{i.number}</span>
                 <span className="ml-2 text-[11px] text-slate-500">{tx.kinds[i.kind] ?? tx.kinds.ft}</span>
               </td>
-              <td className="py-2.5 tabular-nums">{formatDate(i.issued)}</td>
-              <td className="py-2.5 text-right tabular-nums">{formatMZN(i.invoiceTotal)}</td>
-              <td className="py-2.5 text-right font-semibold tabular-nums">{formatMZN(i.amount)}</td>
+              <td className="whitespace-nowrap py-2.5 tabular-nums">{formatDate(i.issued)}</td>
+              <td className="whitespace-nowrap py-2.5 pl-2 text-right tabular-nums">{formatMZN(i.invoiceTotal)}</td>
+              <td className="whitespace-nowrap py-2.5 pl-2 text-right font-semibold tabular-nums">{formatMZN(i.amount)}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <div className="mt-6 flex justify-end">
-        <dl className={cn("w-full max-w-[300px] space-y-2 text-[13px]", s.totals)}>
+        <dl className={cn("w-full max-w-[360px] space-y-2 text-[13px] [&_dd]:text-right [&>div]:gap-4", s.totals)}>
           <div className="flex justify-between">
             <dt className="text-slate-500">{tx.paymentMethod}</dt>
             <dd>{method}</dd>
@@ -85,7 +92,7 @@ export function ReceiptDocument({
           )}
           <div className="flex items-baseline justify-between border-t border-slate-200 pt-2 text-[15px] font-semibold">
             <dt>{tx.totalReceived}</dt>
-            <dd className="tabular-nums">{formatMZN(receipt.total)} MZN</dd>
+            <dd className="whitespace-nowrap tabular-nums">{formatMZN(receipt.total)} MZN</dd>
           </div>
         </dl>
       </div>

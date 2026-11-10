@@ -22,7 +22,7 @@ const METHODS = {
   emola: { name: "e-Mola", operator: "Movitel", color: "#f5a300" },
 } as const;
 
-const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(n);
+const fmt = (n: number) => new Intl.NumberFormat("pt-PT", { useGrouping: "always" as unknown as boolean }).format(n);
 
 const ERRORS: Record<string, string> = {
   not_configured: "Os pagamentos online ainda não estão configurados. Tente mais tarde ou fale connosco.",

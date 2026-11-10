@@ -53,7 +53,7 @@ export function InvoiceDocument({
   const noVat = regime !== "normal" && vat === 0;
   const vatNote = regime === "normal" ? "" : company.vatNote?.trim() || (regime === "isento" ? tx.vatExempt : tx.vatSimplified);
   const title = tx.kinds[invoice.kind] ?? tx.kinds.ft;
-  const fmtQty = (n: number) => new Intl.NumberFormat("pt-MZ", { maximumFractionDigits: 3 }).format(n);
+  const fmtQty = (n: number) => new Intl.NumberFormat("pt-MZ", { useGrouping: "always" as unknown as boolean, maximumFractionDigits: 3 }).format(n);
 
   return (
     <DocSheet
@@ -69,16 +69,25 @@ export function InvoiceDocument({
       side={<PartyBlock theme={theme} label={tx.client} party={invoice.client} />}
       cancelled={invoice.status === "cancelada"}
     >
-      <table className="mt-8 w-full border-collapse">
+      <table className="mt-8 w-full table-fixed border-collapse">
+        <colgroup>
+          <col className="w-7" />
+          {visual && <col className="w-16" />}
+          <col />
+          <col className="w-14" />
+          <col className="w-[112px]" />
+          {!noVat && <col className="w-12" />}
+          <col className="w-[124px]" />
+        </colgroup>
         <thead>
           <tr className={cn("text-left", s.tableHead)}>
-            <th className="w-8 pr-2 font-medium">#</th>
-            {visual && <th className="w-16 font-medium">{tx.image}</th>}
+            <th className="pr-2 font-medium">#</th>
+            {visual && <th className="font-medium">{tx.image}</th>}
             <th className={cn("font-medium", s.basic && "font-display text-[14px] font-bold text-slate-900")}>{tx.description}</th>
-            <th className="text-right font-medium">{tx.qty}</th>
-            <th className="text-right font-medium">{tx.price}</th>
-            {!noVat && <th className="text-right font-medium">{tx.vat}</th>}
-            <th className="text-right font-medium">{tx.total}</th>
+            <th className="pl-2 text-right font-medium">{tx.qty}</th>
+            <th className="pl-2 text-right font-medium">{tx.price}</th>
+            {!noVat && <th className="pl-2 text-right font-medium">{tx.vat}</th>}
+            <th className="pl-2 text-right font-medium">{tx.total}</th>
           </tr>
         </thead>
         <tbody>
@@ -86,25 +95,25 @@ export function InvoiceDocument({
             <tr key={i} className={s.row}>
               <td className="py-2.5 pr-2 align-top tabular-nums text-slate-400">{i + 1}</td>
               {visual && (
-                <td className="py-2 pr-3">
+                <td className="py-2 pr-3 align-top">
                   {l.img ? <img src={l.img} alt="" className="h-12 w-12 rounded-md object-cover" /> : <span className="block h-12 w-12 rounded-md bg-slate-100" />}
                 </td>
               )}
-              <td className="py-2.5 pr-4">
+              <td className="py-2.5 pr-4 align-top">
                 {l.description}
                 {l.note && <span className="block text-[11px] text-slate-500">{l.note}</span>}
               </td>
-              <td className="py-2.5 text-right tabular-nums">{fmtQty(l.qty)}</td>
-              <td className="py-2.5 text-right tabular-nums">{formatMZN(l.price)}</td>
-              {!noVat && <td className="py-2.5 text-right tabular-nums">{l.vat}%</td>}
-              <td className="py-2.5 text-right font-medium tabular-nums">{formatMZN(lineNet(l))}</td>
+              <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top tabular-nums">{fmtQty(l.qty)}</td>
+              <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top tabular-nums">{formatMZN(l.price)}</td>
+              {!noVat && <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top tabular-nums">{l.vat}%</td>}
+              <td className="whitespace-nowrap py-2.5 pl-2 text-right align-top font-medium tabular-nums">{formatMZN(lineNet(l))}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
       <div className="mt-6 flex justify-end">
-        <dl className={cn("w-full max-w-[300px] space-y-2 text-[13px]", s.totals)}>
+        <dl className={cn("w-full max-w-[360px] space-y-2 text-[13px] [&_dd]:whitespace-nowrap [&>div]:gap-4", s.totals)}>
           <div className="flex justify-between">
             <dt className="text-slate-500">{tx.subtotal}</dt>
             <dd className="tabular-nums">{formatMZN(sub)}</dd>

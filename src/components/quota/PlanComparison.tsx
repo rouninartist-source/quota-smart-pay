@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * planos da app. Lê tudo de src/lib/plans.ts.
  */
 export function PlanComparison({ current, className }: { current?: string; className?: string }) {
-  const cols = [...plans.map((p) => ({ id: p.id as string, name: p.name, price: `${new Intl.NumberFormat("pt-PT").format(p.monthly)} MT/mês` })), { id: "empresarial", name: "Empresarial", price: "Sob consulta" }];
+  const cols = [...plans.map((p) => ({ id: p.id as string, name: p.name, price: `${new Intl.NumberFormat("pt-PT", { useGrouping: "always" as unknown as boolean }).format(p.monthly)} MT/mês` })), { id: "empresarial", name: "Empresarial", price: "Sob consulta" }];
 
   const render = (v: Cell) =>
     v === true ? (

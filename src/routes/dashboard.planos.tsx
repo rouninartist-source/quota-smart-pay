@@ -20,7 +20,7 @@ export const Route = createFileRoute("/dashboard/planos")({
   component: PlanosPage,
 });
 
-const fmt = (n: number) => new Intl.NumberFormat("pt-PT").format(n);
+const fmt = (n: number) => new Intl.NumberFormat("pt-PT", { useGrouping: "always" as unknown as boolean }).format(n);
 const CONTACT = "https://wa.me/258840000000?text=" + encodeURIComponent("Olá, gostaria de um plano Empresarial do Quota (sob consulta).");
 
 function PlanosPage() {

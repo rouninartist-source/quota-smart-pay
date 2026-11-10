@@ -490,9 +490,9 @@ function TemplatePreview({ id, scale }: { id: DocTemplateId; scale: number }) {
   return (
     <div
       className="relative overflow-hidden bg-white"
-      style={{ width: 820 * scale, height: 1120 * scale }}
+      style={{ width: 794 * scale, height: 1123 * scale }}
     >
-      <div className="origin-top-left" style={{ width: 820, transform: `scale(${scale})` }}>
+      <div className="origin-top-left" style={{ width: 794, transform: `scale(${scale})` }}>
         <InvoiceDocument invoice={sampleInvoice} templateOverride={id} />
       </div>
     </div>

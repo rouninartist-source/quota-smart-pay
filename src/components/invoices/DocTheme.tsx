@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { Company } from "@/lib/company-store";
 import type { DocTemplateId } from "@/lib/doc-templates";
@@ -63,9 +63,10 @@ export function DocSheet({
   const s = themeStyles(theme);
   const tx = docText(lang);
   return (
-    <div className={cn("invoice-sheet relative mx-auto w-full max-w-[820px] overflow-hidden bg-white text-[13px] text-slate-900 shadow-card", cancelled && "pl-8")}>
+    <FitToWidth>
+    <div className={cn("invoice-sheet relative w-full overflow-hidden bg-white text-[13px] text-slate-900 shadow-card [overflow-wrap:anywhere]", cancelled && "pl-8")}>
       {cancelled && <CancelledBand />}
-      <div className="p-8 md:p-12">
+      <div className="p-12">
         <header className={s.head}>
           {/* Linha 1: área reservada ao logotipo · tipo, número e datas */}
           <div className="flex items-start justify-between gap-6">
@@ -100,6 +101,48 @@ export function DocSheet({
           </div>
         </header>
 
+        {children}
+      </div>
+    </div>
+    </FitToWidth>
+  );
+}
+
+/** Largura da folha A4 em px (a mesma do PDF). */
+export const SHEET_W = 794;
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+/**
+ * O documento tem sempre a paginação da folha A4 — a mesma do PDF — e, num
+ * ecrã mais estreito, encolhe por inteiro (como um visualizador de PDF) em vez
+ * de reorganizar e apertar as colunas. Na impressão volta ao tamanho natural.
+ */
+function FitToWidth({ children }: { children: ReactNode }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState<{ scale: number; height?: number }>({ scale: 1 });
+  useIsoLayoutEffect(() => {
+    const o = outer.current;
+    const i = inner.current;
+    if (!o || !i) return;
+    const update = () => {
+      const scale = Math.min(1, o.clientWidth / SHEET_W);
+      setFit({ scale, height: scale < 1 ? i.offsetHeight * scale : undefined });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(o);
+    ro.observe(i);
+    return () => ro.disconnect();
+  }, []);
+  const scaled = fit.scale < 1;
+  return (
+    <div ref={outer} className="doc-fit w-full" style={{ height: fit.height, overflow: scaled ? "hidden" : undefined }}>
+      <div
+        ref={inner}
+        className="doc-fit-inner mx-auto"
+        style={{ width: SHEET_W, transform: scaled ? `scale(${fit.scale})` : undefined, transformOrigin: "top left" }}
+      >
         {children}
       </div>
     </div>
