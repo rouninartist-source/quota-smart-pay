@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   Copy,
   Download,
+  FileCheck2,
   Pencil,
   Printer,
   Send,
@@ -25,6 +26,7 @@ import {
   addPayment,
   cancelInvoice,
   documentKinds,
+  convertToInvoice,
   duplicateInvoice,
   invoiceBalance,
   invoicePaid,
@@ -168,6 +170,13 @@ function DocumentoPage() {
       navigate({ to: "/dashboard/documentos/$id", params: { id: copy.id } });
     }
   }
+  async function toInvoice() {
+    const ft = await convertToInvoice(inv.id);
+    if (ft) {
+      toast.success(`Factura criada a partir de ${inv.number}`, { description: "Reveja o rascunho e emita." });
+      navigate({ to: "/dashboard/documentos/novo", search: { editar: ft.id } });
+    }
+  }
   async function cancel() {
     await cancelInvoice(inv.id);
     setConfirmCancel(false);
@@ -206,6 +215,9 @@ function DocumentoPage() {
           )}
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            {live && (isQuoteKind(inv.kind) || inv.kind === "pf") && (
+              <Action Icon={FileCheck2} onClick={toInvoice} tone="success">{t("Converter em factura")}</Action>
+            )}
             {inv.status === "rascunho" && (
               <Action Icon={Pencil} onClick={() => navigate({ to: "/dashboard/documentos/novo", search: { editar: inv.id } })}>{t("Editar")}</Action>
             )}

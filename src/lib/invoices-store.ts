@@ -613,6 +613,28 @@ export async function duplicateInvoice(id: string) {
   });
 }
 
+/**
+ * Cotação (ou pró-forma) → factura: novo rascunho de factura com o mesmo
+ * cliente, linhas e desconto, que referencia o documento de origem. A cotação
+ * fica intacta — continua a ser o registo do que foi proposto.
+ */
+export async function convertToInvoice(id: string) {
+  const inv = getInvoice(id);
+  if (!inv) return undefined;
+  const origin = `Referente a ${documentKinds[inv.kind].label.toLowerCase()} ${inv.number}.`;
+  return addInvoice({
+    kind: "ft",
+    discount: inv.discount,
+    issued: today(),
+    due: iso(15),
+    status: "rascunho",
+    notes: [origin, inv.notes].filter(Boolean).join("\n"),
+    clientId: inv.clientId,
+    client: inv.client,
+    lines: inv.lines,
+    payments: [],
+  });
+}
 
 /* ---------------- hooks ---------------- */
 

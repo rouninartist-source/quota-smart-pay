@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Search, Plus, FileText, Download, Printer, Send, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
+import { Search, Plus, FileText, FileCheck2, Download, Printer, Send, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
 import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
 import { toast } from "sonner";
 import { formatAmount, formatDate, formatMZN } from "@/lib/format";
 import {
   cancelInvoice,
   documentKinds,
+  convertToInvoice,
   duplicateInvoice,
   invoiceBalance,
   invoicePaid,
@@ -661,6 +662,13 @@ function DocumentosList() {
             onOpen={() => openRow(current)}
             onPrint={() => printRow(current)}
             onChase={() => chaseRow(current)}
+            onConvert={async () => {
+              const ft = await convertToInvoice(current.invoice.id);
+              if (ft) {
+                toast.success(`Factura criada a partir de ${current.invoice.number}`, { description: "Reveja o rascunho e emita." });
+                navigate({ to: "/dashboard/documentos/novo", search: { editar: ft.id } });
+              }
+            }}
             onShare={() => (current.receiptId ? openRow(current) : setShareRow(current))}
           />
         )}
@@ -718,6 +726,7 @@ function DocumentPanel({
   onOpen,
   onPrint,
   onChase,
+  onConvert,
   onShare,
 }: {
   row: Row;
@@ -725,6 +734,7 @@ function DocumentPanel({
   onOpen: () => void;
   onPrint: () => void;
   onChase: () => void;
+  onConvert: () => void;
   onShare: () => void;
 }) {
   const inv = row.invoice;
@@ -825,6 +835,14 @@ function DocumentPanel({
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 py-2 text-[11.5px] font-semibold text-success transition hover:bg-success/15"
           >
             <MessageCircle className="h-3.5 w-3.5" />{t("Cobrar")}</button>
+        )}
+        {!row.asReceipt && inv.status !== "cancelada" && (isQuoteKind(inv.kind) || inv.kind === "pf") && (
+          <button
+            onClick={onConvert}
+            title="Criar uma factura com o mesmo cliente e linhas"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-success/30 bg-success/10 px-2 py-2 text-[11.5px] font-semibold text-success transition hover:bg-success/15"
+          >
+            <FileCheck2 className="h-3.5 w-3.5" />{t("Facturar")}</button>
         )}
         <button
           onClick={onOpen}
