@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,14 +38,22 @@ export function SettingsShell({
   );
   const active = sections[index] ?? sections[0];
   const next = sections[index + 1];
+  const navRef = useRef<HTMLElement>(null);
+  // Aberto já numa secção (?sec=…): no telemóvel o separador dela pode estar fora do ecrã.
+  useEffect(() => {
+    const nav = navRef.current;
+    const on = nav?.querySelector<HTMLElement>('[aria-current="true"]');
+    if (nav && on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft += on.getBoundingClientRect().left - nav.getBoundingClientRect().left - 8;
+  }, []);
 
   return (
     <div className="grid gap-3 md:min-h-0 md:flex-1 lg:grid-cols-[212px_minmax(0,1fr)]">
       <nav
+        ref={navRef}
         aria-label="Secções"
-        className="flex min-h-0 flex-col gap-0.5 overflow-y-auto overscroll-contain rounded-lg border border-border/70 bg-card p-1.5 shadow-sm lg:overflow-visible"
+        className="flex min-w-0 gap-1 overflow-x-auto overscroll-contain rounded-lg border border-border/70 bg-card p-1.5 shadow-sm [scrollbar-width:none] lg:min-h-0 lg:flex-col lg:gap-0.5 lg:overflow-visible"
       >
-        <p className="px-2.5 pb-1 pt-2 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+        <p className="hidden px-2.5 pb-1 pt-2 text-[9px] lg:block font-bold uppercase tracking-[0.16em] text-muted-foreground">
           Secções
         </p>
         {sections.map((s) => {
@@ -54,10 +62,13 @@ export function SettingsShell({
             <button
               key={s.id}
               type="button"
-              onClick={() => setActiveId(s.id)}
+              onClick={(e) => {
+                setActiveId(s.id);
+                e.currentTarget.scrollIntoView({ block: "nearest", inline: "nearest" });
+              }}
               aria-current={on}
               className={cn(
-                "flex flex-col items-start gap-0.5 rounded-lg border px-2.5 py-2 text-left transition",
+                "flex shrink-0 flex-col items-start gap-0.5 whitespace-nowrap rounded-lg border px-2.5 py-2 text-left transition lg:shrink lg:whitespace-normal",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 on
                   ? "border-primary/30 bg-primary/10 text-primary"
@@ -66,7 +77,7 @@ export function SettingsShell({
             >
               <span className="text-[12px] font-semibold">{t(s.label)}</span>
               {s.hint && (
-                <span className="text-[10px] font-normal text-muted-foreground">{t(s.hint)}</span>
+                <span className="hidden text-[10px] font-normal text-muted-foreground lg:block">{t(s.hint)}</span>
               )}
             </button>
           );

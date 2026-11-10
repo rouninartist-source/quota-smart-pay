@@ -26,6 +26,8 @@ export type Company = {
   ivaRegime?: IvaRegime;
   /** Menção de IVA impressa nos documentos (vazio = texto por omissão do regime). */
   vatNote?: string;
+  /** Categorias geridas em Definições → Categorias (vazio = as por omissão + as já usadas). */
+  categories?: { products?: string[]; services?: string[] };
   paymentNote: string;
   /** Mostrar bloco "Dados de pagamento" no documento. */
   showPaymentDetails: boolean;

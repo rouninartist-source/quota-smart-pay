@@ -5,7 +5,7 @@ import { Package, Plus, Search, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { type Product } from "@/lib/mock-data";
 import { useProducts } from "@/lib/catalog-store";
-import { formatMZN } from "@/lib/format";
+import { formatAmount, formatMZN } from "@/lib/format";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 import { cn } from "@/lib/utils";
 import { ProductEditor } from "@/components/catalog/ProductEditor";
@@ -203,7 +203,7 @@ function Produtos() {
                       </p>
                       <div className="mt-auto flex items-baseline justify-between gap-2 pt-1.5">
                         <span className="text-[13px] font-bold tabular-nums">
-                          {formatMZN(p.price, { decimals: false })}
+                          {formatAmount(p.price)}
                         </span>
                         <span
                           className={cn(
@@ -228,7 +228,7 @@ function Produtos() {
           </span>
           <span>
             Preço médio{" "}
-            <b className="font-bold tabular-nums text-foreground">{formatMZN(totals.avg, { decimals: false })}</b>
+            <b className="font-bold tabular-nums text-foreground">{formatAmount(totals.avg)}</b>
           </span>
           <span>
             Margem média <b className="font-bold tabular-nums text-foreground">{Math.round(totals.avgMargin)}%</b>

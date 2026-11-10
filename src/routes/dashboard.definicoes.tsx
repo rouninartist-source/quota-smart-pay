@@ -15,6 +15,7 @@ import {
 } from "@/lib/payment-details";
 
 import { BankPicker } from "@/components/app/BankPicker";
+import { CategoryManager } from "@/components/catalog/Categories";
 import { cn } from "@/lib/utils";
 import { uploadImage } from "@/lib/media";
 import { themeModes, useTheme } from "@/hooks/use-theme";
@@ -49,8 +50,10 @@ function Definicoes() {
   const [error, setError] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // As categorias guardam-se logo (Definições → Categorias): não apagar o que ainda não foi guardado nas outras secções.
+  const touched = useRef(false);
   useEffect(() => {
-    setDraft(company);
+    setDraft((d) => (touched.current ? { ...d, categories: company.categories } : company));
   }, [company]);
 
   /** O logotipo vai para o Storage; nas definições fica só o URL. */
@@ -71,6 +74,7 @@ function Definicoes() {
     if (!draft.name.trim()) return setError("Indique o nome da empresa.");
     setError(undefined);
     saveCompany(draft);
+    touched.current = false;
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   }
@@ -405,6 +409,25 @@ function Definicoes() {
         </>
       ),
     },
+    {
+      id: "categorias",
+      label: "Categorias",
+      hint: "Produtos e serviços",
+      title: "Categorias",
+      description: "Listas usadas nos formulários de produtos e serviços. Ao renomear, os artigos dessa categoria acompanham. Estas alterações guardam-se logo.",
+      content: (
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Produtos</span>
+            <CategoryManager kind="products" inputClass={inputClass} />
+          </div>
+          <div className="grid gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Serviços</span>
+            <CategoryManager kind="services" inputClass={inputClass} />
+          </div>
+        </div>
+      ),
+    },
     // O layout escolhido não previa pré-visualização; mantida como secção para
     // não perder a funcionalidade que a página já tinha.
     {
@@ -422,7 +445,7 @@ function Definicoes() {
   ];
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 md:h-full md:min-h-0">
+    <form onSubmit={submit} onChange={() => (touched.current = true)} className="flex flex-col gap-3 md:h-full md:min-h-0">
       <section className="shrink-0 rounded-lg border border-border/70 bg-card p-2 shadow-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="inline-flex items-center gap-1.5 pl-1 text-[12.5px] font-semibold">

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
 import { downloadDocumentPdf } from "@/lib/pdf";
+import { MoneyInput } from "@/components/app/MoneyInput";
 import { toast } from "sonner";
 import { InvoiceDocument, type DocKind } from "@/components/invoices/InvoiceDocument";
 import { formatDate, formatMZN } from "@/lib/format";
@@ -262,7 +263,10 @@ function DocumentoPage() {
                 <form onSubmit={submitPayment} className="mt-3 grid gap-2 rounded-md border border-border/70 bg-surface p-2.5">
                   <div className="grid grid-cols-2 gap-2">
                     <Input label={t("Data")} type="date" value={payDate} onChange={setPayDate} />
-                    <Input label={t("Valor (MZN)")} type="number" value={payAmount} onChange={setPayAmount} placeholder={String(balance)} />
+                    <label className="grid gap-1">
+                      <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Valor (MZN)")}</span>
+                      <MoneyInput value={Number(payAmount) || 0} onChange={(n) => setPayAmount(n ? String(n) : "")} placeholder={formatMZN(balance)} className="h-8 rounded-md border border-border bg-card px-2 text-[12px] outline-none focus:border-primary/60" />
+                    </label>
                   </div>
                   <label className="grid gap-1">
                     <span className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{t("Método")}</span>

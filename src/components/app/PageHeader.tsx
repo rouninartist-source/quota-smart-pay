@@ -57,7 +57,7 @@ export function PageHeader({
         </nav>
       )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           {Icon && (
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md border border-border/70 bg-surface text-muted-foreground">
@@ -75,7 +75,7 @@ export function PageHeader({
             )}
           </div>
         </div>
-        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>}
       </div>
 
       {children}

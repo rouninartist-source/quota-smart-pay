@@ -4,12 +4,11 @@ import { useNavigate } from "@tanstack/react-router";
 import { FileText, FileCheck2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/mock-data";
-import { addProduct, deleteProduct, nextSku, updateProduct, useProducts, type ProductInput } from "@/lib/catalog-store";
+import { addProduct, deleteProduct, nextSku, updateProduct, type ProductInput } from "@/lib/catalog-store";
 import { uploadImage } from "@/lib/media";
+import { MoneyInput } from "@/components/app/MoneyInput";
 import { Camera } from "lucide-react";
-
-/** Categorias sugeridas mesmo num catálogo vazio. */
-const DEFAULT_CATEGORIES = ["Consumíveis", "Tecnologia", "Mobiliário", "Alimentar", "Vestuário", "Construção", "Serviços", "Outros"];
+import { CategorySelect } from "./Categories";
 import { Field, Modal, inputClass } from "./Modal";
 
 const num = (v: string) => Number(String(v).replace(",", ".")) || 0;
@@ -30,10 +29,7 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
   });
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
-  const [newCategory, setNewCategory] = useState(false);
   const navigate = useNavigate();
-  const all = useProducts();
-  const categories = Array.from(new Set([...DEFAULT_CATEGORIES, ...all.map((p) => p.category).filter(Boolean)])).sort((a, b) => a.localeCompare(b, "pt"));
   const set = <K extends keyof ProductInput>(k: K, v: ProductInput[K]) => setD((x) => ({ ...x, [k]: v }));
   const createDoc = (tipo: "cot" | "ft") => {
     onClose();
@@ -94,25 +90,13 @@ export function ProductEditor({ product, onClose }: { product?: Product; onClose
         )}
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("Categoria")}>
-            {newCategory ? (
-              <input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Nova categoria" autoFocus={newCategory} />
-            ) : (
-              <select
-                className={inputClass}
-                value={d.category}
-                onChange={(e) => (e.target.value === "__nova" ? (setNewCategory(true), set("category", "")) : set("category", e.target.value))}
-              >
-                <option value="">{t("Sem categoria")}</option>
-                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
-                <option value="__nova">+ Nova categoria…</option>
-              </select>
-            )}
+            <CategorySelect kind="products" className={inputClass} value={d.category} onChange={(v) => set("category", v)} />
           </Field>
           <Field label={t("Unidade")}><input className={inputClass} value={d.unit} onChange={(e) => set("unit", e.target.value)} placeholder="un, cx, kg" /></Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label={t("Preço (MZN)")}><input className={inputClass} type="number" step="0.01" value={d.price} onChange={(e) => set("price", num(e.target.value))} /></Field>
-          <Field label={t("Custo (MZN)")}><input className={inputClass} type="number" step="0.01" value={d.cost} onChange={(e) => set("cost", num(e.target.value))} /></Field>
+          <Field label={t("Preço (MZN)")}><MoneyInput className={inputClass} value={d.price} onChange={(n) => set("price", n)} /></Field>
+          <Field label={t("Custo (MZN)")}><MoneyInput className={inputClass} value={d.cost} onChange={(n) => set("cost", n)} /></Field>
           <Field label="IVA %">
             <select className={inputClass} value={d.vat} onChange={(e) => set("vat", num(e.target.value))}>
               <option value={16}>16</option><option value={5}>5</option><option value={0}>0</option>

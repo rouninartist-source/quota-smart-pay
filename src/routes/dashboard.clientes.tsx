@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { t } from "@/lib/i18n";
 import { Users, Plus, Pencil, Search, FileText, Mail, Phone, MessageCircle } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
-import { formatMZN } from "@/lib/format";
+import { formatAmount } from "@/lib/format";
 import {
   addClient,
   deleteClient,
@@ -227,7 +227,7 @@ function Clientes() {
 
                     <span className="w-[76px] shrink-0 text-right sm:w-[92px]">
                       <span className="block text-[12.5px] font-bold tabular-nums">
-                        {formatMZN(stat?.total ?? 0, { decimals: false })}
+                        {formatAmount(stat?.total ?? 0)}
                       </span>
                       <span className="mt-0.5 block text-[10px] text-muted-foreground">
                         {stat?.docs ?? 0} documento{stat?.docs === 1 ? "" : "s"}
@@ -285,7 +285,7 @@ function Clientes() {
           <span>
             Facturado{" "}
             <b className="font-bold tabular-nums text-foreground">
-              {formatMZN(invoiced, { decimals: false })}
+              {formatAmount(invoiced)}
             </b>
           </span>
           <span className="ml-auto hidden sm:inline">Editar abre na própria linha</span>

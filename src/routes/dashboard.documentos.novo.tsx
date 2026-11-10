@@ -25,6 +25,7 @@ import {
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { uploadImage } from "@/lib/media";
+import { MoneyInput } from "@/components/app/MoneyInput";
 import { downloadDocumentPdf } from "@/lib/pdf";
 import { useClients, type Client } from "@/lib/clients-store";
 import { useProducts, useServices } from "@/lib/catalog-store";
@@ -385,29 +386,30 @@ function Documentos() {
             <span className="text-muted-foreground/70">· {isReady ? t("Pronto") : t("Rascunho")}</span>
           </span>
 
-          <div className="ml-auto flex shrink-0 items-center gap-2">
+          {/* No telemóvel os 4 botões ocupam uma linha inteira, por igual — antes o «Emitir» ficava cortado. */}
+          <div className="flex w-full shrink-0 items-center gap-1.5 sm:ml-auto sm:w-auto sm:gap-2">
             <button
               onClick={saveDraft}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50 sm:flex-none sm:px-3"
             >
-              <Save className="h-3.5 w-3.5" />{t("Guardar")}</button>
+              <Save className="hidden h-3.5 w-3.5 sm:block" />{t("Guardar")}</button>
             <button
               onClick={() => savePdf("print")}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50 sm:flex-none sm:px-3"
             >
-              <Printer className="h-3.5 w-3.5" />{t("Imprimir")}</button>
+              <Printer className="hidden h-3.5 w-3.5 sm:block" />{t("Imprimir")}</button>
             <button
               onClick={() => savePdf("pdf")}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 text-[12px] font-medium transition hover:bg-muted disabled:opacity-50 sm:flex-none sm:px-3"
             >
-              <Download className="h-3.5 w-3.5" />{t("PDF")}</button>
+              <Download className="hidden h-3.5 w-3.5 sm:block" />{t("PDF")}</button>
             <button
               onClick={issue}
               disabled={busy !== null}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-2 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-60 sm:flex-none sm:px-3.5"
             >
               <Send className="h-3.5 w-3.5" /> {busy === "send" ? t("A emitir…") : t("Emitir")}
             </button>
@@ -525,17 +527,20 @@ function Documentos() {
                     </div>
                   </div>
 
-                  <Cell
-                    value={String(l.qty)}
-                    onChange={(v) => update(l.id, { qty: Number(v) || 0 })}
-                    type="number"
-                    align="right"
+                  <MoneyInput
+                    value={l.qty}
+                    onChange={(n) => update(l.id, { qty: n })}
+                    decimals={3}
+                    aria-label={t("Qtd")}
+                    placeholder={t("Qtd")}
+                    className={cellClass("right")}
                   />
-                  <Cell
-                    value={String(l.price)}
-                    onChange={(v) => update(l.id, { price: Number(v) || 0 })}
-                    type="number"
-                    align="right"
+                  <MoneyInput
+                    value={l.price}
+                    onChange={(n) => update(l.id, { price: n })}
+                    aria-label={t("Preço")}
+                    placeholder={t("Preço")}
+                    className={cellClass("right")}
                   />
                   <span className="hidden px-2 text-right text-[12.5px] font-bold tabular-nums sm:block">
                     {mzn(l.qty * l.price)}
@@ -776,7 +781,7 @@ function CatalogPicker({
       .map((p) => ({ key: `p-${p.id}`, code: p.sku, name: p.name, meta: `${p.category} · ${p.unit}`, price: p.price, vat: p.vat, img: p.image })),
     ...services
       .filter((s) => s.status === "activo")
-      .map((s) => ({ key: `s-${s.id}`, code: s.code, name: s.name, meta: `${s.category} · ${s.billing}`, price: s.rate, vat: 16, img: undefined as string | undefined })),
+      .map((s) => ({ key: `s-${s.id}`, code: s.code, name: s.name, meta: s.category || "Serviço", price: s.rate, vat: 16, img: undefined as string | undefined })),
   ].filter((i) => !needle || i.name.toLowerCase().includes(needle) || i.code.toLowerCase().includes(needle));
 
   return (
@@ -858,14 +863,18 @@ function Cell({
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className={cn(
-        "h-8 w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 text-[12.5px] outline-none transition",
-        "hover:border-border/70 hover:bg-background",
-        "focus:border-primary/60 focus:bg-background focus:ring-[3px] focus:ring-primary/12",
-        align === "right" && "text-right tabular-nums",
-        muted && "text-[11.5px] text-muted-foreground",
-      )}
+      className={cn(cellClass(align), muted && "text-[11.5px] text-muted-foreground")}
     />
+  );
+}
+
+/** Aspecto das células da tabela de linhas (texto e valores). */
+function cellClass(align: "left" | "right" = "left") {
+  return cn(
+    "h-8 w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 text-[12.5px] outline-none transition",
+    "hover:border-border/70 hover:bg-background",
+    "focus:border-primary/60 focus:bg-background focus:ring-[3px] focus:ring-primary/12",
+    align === "right" && "text-right tabular-nums",
   );
 }
 

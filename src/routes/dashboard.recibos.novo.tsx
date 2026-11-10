@@ -17,6 +17,7 @@ import {
 } from "@/lib/invoices-store";
 import { issueClientReceipt } from "@/lib/receipts-store";
 import { Field, inputClass } from "@/components/catalog/Modal";
+import { MoneyInput } from "@/components/app/MoneyInput";
 
 export const Route = createFileRoute("/dashboard/recibos/novo")({
   validateSearch: (search: Record<string, unknown>): { cliente?: string; factura?: string } => ({
@@ -90,7 +91,7 @@ function NovoRecibo() {
 
   const selected = open.filter((i) => picked.has(i.id));
   const owed = round2(selected.reduce((a, i) => a + invoiceBalance(i), 0));
-  const customValue = Number(custom.replace(/\s/g, "").replace(",", ".")) || 0;
+  const customValue = Number(custom) || 0;
   const amounts = allocate(selected, mode, customValue);
   const received = round2(amounts.reduce((a, n) => a + n, 0));
   const amountOf = (id: string) => amounts[selected.findIndex((i) => i.id === id)] ?? 0;
@@ -262,7 +263,7 @@ function NovoRecibo() {
               {mode === "outro" && (
                 <div className="mt-3 max-w-xs">
                   <Field label="Valor recebido (MZN)" hint={selected.length > 1 ? "Liquida primeiro as facturas mais antigas." : undefined}>
-                    <input autoFocus className={inputClass} inputMode="decimal" value={custom} onChange={(e) => setCustom(e.target.value)} placeholder={formatMZN(owed)} />
+                    <MoneyInput autoFocus className={inputClass} value={customValue} onChange={(n) => setCustom(n ? String(n) : "")} placeholder={formatMZN(owed)} />
                   </Field>
                 </div>
               )}

@@ -259,7 +259,7 @@ function ChatWindow({
         <Conversation className="min-h-0 flex-1">
           <ConversationContent className="mx-auto w-full max-w-3xl">
             {messages.length === 0 ? (
-              <div className="py-10">
+              <div className="py-4 sm:py-10">
                 <ConversationEmptyState
                   icon={
                     <img
@@ -275,11 +275,11 @@ function ChatWindow({
                   description="Peça um rascunho de factura, anexe um comprovativo ou dite por voz."
                 />
                 <div className="mx-auto mt-6 grid max-w-2xl gap-2 sm:grid-cols-2">
-                  {SUGGESTIONS.map((s) => (
+                  {SUGGESTIONS.map((s, i) => (
                     <button
                       key={s}
                       onClick={() => send(s)}
-                      className="rounded-md border border-border/60 bg-background px-4 py-3 text-left text-[13px] text-muted-foreground transition hover:border-primary/50 hover:text-foreground"
+                      className={cn(i >= 2 && "hidden sm:block", "rounded-md border border-border/60 bg-background px-4 py-3 text-left text-[13px] text-muted-foreground transition hover:border-primary/50 hover:text-foreground")}
                     >
                       {s}
                     </button>

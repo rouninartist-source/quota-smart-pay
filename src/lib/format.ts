@@ -14,6 +14,15 @@ export function formatMZN(value: number, opts?: { compact?: boolean; decimals?: 
   }).format(value);
 }
 
+/**
+ * Valor sem zeros inúteis: 1 500 em vez de 1 500,00, mas 1 500,50 fica com
+ * as duas casas (não arredonda, ao contrário de `decimals: false`).
+ */
+export function formatAmount(value: number) {
+  const cents = Math.round(value * 100);
+  return formatMZN(value, { decimals: cents % 100 !== 0 });
+}
+
 export function formatDate(iso: string, style: "short" | "long" = "short") {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;

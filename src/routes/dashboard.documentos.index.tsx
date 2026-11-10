@@ -4,7 +4,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Search, Plus, FileText, Download, Printer, Send, MessageCircle, ArrowRight, Copy, Ban, CheckCheck, X } from "lucide-react";
 import { ShareDialog, shareLink } from "@/components/documents/ShareDialog";
 import { toast } from "sonner";
-import { formatDate, formatMZN } from "@/lib/format";
+import { formatAmount, formatDate, formatMZN } from "@/lib/format";
 import {
   cancelInvoice,
   documentKinds,
@@ -424,7 +424,7 @@ function DocumentosList() {
             })}
           </div>
 
-          <div className="relative min-w-0 flex-1 sm:max-w-[280px]">
+          <div className="relative w-full min-w-0 sm:w-auto sm:max-w-[280px] sm:flex-1">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               value={query}
@@ -438,13 +438,13 @@ function DocumentosList() {
           <Link
             to="/dashboard/recibos/novo"
             search={{}}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-3.5 py-2 text-[12px] font-semibold text-success transition hover:bg-success/15"
+            className="inline-flex flex-1 shrink-0 items-center justify-center gap-1.5 rounded-md border border-success/30 sm:ml-auto sm:flex-none bg-success/10 px-3.5 py-2 text-[12px] font-semibold text-success transition hover:bg-success/15"
           >
             <Plus className="h-3.5 w-3.5" />{t("Novo recibo")}</Link>
           <Link
             to="/dashboard/documentos/novo"
             search={{ tipo: undefined }}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90"
+            className="inline-flex flex-1 shrink-0 items-center justify-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-[12px] font-semibold text-primary-foreground transition hover:opacity-90 sm:flex-none"
           >
             <Plus className="h-3.5 w-3.5" />{t("Novo documento")}</Link>
         </div>
@@ -617,7 +617,7 @@ function DocumentosList() {
                           {formatDate(r.date)}
                         </td>
                         <td className="h-[34px] whitespace-nowrap px-2.5 text-right text-[12px] font-bold tabular-nums">
-                          {formatMZN(r.total, { decimals: false })}
+                          {formatAmount(r.total)}
                         </td>
                         <td className="h-[34px] px-2.5">
                           <span
@@ -640,7 +640,7 @@ function DocumentosList() {
               <span>
                 {visible.length} documento{visible.length === 1 ? "" : "s"}
               </span>
-              <span>{t("Soma")}<b className="font-bold tabular-nums text-foreground">{formatMZN(sum, { decimals: false })}</b>
+              <span>{t("Soma")} <b className="font-bold tabular-nums text-foreground">{formatAmount(sum)}</b>
               </span>
               <button
                 hidden={picked.length > 0}
@@ -769,7 +769,7 @@ function DocumentPanel({
           <dl className="mt-2.5 flex flex-col gap-2">
             <Meta label={t("Método")} value={row.method ?? "—"} />
             <Meta label="Referente a" value={row.refs ?? inv.number} />
-            <Meta label="Valor recebido" value={`${formatMZN(row.total, { decimals: false })} MZN`} />
+            <Meta label="Valor recebido" value={`${formatAmount(row.total)} MZN`} />
             <Meta label={t("Estado")} value={t(row.statusLabel)} />
           </dl>
         ) : (
@@ -787,7 +787,7 @@ function DocumentPanel({
                   <td className="max-w-0 truncate py-2 pr-2 text-[11.5px]">{l.description}</td>
                   <td className="py-2 text-right text-[11.5px] tabular-nums">{l.qty}</td>
                   <td className="py-2 text-right text-[11.5px] tabular-nums">
-                    {formatMZN(l.qty * l.price, { decimals: false })}
+                    {formatAmount(l.qty * l.price)}
                   </td>
                 </tr>
               ))}
@@ -799,7 +799,7 @@ function DocumentPanel({
           <div className="flex items-baseline justify-between border-t border-border pt-2.5">
             <span className="text-[11.5px] font-semibold">{t("Total")}</span>
             <span className="font-display text-[15px] font-semibold tabular-nums text-primary">
-              {formatMZN(row.total, { decimals: false })} MZN
+              {formatAmount(row.total)} MZN
             </span>
           </div>
         </div>

@@ -9,16 +9,16 @@ import { Button } from "@/components/ui/button";
 import { type Service } from "@/lib/mock-data";
 import { useServices } from "@/lib/catalog-store";
 import { ServiceEditor } from "@/components/catalog/ServiceEditor";
-import { formatMZN } from "@/lib/format";
+import { formatAmount } from "@/lib/format";
 import { csvNumber, downloadCsv, stamp, toCsv } from "@/lib/csv";
 
 export const Route = createFileRoute("/dashboard/servicos")({
   head: () => ({
     meta: [
       { title: "Serviços · Quota Studio" },
-      { name: "description", content: "Catálogo de serviços, tarifas, modelos de facturação e margens." },
+      { name: "description", content: "Catálogo de serviços, tarifas e categorias." },
       { property: "og:title", content: "Serviços · Quota Studio" },
-      { property: "og:description", content: "Catálogo de serviços, tarifas, modelos de facturação e margens." },
+      { property: "og:description", content: "Catálogo de serviços, tarifas e categorias." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -33,10 +33,8 @@ const columns: Column<Service>[] = [
         <p className="truncate text-xs text-muted-foreground">{r.code} · {r.category}</p>
       </div>
     ) },
-  { key: "billing", header: "Facturação", hideBelow: "lg", cell: (r) => <span className="text-muted-foreground">{r.billing}</span> },
-  { key: "duration", header: "Duração", hideBelow: "xl", cell: (r) => <span className="text-muted-foreground">{r.duration}</span> },
-  { key: "margin", header: "Margem", align: "right", hideBelow: "md", sortValue: (r) => r.margin, cell: (r) => <span>{r.margin}%</span> },
-  { key: "rate", header: "Tarifa", align: "right", sortValue: (r) => r.rate, cell: (r) => <span className="font-medium">{formatMZN(r.rate, { decimals: false })} MZN</span> },
+  { key: "category", header: "Categoria", hideBelow: "lg", sortValue: (r) => r.category, cell: (r) => <span className="text-muted-foreground">{r.category || "—"}</span> },
+  { key: "rate", header: "Tarifa", align: "right", sortValue: (r) => r.rate, cell: (r) => <span className="font-medium">{formatAmount(r.rate)} MZN</span> },
   { key: "status", header: "Estado", cell: (r) => <StatusBadge status={r.status} /> },
 ];
 
@@ -44,19 +42,16 @@ function ServicosPage() {
   const services = useServices();
   const [editing, setEditing] = useState<Service | "new" | null>(null);
   const n = services.length || 1;
-  const avg = Math.round(services.reduce((a, s) => a + s.rate, 0) / n);
-  const margin = Math.round(services.reduce((a, s) => a + s.margin, 0) / n);
+  const avg = services.reduce((a, s) => a + s.rate, 0) / n;
+  const categories = Array.from(new Set(services.map((s) => s.category).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt"));
 
   const exportCsv = () => {
     const csv = toCsv(
-      ["Código", "Serviço", "Categoria", "Facturação", "Duração", "Margem (%)", "Tarifa (MZN)", "Estado"],
+      ["Código", "Serviço", "Categoria", "Tarifa (MZN)", "Estado"],
       services.map((r) => [
         r.code,
         r.name,
         r.category,
-        r.billing,
-        r.duration,
-        String(r.margin),
         csvNumber(r.rate),
         r.status === "activo" ? "Activo" : "Pausado",
       ]),
@@ -80,11 +75,8 @@ function ServicosPage() {
             <span>
               Tarifa média{" "}
               <b className="font-bold tabular-nums text-foreground">
-                {formatMZN(avg, { decimals: false })}
+                {formatAmount(avg)}
               </b>
-            </span>
-            <span className="hidden lg:inline">
-              Margem média <b className="font-bold tabular-nums text-foreground">{margin}%</b>
             </span>
           </span>
           <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -105,14 +97,10 @@ function ServicosPage() {
           searchPlaceholder="Procurar serviço, código ou categoria…"
           filters={[
             {
-              key: "billing",
-              label: "Facturação",
-              options: [
-                { value: "Hora", label: "Hora" },
-                { value: "Projecto", label: "Projecto" },
-                { value: "Mensal", label: "Mensal" },
-              ],
-              match: (r, v) => r.billing === v,
+              key: "category",
+              label: "Categoria",
+              options: categories.map((c) => ({ value: c, label: c })),
+              match: (r, v) => r.category === v,
             },
             {
               key: "status",
@@ -135,14 +123,14 @@ function ServicosPage() {
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{r.name}</p>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {r.code} · {r.billing}
+                  {r.code}{r.category ? ` · ${r.category}` : ""}
                 </p>
                 <div className="mt-1.5">
                   <StatusBadge status={r.status} />
                 </div>
               </div>
               <p className="shrink-0 text-sm font-semibold tabular-nums">
-                {formatMZN(r.rate, { decimals: false })}
+                {formatAmount(r.rate)}
               </p>
             </div>
           )}

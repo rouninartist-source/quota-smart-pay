@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MoneyInput } from "@/components/app/MoneyInput";
 import { t } from "@/lib/i18n";
 import { useNavigate } from "@tanstack/react-router";
 import { FileText, FileCheck2, Trash2 } from "lucide-react";
@@ -6,8 +7,7 @@ import { toast } from "sonner";
 import type { Service } from "@/lib/mock-data";
 import { addService, deleteService, nextServiceCode, updateService, type ServiceInput } from "@/lib/catalog-store";
 import { Field, Modal, inputClass } from "./Modal";
-
-const num = (v: string) => Number(String(v).replace(",", ".")) || 0;
+import { CategorySelect } from "./Categories";
 
 export function ServiceEditor({ service, onClose }: { service?: Service; onClose: () => void }) {
   const [d, setD] = useState<ServiceInput>({
@@ -59,18 +59,9 @@ export function ServiceEditor({ service, onClose }: { service?: Service; onClose
           <Field label="Código"><input className={inputClass} value={d.code} onChange={(e) => set("code", e.target.value)} /></Field>
           <Field label={t("Nome")}><input className={inputClass} value={d.name} onChange={(e) => set("name", e.target.value)} autoFocus /></Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t("Categoria")}><input className={inputClass} value={d.category} onChange={(e) => set("category", e.target.value)} placeholder="Consultoria, Tecnologia…" /></Field>
-          <Field label="Duração"><input className={inputClass} value={d.duration} onChange={(e) => set("duration", e.target.value)} placeholder="1h, 3-5 dias, Contínuo" /></Field>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <Field label={t("Tarifa (MZN)")}><input className={inputClass} type="number" step="0.01" value={d.rate} onChange={(e) => set("rate", num(e.target.value))} /></Field>
-          <Field label="Facturação">
-            <select className={inputClass} value={d.billing} onChange={(e) => set("billing", e.target.value as ServiceInput["billing"])}>
-              <option>Hora</option><option>Projecto</option><option>Mensal</option>
-            </select>
-          </Field>
-          <Field label="Margem %"><input className={inputClass} type="number" step="1" value={d.margin} onChange={(e) => set("margin", num(e.target.value))} /></Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label={t("Categoria")}><CategorySelect kind="services" className={inputClass} value={d.category} onChange={(v) => set("category", v)} /></Field>
+          <Field label={t("Tarifa (MZN)")}><MoneyInput className={inputClass} value={d.rate} onChange={(n) => set("rate", n)} /></Field>
         </div>
         <Field label={t("Estado")}>
           <select className={inputClass} value={d.active ? "1" : "0"} onChange={(e) => set("active", e.target.value === "1")}>
